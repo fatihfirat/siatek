@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: siatek-api
+    runtime: node
+    buildCommand: npm ci && npm run build
+    startCommand: node dist/server.cjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: USE_IN_MEMORY_FALLBACK
+        value: "true"
+      - key: AUTH_SECRET
+        sync: false
+      - key: ADMIN_BOOTSTRAP_PASSWORD
+        sync: false
+      - key: CUSTOMER_BOOTSTRAP_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+    autoDeploy: true

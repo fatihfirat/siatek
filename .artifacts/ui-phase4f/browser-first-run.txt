@@ -1,0 +1,12 @@
+locator.click: Error: strict mode violation: getByRole('button', { name: 'Aramayı temizle', exact: true }) resolved to 2 elements:
+    1) <button type="button" data-size="medium" title="Aramayı temizle" aria-label="Aramayı temizle" class="ui-button ui-button-ghost ui-icon-button ">…</button> aka getByRole('button', { name: 'Aramayı temizle', description: 'Aramayı temizle' })
+    2) <button type="button" data-size="medium" class="ui-button ui-button-secondary ">…</button> aka locator('button').filter({ hasText: 'Aramayı temizle' })
+
+Call log:
+[2m  - waiting for getByRole('button', { name: 'Aramayı temizle', exact: true })[22m
+
+    at /Users/muslumfirat/antigravity/Gerçek-Zamanlı-Sipariş-ve-Teklif-Platformu/scripts/verify-operations.cjs:37:167 {
+  log: [
+    "  - waiting for getByRole('button', { name: 'Aramayı temizle', exact: true })"
+  ]
+}

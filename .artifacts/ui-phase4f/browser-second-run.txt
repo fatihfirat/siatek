@@ -1,0 +1,12 @@
+locator.inputValue: Error: strict mode violation: getByLabel('Pirinç dirsek miktarı', { exact: true }) resolved to 2 elements:
+    1) <div role="group" class="ui-stepper" aria-label="Pirinç dirsek miktarı">…</div> aka getByRole('group', { name: 'Pirinç dirsek miktarı' })
+    2) <input min="1" max="2" step="1" value="2" type="number" inputmode="decimal" aria-label="Pirinç dirsek miktarı"/> aka getByRole('spinbutton', { name: 'Pirinç dirsek miktarı' })
+
+Call log:
+[2m  - waiting for getByLabel('Pirinç dirsek miktarı', { exact: true })[22m
+
+    at /Users/muslumfirat/antigravity/Gerçek-Zamanlı-Sipariş-ve-Teklif-Platformu/scripts/verify-operations.cjs:39:219 {
+  log: [
+    "  - waiting for getByLabel('Pirinç dirsek miktarı', { exact: true })"
+  ]
+}

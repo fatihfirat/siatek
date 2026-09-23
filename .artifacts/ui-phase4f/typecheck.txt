@@ -1,0 +1,15 @@
+src/components/admin/AdminPortal.tsx(295,41): error TS2367: This comparison appears to be unintentional because the types '"pending" | "preparing" | "ready" | "out_for_delivery" | "delivered" | "cancelled"' and '"shipped"' have no overlap.
+src/components/admin/AdminPortal.tsx(373,46): error TS2345: Argument of type '"shipped"' is not assignable to parameter of type 'OrderStatus'.
+src/components/admin/AdminPortal.tsx(461,43): error TS2345: Argument of type '"shipped"' is not assignable to parameter of type 'OrderStatus'.
+src/components/admin/AdminPortal.tsx(495,12): error TS2678: Type '"shipped"' is not comparable to type 'OrderStatus'.
+src/components/admin/AdminPortal.tsx(1534,24): error TS2367: This comparison appears to be unintentional because the types 'OrderStatus' and '"shipped"' have no overlap.
+src/components/admin/AdminPortal.tsx(2069,66): error TS2345: Argument of type '"shipped"' is not assignable to parameter of type 'OrderStatus'.
+src/components/admin/OrderShipmentPackingModal.tsx(69,22): error TS2367: This comparison appears to be unintentional because the types 'OrderStatus' and '"shipped"' have no overlap.
+src/components/common/D3OrderStatusFlow.tsx(90,5): error TS2322: Type '"shipped"' is not assignable to type 'OrderStatus'.
+src/components/common/D3OrderStatusFlow.tsx(233,9): error TS2367: This comparison appears to be unintentional because the types 'OrderStatus' and '"shipped"' have no overlap.
+src/components/common/D3OrderStatusFlow.tsx(295,9): error TS2322: Type '"shipped"' is not assignable to type 'OrderStatus'.
+src/components/common/D3OrderStatusFlow.tsx(787,9): error TS2367: This comparison appears to be unintentional because the types '"pending" | "approved" | "preparing" | "ready" | "out_for_delivery" | "delivered"' and '"shipped"' have no overlap.
+src/components/customer/CustomerPortal.tsx(413,12): error TS2678: Type '"shipped"' is not comparable to type 'OrderStatus'.
+src/components/customer/CustomerPortal.tsx(530,116): error TS2367: This comparison appears to be unintentional because the types '"approved" | "ready" | "out_for_delivery" | "delivered" | "cancelled"' and '"shipped"' have no overlap.
+src/components/OrderPDFModal.tsx(48,12): error TS2678: Type '"shipped"' is not comparable to type 'OrderStatus'.
+src/utils/exportUtils.ts(940,5): error TS2367: This comparison appears to be unintentional because the types '"pending" | "approved" | "preparing" | "ready" | "out_for_delivery" | "cancelled"' and '"shipped"' have no overlap.

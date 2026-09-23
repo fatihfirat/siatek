@@ -1,0 +1,13 @@
+{
+  "projectId": "siatek",
+  "appId": "1:851572134015:web:84fc8ebd25a22807b66f4a",
+  "apiKey": "AIzaSyCnkczON9UDXFbdgRhOK_k-EGl_ionpN9Y",
+  "authDomain": "siatek.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "siatek.firebasestorage.app",
+  "messagingSenderId": "851572134015",
+  "measurementId": "G-29CC1XNPKJ",
+  "oAuthClientId": "",
+  "recaptchaSiteKey": "",
+  "recaptchaProvider": "enterprise"
+}

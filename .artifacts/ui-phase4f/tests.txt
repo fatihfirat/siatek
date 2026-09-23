@@ -1,0 +1,18 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vite.config.ts:11:27). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+11:46:28 PM [vite] warning: `esbuild` option was specified by "vite:react-babel" plugin. This option is deprecated, please use `oxc` instead.
+11:46:28 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-babel" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+Both esbuild and oxc options were set. oxc options will be used and esbuild options will be ignored. The following esbuild options were set: `{ jsx: 'automatic', jsxImportSource: undefined }`
+
+ RUN  v5.0.0 /Users/muslumfirat/antigravity/Gerçek-Zamanlı-Sipariş-ve-Teklif-Platformu
+
+
+ Test Files  12 passed | 1 skipped (13)
+      Tests  53 passed | 28 skipped (81)
+   Start at  23:46:29
+   Duration  883ms (transform 47%, import 34%, tests 9%, worker 9%)
+
+    Isolate  13 workers spawned · ~305ms startup each (spawn + environment, per file)
+             at least ~261ms faster with isolate: false — reuses workers across files instead of one per file
+

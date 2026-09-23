@@ -1,0 +1,11 @@
+locator.evaluate: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByRole('dialog', { name: 'POS · Yeni satış' })[22m
+
+    at noOverflow (/Users/muslumfirat/antigravity/Gerçek-Zamanlı-Sipariş-ve-Teklif-Platformu/scripts/verify-operations.cjs:17:201)
+    at async /Users/muslumfirat/antigravity/Gerçek-Zamanlı-Sipariş-ve-Teklif-Platformu/scripts/verify-operations.cjs:26:44 {
+  log: [
+    "  - waiting for getByRole('dialog', { name: 'POS · Yeni satış' })"
+  ],
+  name: 'TimeoutError'
+}

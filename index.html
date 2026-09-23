@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Media-query'li theme-color: tarayıcı address bar rengi OS tercihine göre açılır -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F8FAFC" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B0F19" />
+    <!-- Runtime'da JS ile güncellenen fallback (media attribute'suz) -->
+    <meta name="theme-color" content="#0B0F19" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Alpha Teknik | B2B Sipariş ve Saha Yönetim Portalı</title>
+    <meta name="description" content="ALPHA TEKNİK DOĞALGAZ SIHHİ TESİSAT için GİB standartlarında E-Fatura ve E-Arşiv modülü, UBL-TR 2.1 XML ve resmi antetli fatura görseli, Cari hesap & borç/alacak yönetimi, vadesi gelen ve geciken ödemeleri görselleştiren aylık takvim bileşeni, hesap ekstresi ve tahsilat takibi, Gündüz/Gece teması, yerel veritabanı yedekleme ve geri yükleme, resmi teklif & sipariş PDF oluşturucu, stok.pdf ürün kataloğu, kolay fiyat & stok değiştirme paneli, satış trendi ve anlık sipariş yönetim sistemi." />
+
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Siatek" />
+
+    <!-- Instant Pre-Mount Theme Sync (Eliminates mobile flash / dark mode lock) -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('app_theme');
+          // 'system' (veya hic kayit yok) ise OS tercihini coz.
+          // Eskiden buradaki mantik 'light' degilse DAIMA 'dark' seciyordu;
+          // App.tsx ise 'system'i matchMedia ile cozuyordu. Iki taraf farkli
+          // karar verince sayfa koyu aciliyor, React mount olunca acik temaya
+          // atliyordu (FOUC) ve tema dugmesi "calismiyor" gibi gorunuyordu.
+          var resolved = (saved === 'light' || saved === 'dark')
+            ? saved
+            : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          if (resolved === 'light') {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.style.colorScheme = 'light';
+          } else {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+            document.documentElement.removeAttribute('data-theme');
+            document.documentElement.style.colorScheme = 'dark';
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  </head>
+  <body class="antialiased font-sans">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Service Worker Registration for PWA Installation -->
+    <script>
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            console.log('Siatek PWA ServiceWorker registered:', reg.scope);
+          }).catch(function(err) {
+            console.warn('ServiceWorker registration error:', err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1 @@
+PASS: 56 home/products/cart/payment theme-width layouts; search/barcode, stock, parking, close retention, cash, double submit, failures, mismatch, focus/Escape/close, 44px, no API/Firestore requests.

@@ -1,0 +1,712 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-base: var(--bg-base);
+  --color-base-surface: var(--bg-surface);
+  --color-base-surface-2: var(--bg-surface-2);
+
+  --color-border: var(--border-color);
+  --color-border-strong: var(--border-strong-color);
+
+  --color-text-primary: var(--text-primary-color);
+  --color-text-secondary: var(--text-secondary-color);
+  --color-text-muted: var(--text-muted-color);
+
+  /* Brand 4-Quadrant Colors & Accents */
+  --color-brand-blue: #0086D0;
+  --color-brand-amber: #F8A627;
+  --color-brand-green: #2D7B31;
+  --color-brand-red: #D32D2D;
+  --color-brand-500: #0EA5E9;
+  --color-brand-600: #0284C7;
+  --color-brand-700: #0369A1;
+
+  /* Semantic Status Colors */
+  --color-success-text: var(--text-success-color);
+  --color-success-fill: var(--fill-success-color);
+  --color-success-border: var(--border-success-color);
+  --color-bg-success: var(--bg-success-color);
+  --color-success-dark: #1B5E20;
+
+  --color-info-text: var(--text-info-color);
+  --color-info-fill: var(--fill-info-color);
+  --color-info-border: var(--border-info-color);
+  --color-bg-info: var(--bg-info-color);
+  --color-info-dark: #005C8F;
+
+  --color-warning-text: var(--text-warning-color);
+  --color-warning-fill: var(--fill-warning-color);
+  --color-warning-border: var(--border-warning-color);
+  --color-bg-warning: var(--bg-warning-color);
+  --color-warning-dark: #8A4F00;
+
+  --color-danger-text: var(--text-danger-color);
+  --color-danger-fill: var(--fill-danger-color);
+  --color-danger-border: var(--border-danger-color);
+  --color-bg-danger: var(--bg-danger-color);
+
+  --color-neutral-text: var(--text-neutral-color);
+  --color-neutral-border: var(--border-neutral-color);
+  --color-bg-neutral: var(--bg-neutral-color);
+
+  /* UI Primary tokens */
+  --color-ui-primary: var(--ui-primary);
+  --color-ui-primary-dark: var(--ui-primary-dark);
+
+  /* Operational Categories */
+  --color-category-sales: var(--category-sales-color);
+  --color-category-sales-bg: var(--category-sales-bg);
+  --color-category-sales-text: var(--category-sales-text);
+  --color-category-sales-border: var(--category-sales-border);
+
+  --color-category-inventory: var(--category-inventory-color);
+  --color-category-inventory-bg: var(--category-inventory-bg);
+  --color-category-inventory-text: var(--category-inventory-text);
+  --color-category-inventory-border: var(--category-inventory-border);
+
+  --color-category-logistics: var(--category-logistics-color);
+  --color-category-logistics-bg: var(--category-logistics-bg);
+  --color-category-logistics-text: var(--category-logistics-text);
+  --color-category-logistics-border: var(--category-logistics-border);
+
+  --color-category-system: var(--category-system-color);
+  --color-category-system-bg: var(--category-system-bg);
+  --color-category-system-text: var(--category-system-text);
+  --color-category-system-border: var(--category-system-border);
+
+  /* Typography Scale Tokens */
+  --text-display: 28px;
+  --text-title1: 28px;
+  --text-title2: 22px;
+  --text-title3: 17px;
+  --text-body: 15px;
+  --text-caption: 13px;
+  --text-badge: 12px;
+
+  /* 4px Spacing Scale */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-10: 40px;
+  --spacing-12: 48px;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* Gece Modu / Dark Theme - Deep Slate & Emerald */
+  --bg-base: #0B0F19;
+  --bg-surface: #151E2E;
+  --bg-surface-2: #1E293B;
+
+  --border-color: #273549;
+  --border-strong-color: #3B4E68;
+
+  --text-primary-color: #F8FAFC;
+  --text-secondary-color: #94A3B8;
+  --text-muted-color: #94A3B8;
+
+  /* Success Semantic (Green #2D7B31) */
+  --text-success-color: #34D399;
+  --fill-success-color: #2D7B31;
+  --border-success-color: #065F46;
+  --bg-success-color: rgba(45, 123, 49, 0.22);
+
+  /* Info Semantic (Blue #0086D0) */
+  --text-info-color: #60A5FA;
+  --fill-info-color: #0086D0;
+  --border-info-color: #1E40AF;
+  --bg-info-color: rgba(0, 134, 208, 0.20);
+
+  /* Warning Semantic (Amber #F8A627) */
+  --text-warning-color: #FBBF24;
+  --fill-warning-color: #F8A627;
+  --border-warning-color: #92400E;
+  --bg-warning-color: rgba(248, 166, 39, 0.18);
+
+  /* Danger/Error Semantic (Red #D32D2D) */
+  --text-danger-color: #F87171;
+  --fill-danger-color: #D32D2D;
+  --border-danger-color: #991B1B;
+  --bg-danger-color: rgba(211, 45, 45, 0.22);
+
+  /* Neutral State */
+  --text-neutral-color: #94A3B8;
+  --border-neutral-color: #334155;
+  --bg-neutral-color: #1E293B;
+
+  /* Operation Categories (Dark Theme) */
+  --category-sales-color: #0086D0;
+  --category-sales-bg: rgba(0, 134, 208, 0.18);
+  --category-sales-text: #38BDF8;
+  --category-sales-border: #0284C7;
+
+  --category-inventory-color: #2D7B31;
+  --category-inventory-bg: rgba(45, 123, 49, 0.22);
+  --category-inventory-text: #4ADE80;
+  --category-inventory-border: #16A34A;
+
+  --category-logistics-color: #F8A627;
+  --category-logistics-bg: rgba(248, 166, 39, 0.20);
+  --category-logistics-text: #FBBF24;
+  --category-logistics-border: #F59E0B;
+
+  --category-system-color: #D32D2D;
+  --category-system-bg: rgba(211, 45, 45, 0.22);
+  --category-system-text: #F87171;
+  --category-system-border: #DC2626;
+}
+
+html.light, :root[data-theme='light'] {
+  color-scheme: light;
+
+  /* Gündüz Modu / Light Theme - Temiz & Ferah Kurumsal */
+  --bg-base: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-surface-2: #F1F5F9;
+
+  --border-color: #E2E8F0;
+  --border-strong-color: #CBD5E1;
+
+  --text-primary-color: #0F172A;
+  --text-secondary-color: #334155;
+  --text-muted-color: #475569;
+
+  /* Success Semantic - WCAG AA 7.00:1 on #E8F5E9 */
+  --text-success-color: #1B5E20;
+  --fill-success-color: #2D7B31;
+  --border-success-color: #A5D6A7;
+  --bg-success-color: #E8F5E9;
+
+  /* Info Semantic - WCAG AA 6.28:1 on #E3F2FD */
+  --text-info-color: #005C8F;
+  --fill-info-color: #0086D0;
+  --border-info-color: #BBDEFB;
+  --bg-info-color: #E3F2FD;
+
+  /* Warning Semantic - WCAG AA 5.99:1 on #FFF3E0 */
+  --text-warning-color: #8A4F00;
+  --fill-warning-color: #F8A627;
+  --border-warning-color: #FFE082;
+  --bg-warning-color: #FFF3E0;
+
+  /* Danger/Error Semantic - WCAG AA 5.74:1 on #FDECEA */
+  --text-danger-color: #B71C1C;
+  --fill-danger-color: #D32D2D;
+  --border-danger-color: #FFCDD2;
+  --bg-danger-color: #FDECEA;
+
+  /* Neutral State */
+  --text-neutral-color: #3F4750;
+  --border-neutral-color: #D3D8DE;
+  --bg-neutral-color: #F3F5F7;
+
+  /* Operation Categories (Light Theme) */
+  --category-sales-color: #0086D0;
+  --category-sales-bg: #E3F2FD;
+  --category-sales-text: #005C8F;
+  --category-sales-border: #BBDEFB;
+
+  --category-inventory-color: #2D7B31;
+  --category-inventory-bg: #E8F5E9;
+  --category-inventory-text: #1B5E20;
+  --category-inventory-border: #A5D6A7;
+
+  --category-logistics-color: #F8A627;
+  --category-logistics-bg: #FFF3E0;
+  --category-logistics-text: #8A4F00;
+  --category-logistics-border: #FFE082;
+
+  --category-system-color: #D32D2D;
+  --category-system-bg: #FDECEA;
+  --category-system-text: #B71C1C;
+  --category-system-border: #FFCDD2;
+}
+
+@layer base {
+  *, ::before, ::after {
+    border-color: var(--border-color);
+  }
+
+  html {
+    background-color: var(--bg-base);
+    color: var(--text-primary-color);
+    /* overflow-x: hidden; KALDIRILDI (18.09.2026)
+       Kok elemana overflow vermek, body'nin overflow'unun viewport'a
+       aktarilmasini engelliyordu; bu yuzden modal scroll kilidi hic
+       calismiyordu. Yatay tasma korumasi asagida #root uzerinde duruyor.
+       max-width: 100vw da kaldirildi: masaustunde 100vw scrollbar'i da
+       kapsadigi icin kendisi yatay tasma uretiyordu. */
+    width: 100%;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary-color);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  #root {
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  ::selection {
+    background-color: var(--fill-info-color);
+    color: #FFFFFF;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--fill-info-color);
+    outline-offset: 2px;
+  }
+}
+
+/* Custom Natural Tones scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(28, 28, 30, 0.7);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(104, 104, 111, 0.6);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(104, 104, 111, 0.9);
+}
+
+/* Natural typography utility */
+.font-display {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+/* Print optimizations for Quote, Order, Cari & Financial PDF / Printing */
+@media print {
+  @page {
+    margin: 8mm 10mm;
+    size: A4 portrait;
+  }
+
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-sizing: border-box !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  header, nav, footer, .print\:hidden, button, [role="button"], input, select {
+    display: none !important;
+  }
+
+  .print\:block {
+    display: block !important;
+  }
+
+  .print\:flex {
+    display: flex !important;
+  }
+
+  /* Root Printable Area Container */
+  .print-root-container,
+  #quote-print-area,
+  #order-print-area,
+  #cari-statement-print-area,
+  #customer-financial-print-area,
+  #einvoice-print-area {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  /* Dynamic Table & Row Layouts to prevent page cut-offs */
+  table {
+    width: 100% !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    min-height: 0 !important;
+  }
+
+  th, td {
+    padding: 4px 6px !important;
+    line-height: 1.25 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  /* Keep cards, totals and signatures intact without mid-section page breaks */
+  .border,
+  .rounded-2xl,
+  .rounded-3xl,
+  .grid,
+  .avoid-break,
+  [data-print-avoid-break="true"] {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Force light theme colors for dark mode elements when printing */
+  .bg-base-surface,
+  .bg-base-surface-2,
+  .bg-stone-900,
+  .bg-stone-950 {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  .text-text-primary,
+  .text-text-secondary,
+  .text-text-muted,
+  .text-stone-300,
+  .text-stone-400 {
+    color: #1e293b !important;
+  }
+
+  /* Subtle high-contrast borders for printing */
+  .border-border,
+  .border-stone-200,
+  .border-stone-300,
+  .border-stone-700,
+  .border-stone-800 {
+    border-color: #cbd5e1 !important;
+  }
+}
+
+/* ==========================================================================
+   ALPHA ENTERPRISE SUITE: DYNAMIC ERGONOMICS & DENSITY ENGINE
+   ========================================================================== */
+
+/* Kompakt Masaüstü ERP Modu */
+[data-density='compact'] table th,
+[data-density='compact'] table td {
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  font-size: 12.5px !important;
+}
+
+[data-density='compact'] .ui-row {
+  padding: 8px 12px !important;
+  margin-bottom: 4px !important;
+}
+
+[data-density='compact'] .order-card,
+[data-density='compact'] .shopping-product-card {
+  padding: 10px 12px !important;
+  gap: 8px !important;
+}
+
+[data-density='compact'] .ui-button,
+[data-density='compact'] button.ui-button {
+  min-height: 36px !important;
+  padding: 5px 12px !important;
+  font-size: 13px !important;
+}
+
+[data-density='compact'] .ui-kpi {
+  padding: 10px 12px !important;
+}
+
+[data-density='compact'] .ui-kpi strong {
+  font-size: 18px !important;
+}
+
+/* Kurumsal Keskin Köşe (Sharp 4-6px) Modu */
+[data-radius='sharp'] .rounded-3xl,
+[data-radius='sharp'] .rounded-2xl,
+[data-radius='sharp'] .rounded-xl,
+[data-radius='sharp'] .rounded-lg {
+  border-radius: 4px !important;
+}
+
+[data-radius='sharp'] .ui-button,
+[data-radius='sharp'] .ui-input,
+[data-radius='sharp'] .order-card,
+[data-radius='sharp'] .shopping-product-card {
+  border-radius: 4px !important;
+}
+
+/* Akışkan & Yumuşak (Pill 18-24px) Modu */
+[data-radius='pill'] .rounded-xl {
+  border-radius: 18px !important;
+}
+
+[data-radius='pill'] .rounded-2xl {
+  border-radius: 24px !important;
+}
+
+[data-radius='pill'] .rounded-3xl {
+  border-radius: 32px !important;
+}
+
+[data-radius='pill'] .ui-button,
+[data-radius='pill'] .ui-input {
+  border-radius: 20px !important;
+}
+
+
+/* ============================================================
+   Erişilebilirlik: Hareket azaltma tercihi (WCAG 2.2.2)
+   Katman dışında ve !important ile yazıldı; böylece Tailwind'in
+   @layer utilities içindeki animate-* yardımcılarını da ezer.
+   Kapsam: animate-pulse (56), animate-spin (32), animate-in (136).
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Premium shell layer — Bölüm 1
+   Figma layout dili Siatek veri/iş akışlarına uygulanır. Mevcut sınıflar korunur. */
+:root {
+  --premium-emerald: #10b981;
+  --premium-emerald-strong: #059669;
+  --premium-slate-950: #08111f;
+  --premium-slate-900: #0f172a;
+  --premium-slate-800: #162235;
+  --premium-line: rgba(148, 163, 184, .16);
+  --premium-shadow: 0 18px 45px rgba(2, 8, 23, .16);
+}
+
+body {
+  background: var(--bg-base);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+button, [role="button"], a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--premium-emerald) 40%, transparent);
+  outline-offset: 2px;
+}
+
+.shell-header {
+  min-height: 72px;
+  background: color-mix(in srgb, var(--bg-surface) 90%, transparent);
+  border-bottom: 1px solid var(--premium-line);
+  box-shadow: 0 1px 0 rgba(148, 163, 184, .05);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+
+.shell-header-inner {
+  min-height: 72px;
+  max-width: 1480px;
+  padding-inline: clamp(16px, 3vw, 40px);
+}
+
+.shell-brand strong { letter-spacing: -.02em; font-size: 15px; }
+.shell-brand small { color: var(--text-muted-color); letter-spacing: .02em; }
+
+.shell-search {
+  border-color: var(--premium-line) !important;
+  background: color-mix(in srgb, var(--bg-surface-2) 70%, transparent) !important;
+  border-radius: 12px !important;
+  min-height: 44px;
+  box-shadow: none !important;
+}
+
+.shell-header-btn {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.shell-header-btn:hover {
+  background: color-mix(in srgb, var(--bg-surface-2) 80%, transparent) !important;
+  border-color: var(--premium-line);
+}
+
+.shell-header-btn:active, .ui-button:active, button:active { transform: scale(.98); }
+
+.shell-badge {
+  background: var(--premium-emerald-strong);
+  border: 2px solid var(--bg-surface);
+}
+
+.shell-avatar {
+  background: linear-gradient(145deg, var(--premium-emerald), var(--premium-emerald-strong));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--premium-emerald) 15%, transparent);
+}
+
+.shell-main > *:not(.fixed):not([role="dialog"]):not(.admin-shell-host) {
+  animation: premium-content-in .28s ease both;
+}
+
+.ui-card, .ui-kpi, .order-card, .shopping-product-card, .panel, .data-panel {
+  border-color: var(--premium-line) !important;
+  box-shadow: 0 8px 28px rgba(2, 8, 23, .06);
+}
+
+.ui-card:hover, .ui-kpi:hover, .order-card:hover, .shopping-product-card:hover {
+  border-color: color-mix(in srgb, var(--premium-emerald) 35%, var(--premium-line)) !important;
+}
+
+/* Bölüm 5 — finans yüzeyi. Mevcut veri akışını değiştirmeden ortak Figma dili. */
+.finance-workspace {
+  background: color-mix(in srgb, var(--bg-surface) 96%, var(--premium-emerald) 4%);
+  border-color: color-mix(in srgb, var(--premium-emerald) 18%, var(--premium-line)) !important;
+  box-shadow: var(--premium-shadow);
+}
+
+.finance-workspace > div:last-child > div {
+  border-color: var(--premium-line);
+}
+
+.finance-surface {
+  animation: premium-content-in .28s ease both;
+}
+
+.finance-surface button {
+  min-height: 44px;
+}
+
+.finance-surface table th {
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.finance-surface input,
+.finance-surface select,
+.finance-surface textarea {
+  min-height: 44px;
+  border-color: var(--premium-line);
+  border-radius: 12px;
+}
+
+/* Bölüm 6 — premium deneyim. Veri akışlarını değiştirmeden odak ve ritim. */
+.premium-section-six {
+  --premium-section-gap: clamp(16px, 2vw, 24px);
+  min-width: 0;
+}
+
+.premium-section-six > header,
+.premium-section-six > section,
+.premium-section-six > div {
+  min-width: 0;
+}
+
+.premium-section-six h1,
+.premium-section-six h2,
+.premium-section-six h3 {
+  text-wrap: balance;
+}
+
+.premium-section-six button,
+.premium-section-six [role="button"] {
+  min-height: 44px;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.premium-section-six button:active,
+.premium-section-six [role="button"]:active {
+  transform: scale(.98);
+}
+
+.premium-section-six .tabular-nums,
+.premium-section-six [data-numeric="true"] {
+  font-variant-numeric: tabular-nums;
+}
+
+.premium-section-six .ui-card,
+.premium-section-six .ui-kpi,
+.premium-section-six .data-panel {
+  background: color-mix(in srgb, var(--bg-surface) 97%, var(--premium-emerald) 3%);
+}
+
+.admin-premium-surface > header {
+  box-shadow: 0 20px 50px -28px rgba(2, 8, 23, .7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-section-six *,
+  .premium-section-six *::before,
+  .premium-section-six *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@keyframes premium-content-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 760px) {
+  .shell-header, .shell-header-inner { min-height: 64px; }
+  .shell-header-inner { padding-inline: 12px; }
+  .shell-brand small { display: none; }
+  .shell-search { display: none !important; }
+  .shell-header-actions { gap: 2px !important; }
+}
+/* WhatsApp mini conversation */
+.whatsapp-concierge{position:fixed;right:24px;bottom:max(calc(var(--shell-nav-space,72px) + 20px),24px);z-index:48;display:flex;flex-direction:column;align-items:flex-end;gap:12px;pointer-events:none}.whatsapp-concierge__launcher{pointer-events:auto;width:52px;min-width:52px;height:52px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:#047857;color:#fff;box-shadow:0 12px 30px -14px rgba(4,120,87,.72);font:inherit;cursor:pointer;transition:transform 140ms ease,background 160ms ease,box-shadow 160ms ease}.whatsapp-concierge__launcher:hover{background:#065f46;box-shadow:0 14px 34px -14px rgba(4,120,87,.85)}.whatsapp-concierge__launcher:active{transform:scale(.98)}.whatsapp-concierge__launcher.is-open{background:#0f172a}.whatsapp-concierge__launcher svg{width:21px}.whatsapp-concierge__panel{pointer-events:auto;width:min(360px,calc(100vw - 32px));overflow:hidden;border:1px solid #dbe5e1;border-radius:20px;background:#fff;color:#0f172a;box-shadow:0 24px 70px -28px rgba(15,23,42,.55);transform-origin:bottom right;animation:whatsapp-concierge-in 200ms cubic-bezier(.16,1,.3,1)}
+.whatsapp-concierge__header{min-height:66px;display:flex;align-items:center;justify-content:space-between;padding:10px 12px 10px 14px;border-bottom:1px solid #e8eeeb;background:#f8fbfa}.whatsapp-concierge__identity{display:flex;align-items:center;gap:10px}.whatsapp-concierge__identity>span{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:#d1fae5;color:#047857}.whatsapp-concierge__identity svg{width:20px}.whatsapp-concierge__identity b,.whatsapp-concierge__identity small{display:block}.whatsapp-concierge__identity b{font-size:13px}.whatsapp-concierge__identity small{margin-top:3px;color:#64748b;font-size:10px}.whatsapp-concierge__identity small i{display:inline-block;width:7px;height:7px;margin-right:5px;border-radius:50%;background:#10b981}.whatsapp-concierge__header>button{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:#64748b;cursor:pointer}.whatsapp-concierge__header>button:hover{background:#e9f0ed}.whatsapp-concierge__header>button svg{width:18px}
+.whatsapp-concierge__conversation{max-height:min(440px,60dvh);overflow-y:auto;overscroll-behavior:contain;padding:15px;background:#f5f7f6;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}.whatsapp-concierge__message{display:flex;align-items:flex-end;gap:7px;margin-bottom:12px}.whatsapp-concierge__message>span{display:grid;place-items:center;width:27px;height:27px;flex:0 0 27px;border-radius:9px;background:#0f172a;color:#fff;font-size:8px;font-weight:900}.whatsapp-concierge__message p{max-width:255px;margin:0;padding:10px 12px;border:1px solid #e2e8f0;border-radius:14px 14px 14px 4px;background:#fff;color:#334155;font-size:12px;line-height:1.45}.whatsapp-concierge__message.is-user{justify-content:flex-end}.whatsapp-concierge__message.is-user p{border-color:#a7f3d0;border-radius:14px 14px 4px 14px;background:#ecfdf5;color:#065f46;font-weight:750}
+.whatsapp-concierge__choices{display:grid;gap:7px;padding-left:34px}.whatsapp-concierge__choices button{min-height:50px;display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:9px;padding:7px 10px;border:1px solid #dde6e2;border-radius:13px;background:#fff;color:#0f172a;text-align:left;cursor:pointer;transition:transform 100ms ease,border-color 140ms ease}.whatsapp-concierge__choices button:hover{border-color:#6ee7b7}.whatsapp-concierge__choices button:active{transform:scale(.98)}.whatsapp-concierge__choices button>span{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#ecfdf5;color:#047857}.whatsapp-concierge__choices svg{width:17px}.whatsapp-concierge__choices b{font-size:11px}.whatsapp-concierge__choices small{color:#94a3b8;font-size:9px;font-weight:800;text-transform:uppercase}
+.whatsapp-concierge__form{display:grid;gap:7px;margin-left:34px;padding:10px;border:1px solid #dbe5e1;border-radius:14px;background:#fff}.whatsapp-concierge__form label{color:#64748b;font-size:9px;font-weight:850;text-transform:uppercase}.whatsapp-concierge__form textarea{width:100%;box-sizing:border-box;resize:none;padding:9px 10px;border:1px solid #dfe7e4;border-radius:10px;background:#f8faf9;color:#0f172a;font:inherit;font-size:11px;outline:none}.whatsapp-concierge__form textarea:focus{border-color:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.14)}.whatsapp-concierge__form>div{display:flex;gap:7px}.whatsapp-concierge__form button{min-height:42px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:10px;font:inherit;font-size:10px;font-weight:850;cursor:pointer}.whatsapp-concierge__form button:active{transform:scale(.98)}.whatsapp-concierge__form button svg{width:15px}.whatsapp-concierge__form .is-back{padding:0 10px;border:1px solid #e2e8f0;background:#fff;color:#64748b}.whatsapp-concierge__form .is-send{flex:1;border:0;background:#047857;color:#fff}.whatsapp-concierge__form .is-send:disabled{cursor:not-allowed;opacity:.45}.whatsapp-concierge__panel>footer{min-height:34px;display:grid;place-items:center;border-top:1px solid #edf1ef;color:#94a3b8;font-size:9px}
+@keyframes whatsapp-concierge-in{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:767px){.whatsapp-concierge{right:12px;bottom:max(calc(var(--shell-nav-space,72px) + 12px),84px)}.whatsapp-concierge__launcher{width:52px;min-width:52px;padding:0}.whatsapp-concierge__launcher span{display:none}.whatsapp-concierge__panel{width:min(360px,calc(100vw - 24px))}.whatsapp-concierge__conversation{max-height:52dvh}}
+@media(prefers-reduced-motion:reduce){.whatsapp-concierge__panel{animation:none}}

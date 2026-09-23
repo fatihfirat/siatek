@@ -1,0 +1,1 @@
+PASS: 14 theme/viewport combinations; quantity limits; search; modal focus and Escape; loading; toast deduplication; reduced motion; no runtime errors.

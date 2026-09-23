@@ -1,0 +1,14 @@
+locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for getByText(/Kayıt doğrulanamadı. Sepet korundu/) to be visible[22m
+[2m    - waiting for "http://127.0.0.1:5174/operations-preview" navigation to finish...[22m
+[2m    - navigated to "http://127.0.0.1:5174/operations-preview"[22m
+
+    at /Users/muslumfirat/antigravity/Gerçek-Zamanlı-Sipariş-ve-Teklif-Platformu/scripts/verify-operations.cjs:46:218 {
+  log: [
+    '  - waiting for getByText(/Kayıt doğrulanamadı. Sepet korundu/) to be visible',
+    '    - waiting for "http://127.0.0.1:5174/operations-preview" navigation to finish...',
+    '    - navigated to "http://127.0.0.1:5174/operations-preview"'
+  ],
+  name: 'TimeoutError'
+}

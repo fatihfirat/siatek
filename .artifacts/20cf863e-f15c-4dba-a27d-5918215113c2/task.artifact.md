@@ -1,0 +1,4 @@
+- `[x]` Web varlıklarını Android projesine senkronize et (`npx cap sync android`)
+- `[x]` Yeni bir "Android App" çalışma yapılandırması oluştur (`.idea/runConfigurations/app.xml`)
+- `[x]` IDE üzerinde yapılması gereken manuel adımları kullanıcıya bildir
+- `[x]` Uygulamanın başlatılabilir olduğunu doğrula

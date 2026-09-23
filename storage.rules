@@ -1,0 +1,46 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthed() && (
+        request.auth.token.admin == true ||
+        (request.auth.token.email != null &&
+         request.auth.token.email.lower() in [
+           'fatihfirat1010@gmail.com',
+           'muslimfirat@yahoo.com'
+         ])
+      );
+    }
+
+    // Genel varliklar (logo vb.): herkes okur, sadece admin yazar.
+    match /public/{allPaths=**} {
+      allow read:  if true;
+      allow write: if isAdmin()
+                   && request.resource.size < 5 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Kullanicinin kendi yukledikleri
+    match /users/{userId}/{allPaths=**} {
+      allow read:  if isAuthed() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAuthed() && request.auth.uid == userId
+                   && request.resource.size < 10 * 1024 * 1024;
+      allow delete: if isAdmin() || (isAuthed() && request.auth.uid == userId);
+    }
+
+    // Fatura/belge arsivi: sadece admin
+    match /invoices/{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // Varsayilan: kapali
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

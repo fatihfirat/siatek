@@ -1,0 +1,1 @@
+PASS: 12 layouts; detail, repeated add, account persistence, error retention, double submit, success, quote, guest.

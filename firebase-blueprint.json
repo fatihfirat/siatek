@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "1.0.0",
+  "entities": {
+    "UserProfile": {
+      "collection": "users",
+      "fields": {
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "companyName": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "taxNumber": { "type": "string" },
+        "taxOffice": { "type": "string" },
+        "isDealer": { "type": "boolean" },
+        "discountTier": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "roles": {
+        "admin": { "read": true, "write": true },
+        "owner": { "read": true, "write": true }
+      }
+    },
+    "Product": {
+      "collection": "products",
+      "fields": {
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "subCategory": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "wholesalePrice": { "type": "number" },
+        "stock": { "type": "number" },
+        "unit": { "type": "string" },
+        "minOrderQuantity": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "sku": { "type": "string" },
+        "barcode": { "type": "string" },
+        "vatRate": { "type": "number" },
+        "featured": { "type": "boolean" }
+      },
+      "roles": {
+        "public": { "read": true },
+        "admin": { "read": true, "write": true }
+      }
+    },
+    "Order": {
+      "collection": "orders",
+      "fields": {
+        "orderNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "customerAddress": { "type": "string" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "discount": { "type": "number" },
+        "tax": { "type": "number" },
+        "total": { "type": "number" },
+        "status": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "notes": { "type": "string" },
+        "trackingNumber": { "type": "string" },
+        "statusHistory": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "roles": {
+        "public": { "read": true, "write": true },
+        "customer": { "read": true, "write": true },
+        "admin": { "read": true, "write": true }
+      }
+    },
+    "Quote": {
+      "collection": "quotes",
+      "fields": {
+        "quoteNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerCompany": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "deliveryCity": { "type": "string" },
+        "requestedItems": { "type": "array" },
+        "offeredItems": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "discountAmount": { "type": "number" },
+        "shippingFee": { "type": "number" },
+        "taxRate": { "type": "number" },
+        "taxAmount": { "type": "number" },
+        "grandTotal": { "type": "number" },
+        "status": { "type": "string" },
+        "customerNote": { "type": "string" },
+        "adminResponseNote": { "type": "string" },
+        "paymentTerms": { "type": "string" },
+        "validUntil": { "type": "string" },
+        "aiSuggestedDiscount": { "type": "number" },
+        "aiNotes": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "roles": {
+        "public": { "read": true, "write": true },
+        "customer": { "read": true, "write": true },
+        "admin": { "read": true, "write": true }
+      }
+    },
+    "Notification": {
+      "collection": "notifications",
+      "fields": {
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "type": { "type": "string" },
+        "targetRole": { "type": "string" },
+        "referenceId": { "type": "string" },
+        "referenceType": { "type": "string" },
+        "read": { "type": "boolean" },
+        "timestamp": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "roles": {
+        "public": { "read": true, "write": true },
+        "admin": { "read": true, "write": true }
+      }
+    },
+    "CariAccount": {
+      "collection": "cari_accounts",
+      "fields": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "companyName": { "type": "string" },
+        "type": { "type": "string" },
+        "taxNumber": { "type": "string" },
+        "taxOffice": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "city": { "type": "string" },
+        "address": { "type": "string" },
+        "creditLimit": { "type": "number" },
+        "paymentTermDays": { "type": "number" },
+        "balance": { "type": "number" },
+        "totalDebit": { "type": "number" },
+        "totalCredit": { "type": "number" },
+        "status": { "type": "string" },
+        "notes": { "type": "string" },
+        "lastTransactionDate": { "type": "string" },
+        "lastTransactionDesc": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "roles": {
+        "public": { "read": true, "write": true },
+        "admin": { "read": true, "write": true }
+      }
+    },
+    "CariTransaction": {
+      "collection": "cari_transactions",
+      "fields": {
+        "cariId": { "type": "string" },
+        "date": { "type": "string" },
+        "type": { "type": "string" },
+        "amount": { "type": "number" },
+        "direction": { "type": "string" },
+        "description": { "type": "string" },
+        "documentNo": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "orderId": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "roles": {
+        "public": { "read": true, "write": true },
+        "admin": { "read": true, "write": true }
+      }
+    },
+    "EInvoice": {
+      "collection": "invoices",
+      "fields": {
+        "invoiceNumber": { "type": "string" },
+        "uuid": { "type": "string" },
+        "profile": { "type": "string" },
+        "type": { "type": "string" },
+        "invoiceDate": { "type": "string" },
+        "invoiceTime": { "type": "string" },
+        "currency": { "type": "string" },
+        "currencyRate": { "type": "number" },
+        "status": { "type": "string" },
+        "supplierTitle": { "type": "string" },
+        "supplierVkn": { "type": "string" },
+        "supplierTaxOffice": { "type": "string" },
+        "supplierAddress": { "type": "string" },
+        "supplierCity": { "type": "string" },
+        "supplierPhone": { "type": "string" },
+        "supplierEmail": { "type": "string" },
+        "customerTitle": { "type": "string" },
+        "customerVknTckn": { "type": "string" },
+        "customerAddress": { "type": "string" },
+        "customerCity": { "type": "string" },
+        "isEInvoicePayer": { "type": "boolean" },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "totalDiscount": { "type": "number" },
+        "taxExclusiveAmount": { "type": "number" },
+        "totalVat": { "type": "number" },
+        "payableAmount": { "type": "number" },
+        "amountInWords": { "type": "string" },
+        "notes": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "roles": {
+        "public": { "read": true, "write": true },
+        "admin": { "read": true, "write": true }
+      }
+    }
+  }
+}

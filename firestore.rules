@@ -1,0 +1,282 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    //  ALPHA TEKNIK / SIATEK - Firestore Guvenlik Kurallari
+    //  Bu dosya uygulamanin TEK guvenlik siniridir (Express sunucu
+    //  canlida calismiyor, istemci dogrudan Firestore'a baglaniyor).
+    //  Varsayilan: her sey KAPALI. Acilan her yol bilincli bir karardir.
+    // ============================================================
+
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthed() && request.auth.uid == userId;
+    }
+
+    // Admin kontrolu KULLANICI DOKUMANINA BAKMAZ.
+    // (Eski surum users/{uid}.role okuyordu; kullanici o dokumani kendi
+    //  yazabildigi icin herkes kendini admin yapabiliyordu.)
+    // Kalici cozum custom claim: request.auth.token.admin == true
+    function isAdmin() {
+      return isAuthed() && (
+        request.auth.token.admin == true ||
+        (request.auth.token.email != null &&
+         request.auth.token.email.lower() in [
+           'fatihfirat1010@gmail.com',
+           'muslimfirat@yahoo.com'
+         ])
+      );
+    }
+
+    // E-postalar buyuk/kucuk harf farkindan etkilenmesin diye normalize edilir.
+    function myEmail() {
+      return isAuthed() && request.auth.token.email != null
+        ? request.auth.token.email.lower()
+        : '';
+    }
+
+    // Dokumandaki e-posta oturumdakiyle ayni mi?
+    // Bos e-posta ile eslesme olmasin diye myEmail() bos olmamali.
+    function docEmailBenimMi(alan) {
+      return isAuthed()
+        && myEmail() != ''
+        && alan is string
+        && alan.lower() == myEmail();
+    }
+
+    // SAHIPLIK: once UID (degismez, taklit edilemez).
+    // customerUid alani olmayan ESKI kayitlar icin e-posta yedek yoldur;
+    // dolgu scripti calistiktan sonra bu dal kullanilmaz hale gelir ve
+    // guvenle silinebilir.
+    function benimKaydimMi(veri) {
+      return isAuthed() && (
+        (veri.get('customerUid', '') != '' && veri.get('customerUid', '') == request.auth.uid)
+        ||
+        (veri.get('customerUid', '') == '' && docEmailBenimMi(veri.get('customerEmail', '')))
+      );
+    }
+
+    // Yeni kayitlar UID tasimak ZORUNDA ve UID oturumunkiyle ayni olmali.
+    function gecerliYeniKayit() {
+      return isAuthed()
+        && request.resource.data.get('customerUid', '') == request.auth.uid
+        && gelenEmailBenimMi();
+    }
+
+    function gecerliSiparisTemeli(data) {
+      return data.keys().hasAll([
+          'id', 'orderNumber', 'customerUid', 'customerName', 'customerEmail',
+          'items', 'subtotal', 'discount', 'tax', 'total', 'status',
+          'createdAt', 'updatedAt', 'pricingVerified', 'stockState', 'idempotencyKey'
+        ])
+        && data.id is string
+        && data.orderNumber is string
+        && data.customerUid is string
+        && data.customerName is string
+        && data.customerEmail is string
+        && data.items is list
+        && data.items.size() > 0
+        && data.items.size() <= 100
+        && data.subtotal is number
+        && data.discount is number
+        && data.tax is number
+        && data.total is number
+        && data.status in ['pending', 'approved', 'preparing', 'ready', 'shipped', 'out_for_delivery', 'delivered', 'cancelled']
+        && data.pricingVerified is bool
+        && data.stockState in ['unreserved', 'reserved', 'released']
+        && data.idempotencyKey is string
+        && data.idempotencyKey.size() >= 8
+        && data.idempotencyKey.size() <= 128;
+    }
+
+    function gecerliMusteriSiparisTalebi() {
+      return gecerliSiparisTemeli(request.resource.data)
+        && request.resource.data.customerUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.pricingVerified == false
+        && request.resource.data.stockState == 'unreserved'
+        && request.resource.data.subtotal == 0
+        && request.resource.data.discount == 0
+        && request.resource.data.tax == 0
+        && request.resource.data.total == 0;
+    }
+
+    function gelenEmailBenimMi() {
+      return isAuthed()
+        && myEmail() != ''
+        && request.resource.data.keys().hasAll(['customerEmail'])
+        && request.resource.data.customerEmail is string
+        && request.resource.data.customerEmail.lower() == myEmail();
+    }
+
+    // Kullanici kendi profilinde YETKI ve FIYAT alanlarini degistiremez.
+    // resource.data.get(...) kullaniliyor cunku eski dokumanlarda bu alanlar
+    // eksik olabilir; eksikse uygulamanin gonderdigi guvenli varsayilan beklenir.
+    // Kritik olan 'role': 'admin' yazma girisimi her durumda reddedilir.
+    function yetkiAlanlariSabit() {
+      return request.resource.data.get('role', 'customer')
+               == resource.data.get('role', 'customer')
+          && request.resource.data.get('isDealer', true)
+               == resource.data.get('isDealer', true)
+          && request.resource.data.get('discountTier', 'ALPHA_ADMIN')
+               == resource.data.get('discountTier', 'ALPHA_ADMIN');
+    }
+
+    // ---------------- users ----------------
+    match /users/{userId} {
+      allow read:   if isOwner(userId) || isAdmin();
+      allow create: if (isOwner(userId) && request.resource.data.role == 'customer')
+                    || isAdmin();
+      allow update: if (isOwner(userId) && yetkiAlanlariSabit()) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ---------------- settings (sirket bilgileri, IBAN) ----------------
+    // Okuma acik: iletisim bilgisi ve IBAN sitede musteriye gosteriliyor.
+    // Yazma SADECE admin: eskiden "if true" idi -> IBAN degistirme riski.
+    match /settings/{settingId} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------------- products (katalog) ----------------
+    match /products/{productId} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------------- orders ----------------
+    match /orders/{orderId} {
+      allow read: if isAdmin() || benimKaydimMi(resource.data);
+
+      // Spark planda müşteri yalnızca doğrulanmamış bekleyen talep açar.
+      // Stok/fiyat etkisi yoktur. Yönetici onayı atomik transaction ile işler.
+      allow create: if (gecerliYeniKayit() && gecerliMusteriSiparisTalebi() && request.resource.data.id == orderId)
+                    || (isAdmin() && gecerliSiparisTemeli(request.resource.data));
+      allow update: if isAdmin() && gecerliSiparisTemeli(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /stock_movements/{movementId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // ---------------- quotes (teklif talepleri) ----------------
+    match /quotes/{quoteId} {
+      allow read: if isAdmin() || benimKaydimMi(resource.data);
+
+      allow create: if gecerliYeniKayit() || isAdmin();
+
+      // Musteri kendi teklifini YALNIZCA kabul/red edebilir; baska hicbir alana
+      // (fiyat, iskonto, kalem) dokunamaz.
+      allow update: if isAdmin()
+                    || (
+                      benimKaydimMi(resource.data)
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['status', 'updatedAt'])
+                      && request.resource.data.status in ['accepted', 'rejected']
+                    );
+
+      allow delete: if isAdmin();
+    }
+
+    // ---------------- notifications ----------------
+    match /notifications/{notificationId} {
+      // SIZINTI DUZELTMESI (19.09.2026): eskiden "isAuthed()" idi, yani giris
+      // yapan HER bayi TUM bildirimleri okuyabiliyordu. Bildirim metinleri
+      // baska musterilerin adini ve siparis tutarini iceriyor
+      // ("Yeni Siparis: X firmasi - 12.500 TL").
+      // Artik: admin hepsini gorur; kullanici yalnizca kendisine
+      // hedeflenmis (targetUid) bildirimi gorur.
+      allow read: if isAdmin()
+                  || (isAuthed() && resource.data.get('targetUid', '') == request.auth.uid);
+      allow write: if isAdmin();
+    }
+
+    // ---------------- dekont bildirimleri ----------------
+    // Musteri havale/EFT dekontu bildirir; yalnizca kendi kaydini olusturabilir
+    // ve sonrasinda degistiremez. Onay/red admin'e aittir.
+    match /receipts/{receiptId} {
+      allow read:   if isAdmin() || benimKaydimMi(resource.data);
+      allow create: if gecerliYeniKayit()
+                    && request.resource.data.get('status', '') == 'pending';
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------------- cari hesaplar ----------------
+    match /cari_accounts/{cariId} {
+      allow read:  if isAdmin() || docEmailBenimMi(resource.data.get('email', ''));
+
+      // Self-servis kayit: kullanici KENDI adina, YALNIZCA onay bekleyen ve
+      // tum finansal alanlari sifirlanmis bir kart acabilir. Limit/bakiye
+      // belirlemek adminin isi. (receipts'teki 'pending' kalibinin esi.)
+      allow create: if isAuthed()
+                    && docEmailBenimMi(request.resource.data.get('email', ''))
+                    && request.resource.data.get('status', '') == 'pending'
+                    && request.resource.data.get('balance', 1) == 0
+                    && request.resource.data.get('totalDebit', 1) == 0
+                    && request.resource.data.get('totalCredit', 1) == 0
+                    && request.resource.data.get('creditLimit', 1) == 0
+                    && request.resource.data.get('type', '') in ['customer', 'dealer'];
+
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------------- tahsilatlar (kasa) ----------------
+    match /payments/{paymentId} {
+      // Musteri kendi tahsilatlarini gorebilir; kayit/duzeltme adminin.
+      allow read: if isAdmin() || benimKaydimMi(resource.data);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /cari_transactions/{transId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------------- faturalar ----------------
+    match /invoices/{invoiceId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------------- cek/senet takip ----------------
+    match /cek_senet/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------------- kasa hareketleri ----------------
+    match /kasa_hareketleri/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------------- gider kayitlari ----------------
+    match /gider_kayitlari/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------------- alis faturalari ----------------
+    match /alis_faturalari/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------------- tedarikciler ----------------
+    match /tedarikciler/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------------- tedarikci cari islemleri ----------------
+    match /tedarikci_islemleri/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ---------------- varsayilan: kapali ----------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

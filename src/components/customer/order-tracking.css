@@ -1,0 +1,43 @@
+.order-tracking { min-width: 0; display: grid; gap: 16px; }
+.order-tracking h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.02em; color: var(--text-primary-color); }
+.order-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-block: 12px; }
+.order-card { padding: 16px; border: 1px solid var(--border-color); border-radius: var(--ui-radius); background: var(--bg-surface); margin-bottom: 12px; transition: all var(--ui-fast) ease; }
+.order-card:hover { border-color: var(--border-strong-color); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.order-detail { overflow-wrap: anywhere; line-height: 1.5; font-size: 14px; }
+.order-detail p { margin-block: 6px; }
+.order-next { padding-top: 10px; font-size: 13px; color: var(--ui-muted); }
+.order-totals { display: grid; gap: 8px; font-size: 13px; }
+.order-totals > div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; }
+.order-totals dt { color: var(--ui-muted); }
+.order-totals dd { font-weight: 700; margin: 0; font-variant-numeric: tabular-nums; }
+.order-timeline { list-style: none; padding: 0 0 0 20px; margin: 0 0 0 6px; border-left: 2px solid var(--border-color); }
+.order-timeline li { position: relative; padding: 0 0 18px 4px; }
+.order-timeline li::before { content: ''; position: absolute; left: -26px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--ui-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-primary) 25%, transparent); }
+.order-timeline time { display: block; color: var(--ui-muted); font-size: 12px; font-mono: monospace; }
+.ui-dialog h2 { overflow-wrap: anywhere; min-width: 0; }
+@media(max-width: 600px) { .order-filters { grid-template-columns: 1fr; } }
+
+/* Bölüm 3: teklif akışının Figma yüzeyini gerçek quote durumlarından üretir. */
+.quote-tracking-premium { min-width: 0; }
+.quote-tracking-premium__summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.quote-tracking-premium__summary-card {
+  display: grid;
+  gap: 5px;
+  min-height: 104px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: var(--bg-surface);
+  box-shadow: 0 8px 24px rgba(2, 8, 23, .05);
+}
+.quote-tracking-premium__summary-card span { color: var(--text-muted-color); font-size: 11px; font-weight: 750; }
+.quote-tracking-premium__summary-card strong { color: var(--text-primary-color); font-size: 26px; line-height: 1; letter-spacing: -.04em; }
+.quote-tracking-premium__summary-card small { color: var(--text-muted-color); font-size: 10px; line-height: 1.3; }
+.quote-tracking-premium__summary-card--primary { border-color: color-mix(in srgb, var(--ui-primary) 35%, var(--border-color)); background: color-mix(in srgb, var(--ui-primary) 8%, var(--bg-surface)); }
+.quote-tracking-premium__summary-card--primary strong { color: var(--ui-primary); }
+@media(max-width: 760px) { .quote-tracking-premium__summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(max-width: 420px) { .quote-tracking-premium__summary-card { min-height: 96px; padding: 12px; } .quote-tracking-premium__summary-card strong { font-size: 22px; } }
