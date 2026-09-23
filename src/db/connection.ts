@@ -7,9 +7,12 @@ export function validateEnv() {
   const useInMemoryFallback = process.env.USE_IN_MEMORY_FALLBACK === 'true';
 
   if (nodeEnv === 'production') {
-    if (!databaseUrl) {
-      console.error('CRITICAL ERROR [Fail-Fast]: Production ortamında DATABASE_URL tanımlı değil! Güvenlik gereği uygulama başlatılamıyor.');
+    if (!databaseUrl && !useInMemoryFallback) {
+      console.error('CRITICAL ERROR [Fail-Fast]: Production ortamında DATABASE_URL tanımlı değil ve USE_IN_MEMORY_FALLBACK aktif değil! Uygulama başlatılamıyor.');
       process.exit(1);
+    }
+    if (!databaseUrl && useInMemoryFallback) {
+      console.warn('⚠️  Production bellek modu aktif. Sunucu yeniden başlatıldığında oturumlar sıfırlanır.');
     }
   }
 
