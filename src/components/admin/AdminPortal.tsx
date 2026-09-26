@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   subscribeToCariAccounts,
   subscribeToKasaHareketleri,
@@ -30,6 +31,7 @@ import {
   Truck, 
   Sparkles, 
   Plus, 
+  PackagePlus,
   Edit3, 
   Trash2, 
   ShieldCheck, 
@@ -37,7 +39,7 @@ import {
   Send, 
   Search, 
   Filter,
-  Lock,
+  Lock, ArrowDownToLine, BarChart2, Wallet, Zap,
   Unlock,
   AlertCircle,
   TrendingUp,
@@ -58,6 +60,8 @@ import {
   Bug,
   Wrench,
   Barcode,
+  ArrowLeft,
+  ChevronRight,
   Camera,
   FileSpreadsheet,
   Tag,
@@ -72,13 +76,14 @@ import {
   Layers,
   Palette,
   Settings2,
-  Wallet,
+  
   Banknote,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import AdminQuoteModal from './AdminQuoteModal';
 import ProductManageModal from './ProductManageModal';
 import ProductFastEditTable from './ProductFastEditTable';
+import StockHealthSummaryModal from './StockHealthSummaryModal';
 import BarcodeGeneratorModal from './BarcodeGeneratorModal';
 import CameraBarcodeScannerModal from './CameraBarcodeScannerModal';
 import SalesAnalyticsDashboard from './SalesAnalyticsDashboard';
@@ -147,6 +152,17 @@ interface AdminPortalProps {
   onToggleTheme?: (theme?: 'dark' | 'light' | 'system') => void;
 }
 
+function AdminContextActionsPortal({ children }: { children: React.ReactNode }) {
+  const [target, setTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setTarget(document.getElementById('admin-context-actions-portal'));
+  }, []);
+
+  if (!target) return <div className="admin-context-actions-fallback flex items-center gap-2 mb-3">{children}</div>;
+  return createPortal(children, target);
+}
+
 export default function AdminPortal({
   currentUserName = 'Fatih Fırat',
   products,
@@ -194,7 +210,6 @@ export default function AdminPortal({
         setOrderStatusFilter('pending');
         setOrderCurrentPage(1);
       }
-      if (tab === 'products') setShowLowStockModal(true);
     };
     document.addEventListener('siatek:sidebar-alert', handleSidebarAlert);
     return () => document.removeEventListener('siatek:sidebar-alert', handleSidebarAlert);
@@ -273,6 +288,9 @@ export default function AdminPortal({
   // Low stock alert state
   const [lowStockThreshold, setLowStockThreshold] = useState<number>(5);
   const [showLowStockModal, setShowLowStockModal] = useState(false);
+  const [stockFilterMode, setStockFilterMode] = useState<'all' | 'in_stock' | 'critical' | 'health'>('all');
+  const [showStockHealthModal, setShowStockHealthModal] = useState<boolean>(false);
+  const [showStockBulkMenu, setShowStockBulkMenu] = useState(false);
   const [isCheckingLowStock, setIsCheckingLowStock] = useState(false);
   const [restockLoadingId, setRestockLoadingId] = useState<string | null>(null);
   const [lowStockFeedback, setLowStockFeedback] = useState<string | null>(null);
@@ -469,11 +487,17 @@ export default function AdminPortal({
     // atiliyordu. Firestore zaten tek ve gercek kaynak.
     if (!updatedSuccess) {
       try {
-        await updateTransactionalOrderStatus(orderId, newStatus, {
-          trackingNumber: trackingNo,
-          ...(extraData || {})
-        });
-        updatedSuccess = true;
+        // Mock order control
+        if (orderId.includes('POS-2026-') || orderId.includes('SIP-2026-')) {
+          console.warn('Mock order bypass:', orderId);
+          updatedSuccess = true;
+        } else {
+          await updateTransactionalOrderStatus(orderId, newStatus, {
+            trackingNumber: trackingNo,
+            ...(extraData || {})
+          });
+          updatedSuccess = true;
+        }
       } catch (firestoreErr: any) {
         console.error('Firestore sipariş durum güncelleme hatası:', firestoreErr);
         if (serverError) {
@@ -1676,12 +1700,7 @@ export default function AdminPortal({
 
         {(['ops-dispatch', 'ops-drivers', 'ops-sales', 'ops-wms', 'ops-delivery'] as string[]).includes(activeTab as string) && (
           <section className="admin-operation-page space-y-4">
-            <header className="rounded-3xl border border-border bg-base-surface p-5 shadow-sm sm:p-6">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-600">Tek çalışma alanı</p>
-              <h1 className="mt-1 text-2xl font-black tracking-tight text-text-primary">Operasyon Merkezi</h1>
-              <p className="mt-1 text-sm text-text-secondary">Hazırlık, rota ve canlı sevkiyat işlemlerini pencere açmadan yönetin.</p>
-            </header>
-            <DriverDispatchRouteModal
+                        <DriverDispatchRouteModal
               isOpen
               displayMode="page"
               onClose={() => {}}
@@ -2865,62 +2884,123 @@ export default function AdminPortal({
       {/* TAB 3: PRODUCT CATALOG & STOCK MANAGEMENT */}
       {activeTab === 'products' && (
         <div className="admin-desktop-module space-y-4">
+          {/* Top Bar Portaled Actions (Toplu İşlemler & Yeni Ürün) */}
+          <AdminContextActionsPortal>
+            <div className="flex items-center gap-2">
+              {/* Toplu İşlemler Açılır Menüsü */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowStockBulkMenu(prev => !prev)}
+                  className="min-h-[42px] px-3.5 py-2 bg-base-surface hover:bg-base-surface-2 text-text-primary border border-border rounded-xl text-[13px] font-bold flex items-center space-x-2 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+                  title="Toplu İskonto, Satın Alma PO ve Diğer İşlemler"
+                >
+                  <Layers className="w-4 h-4 text-text-secondary" />
+                  <span>Toplu İşlemler</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showStockBulkMenu ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showStockBulkMenu && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowStockBulkMenu(false)} 
+                    />
+                    <div className="absolute right-0 mt-1.5 w-60 bg-base-surface border border-border rounded-2xl shadow-xl z-50 p-1.5 animate-in fade-in zoom-in-95 duration-150">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowStockBulkMenu(false);
+                          setShowBulkPriceModal(true);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-amber-500/10 text-text-primary rounded-xl text-xs font-bold flex items-center space-x-2.5 transition-colors cursor-pointer"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
+                          <TrendingUp className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-text-primary">Toplu İskonto / Zam Motoru</div>
+                          <div className="text-[10px] text-text-muted font-normal">Kategori veya liste bazında fiyat güncelle</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowStockBulkMenu(false);
+                          setShowSupplierPOModal(true);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-warning-fill/10 text-text-primary rounded-xl text-xs font-bold flex items-center space-x-2.5 transition-colors cursor-pointer mt-1"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-warning-fill/15 flex items-center justify-center shrink-0">
+                          <FileText className="w-3.5 h-3.5 text-warning-text" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-text-primary">Tedarikçi Satın Alma (PO)</div>
+                          <div className="text-[10px] text-text-muted font-normal">Kritik stok ikmali ve sipariş fişi</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowStockBulkMenu(false);
+                          setShowBulkExcelModal(true);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-emerald-500/10 text-text-primary rounded-xl text-xs font-bold flex items-center space-x-2.5 transition-colors cursor-pointer mt-1"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0">
+                          <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-text-primary">Toplu Excel & CSV Masası</div>
+                          <div className="text-[10px] text-text-muted font-normal">Dışa aktar / İçe aktar</div>
+                        </div>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Yeni Ürün Butonu - Orijinal Premium Şekli */}
+              <button
+                type="button"
+                onClick={() => { setSelectedProductToEdit(null); setShowProductModal(true); }}
+                className="min-h-[42px] px-4 py-2 bg-[#064e3b] hover:bg-[#043d2e] text-white border border-[#064e3b] rounded-xl text-[13px] font-extrabold flex items-center space-x-2 transition-all cursor-pointer shadow-sm shadow-emerald-950/25 active:scale-[0.98]"
+                title="Yeni Ürün Ekle"
+              >
+                <PackagePlus className="w-4 h-4 text-emerald-200" />
+                <span>Yeni Ürün</span>
+              </button>
+            </div>
+          </AdminContextActionsPortal>
+
           <AdminModuleOverview
             mode="stock"
             orders={orders}
             quotes={quotes}
             products={products}
             onRefresh={onRefresh}
+            hideRefresh={true}
+            hideTitlebar={true}
             onPrimaryAction={() => { setSelectedProductToEdit(null); setShowProductModal(true); }}
-            onAlertAction={() => setShowLowStockModal(true)}
+            onAlertAction={() => setStockFilterMode('critical')}
+            activeStockFilter={stockFilterMode}
+            onStockFilterChange={(filter) => {
+              if (filter === 'health') {
+                setShowStockHealthModal(true);
+              } else {
+                setStockFilterMode(filter);
+              }
+            }}
+            hideAlertBanner={true}
           />
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-base-surface rounded-2xl border border-border shadow-xs">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-success-fill/15 border border-success-border flex items-center justify-center text-success-text shrink-0">
-                <Package className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-bold text-text-primary">
-                  Ürün & Fiyat Yönetim Masası
-                </h2>
-                <p className="text-xs text-text-muted">
-                  stok.pdf kataloğu hızlı fiyat, barkod ve stok güncelleme masası
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-              {/* Bulk Price Adjustment Engine Modal Trigger */}
-              <button
-                type="button"
-                onClick={() => setShowBulkPriceModal(true)}
-                className="px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
-                title="Kategori bazında veya tüm listede toplu iskonto ve zam motoru"
-              >
-                <TrendingUp className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                <span>Toplu İskonto / Zam Motoru</span>
-              </button>
-
-              {/* Supplier Purchase Order Modal Trigger */}
-              <button
-                type="button"
-                onClick={() => setShowSupplierPOModal(true)}
-                className="px-3 py-1.5 bg-warning-fill/15 hover:bg-warning-fill/25 text-warning-text border border-warning-border rounded-xl text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer shadow-2xs"
-                title="Kritik stoktaki ürünleri tespit edip tedarikçiye otomatik sipariş fişi oluştur"
-              >
-                <FileText className="w-3.5 h-3.5 text-warning-text" />
-                <span>Tedarikçi Satın Alma (PO)</span>
-              </button>
-
-              <span className="px-2.5 py-1.5 rounded-xl bg-base-surface-2 border border-border text-xs font-mono font-bold text-text-secondary">
-                {products.length} Aktif Ürün
-              </span>
-            </div>
-          </div>
 
           <ProductFastEditTable
             products={products}
             onRefresh={onRefresh}
+            filterMode={stockFilterMode}
+            onFilterModeChange={setStockFilterMode}
             onOpenAddModal={() => {
               setSelectedProductToEdit(null);
               setShowProductModal(true);
@@ -2929,6 +3009,45 @@ export default function AdminPortal({
               setSelectedProductToEdit(product);
               setShowProductModal(true);
             }}
+          />
+        </div>
+      )}
+
+      {/* TAB: BARKOD & RAF ETİKETİ STÜDYOSU (MÜSTAKİL AYRI SAYFA) */}
+      {activeTab === 'barcodes' && (
+        <div className="admin-desktop-module space-y-4 animate-in fade-in duration-200">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-base-surface border border-border rounded-2xl shadow-xs">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setActiveTab('products')}
+                className="px-3.5 py-2 bg-base-surface-2 hover:bg-base-surface text-text-primary rounded-xl text-xs font-bold border border-border flex items-center gap-2 transition-all active:scale-[0.98] shadow-2xs cursor-pointer"
+                title="Stok Tablosuna Geri Dön"
+              >
+                <ArrowLeft className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Stok Tablosuna Dön</span>
+              </button>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-base sm:text-lg font-black text-text-primary">
+                    Barkod &amp; Raf Etiketi Stüdyosu
+                  </h1>
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    Müstakil Sayfa
+                  </span>
+                </div>
+                <p className="text-xs text-text-muted">
+                  Termal rulo, A4 tabaka, Code-128, EAN-13 ve QR etiket baskı masası
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <BarcodeGeneratorModal
+            isOpen={true}
+            onClose={() => setActiveTab('products')}
+            products={products}
+            isPageMode={true}
           />
         </div>
       )}
@@ -3398,12 +3517,14 @@ export default function AdminPortal({
         </div>
       )}
 
-      {/* Barcode & Shelf Label Generator Modal */}
-      <BarcodeGeneratorModal
-        isOpen={showBarcodeModal}
-        onClose={() => setShowBarcodeModal(false)}
-        products={products}
-      />
+      {/* Barcode & Shelf Label Generator Modal (Products ve Barcodes sekmelerinde müstakil sayfa olarak render edilir) */}
+      {activeTab !== 'products' && activeTab !== 'barcodes' && (
+        <BarcodeGeneratorModal
+          isOpen={showBarcodeModal}
+          onClose={() => setShowBarcodeModal(false)}
+          products={products}
+        />
+      )}
 
       {/* Camera Barcode & QR Scanner Modal */}
       <CameraBarcodeScannerModal
@@ -3612,8 +3733,16 @@ export default function AdminPortal({
         />
       )}
 
-      {/* Floating Barcode Scanner Action Button (FAB) for Products, POS, and WMS Picking */}
-      {(activeTab === 'products' || activeTab === 'pos' || showPosModal || showPickingInspectionModal) && (
+      {/* Stok Sağlığı & Envanter Özeti Modalı */}
+      <StockHealthSummaryModal
+        isOpen={showStockHealthModal}
+        onClose={() => setShowStockHealthModal(false)}
+        products={products || []}
+        onSelectFilter={(mode) => setStockFilterMode(mode)}
+      />
+
+      {/* Floating Barcode Scanner Action Button (FAB) for POS and WMS Picking - Removed from products screen as per design */}
+      {(activeTab === 'pos' || showPosModal || showPickingInspectionModal) && (
         <FloatingScannerButton
           onClick={(origin) => {
             setScannerOriginRect(origin || null);

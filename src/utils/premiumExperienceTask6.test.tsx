@@ -447,5 +447,46 @@ describe('GÖREV 6 — Premium Deneyim: Bilişsel Yük, Nefes Alanı, Hareket Te
       expect(mapHtml).toContain('Canlı Şantiye Sevkiyat Haritası');
       expect(mapHtml).toContain('Navigasyonda Aç');
     });
+
+    it('(6) Barcode Generator müstakil bir sayfa olarak (activeTab=barcodes) render edilir ve stok tablosuna dönüş butonu içerir', () => {
+      const barcodeHtml = renderToString(
+        <AdminPortal
+          products={mockProducts}
+          orders={mockOrders}
+          quotes={mockQuotes}
+          activeTab={'barcodes' as any}
+          setActiveTab={() => {}}
+          currentUserName="Fatih Fırat"
+          onRefresh={() => {}}
+        />
+      );
+
+      // Müstakil Barkod Sayfası başlığı ve dönüş butonu olmalı
+      expect(barcodeHtml).toContain('Barkod &amp; Raf Etiketi Stüdyosu');
+      expect(barcodeHtml).toContain('Stok Tablosuna Dön');
+      expect(barcodeHtml).toContain('Müstakil Sayfa');
+
+      // Stok yönetiminin KPI ve modül genel bakışı barkod sayfasında yer almamalıdır
+      expect(barcodeHtml).not.toContain('admin-module-overview');
+      expect(barcodeHtml).not.toContain('Stok Değeri');
+    });
+
+    it('(7) AdminWorkspaceShell içinde Stok Yönetimi hem ürünleri hem barkod stüdyosunu alt sekmeler olarak sunar', () => {
+      const shellHtml = renderToString(
+        <AdminWorkspaceShell
+          activeTab={'products' as any}
+          onTabChange={() => {}}
+          onOpenAI={() => {}}
+          onOpenNotifications={() => {}}
+          currentUser={mockUser}
+          onLogout={() => {}}
+        >
+          <div>İçerik</div>
+        </AdminWorkspaceShell>
+      );
+
+      expect(shellHtml).toContain('Ürün &amp; Stok Masası');
+      expect(shellHtml).toContain('Barkod');
+    });
   });
 });

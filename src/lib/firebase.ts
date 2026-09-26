@@ -4,6 +4,7 @@ import {
   GoogleAuthProvider, 
   signInWithPopup, 
   signInWithRedirect,
+  signInWithCredential,
   getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -37,9 +38,21 @@ import {
 } from 'firebase/firestore';
 import firebaseConfigData from '../../firebase-applet-config.json';
 
+const getDynamicAuthDomain = () => {
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    const host = window.location.hostname;
+    // Firebase Hosting uzerindeyken (web.app / firebaseapp.com) authDomain'i
+    // ayni origin yapmak Safari ITP ve Chrome 3. parti cerez engeline takilmayi onler.
+    if (host.endsWith('.web.app') || host.endsWith('.firebaseapp.com')) {
+      return host;
+    }
+  }
+  return firebaseConfigData.authDomain || 'siatek.firebaseapp.com';
+};
+
 const firebaseConfig = {
   apiKey: firebaseConfigData.apiKey,
-  authDomain: firebaseConfigData.authDomain,
+  authDomain: getDynamicAuthDomain(),
   projectId: firebaseConfigData.projectId,
   storageBucket: firebaseConfigData.storageBucket,
   messagingSenderId: firebaseConfigData.messagingSenderId,
@@ -124,8 +137,10 @@ export const db = (() => {
 })();
 
 export {
+  GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
+  signInWithCredential,
   getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,

@@ -44,8 +44,12 @@ import {
   Copy,
   MapPin,
   Layers,
-  UploadCloud
+  UploadCloud,
+  Home,
+  Landmark,
+  ReceiptText
 } from 'lucide-react';
+import { MobileDealerOverview } from '../mobile/MobileDealerOverview';
 import { addShoppingItems, setShoppingQuantity } from '../../utils/shoppingCart';
 import ShoppingCatalog from './ShoppingCatalog';
 import ShoppingCheckout from './ShoppingCheckout';
@@ -458,20 +462,35 @@ export default function CustomerPortal({
     <div className="premium-section-six space-y-6 pb-24 md:pb-6">
       
       {/* Top Navigation Sub-Bar */}
-      <div className="flex items-center justify-between gap-2 bg-base-surface p-1.5 sm:p-2.5 rounded-2xl border border-border shadow-xs">
+      <div className={`flex items-center justify-between gap-2 bg-base-surface p-1.5 sm:p-2.5 rounded-2xl border border-border shadow-xs ${activeTab === 'home' ? 'hidden md:flex' : ''}`}>
         {/* Navigation Tabs Segmented Group */}
         <div
           role="tablist"
           aria-label="Müşteri Portalı Sekmeleri"
-          className="grid grid-cols-3 flex-1 min-w-0 sm:flex sm:items-center space-x-0 sm:space-x-1 gap-0.5 sm:gap-0 bg-base-surface-2 p-1 rounded-xl border border-border"
+          className="grid grid-cols-4 flex-1 min-w-0 sm:flex sm:items-center space-x-0 sm:space-x-1 gap-0.5 sm:gap-0 bg-base-surface-2 p-1 rounded-xl border border-border"
         >
+          <button
+            id="tab-customer-home"
+            role="tab"
+            aria-selected={activeTab === 'home'}
+            onClick={() => setActiveTab('home')}
+            className={`flex items-center justify-center space-x-1.5 px-2 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer select-none min-w-0 ${
+              activeTab === 'home'
+                ? 'bg-base-surface text-text-primary border border-border shadow-xs'
+                : 'text-text-secondary hover:text-text-primary hover:bg-base-surface'
+            }`}
+          >
+            <Home className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
+            <span className="whitespace-nowrap">Ana Sayfa</span>
+          </button>
+
           <button
             id="tab-customer-catalog"
             role="tab"
-            aria-selected={activeTab === 'catalog' || activeTab === 'home'}
+            aria-selected={activeTab === 'catalog'}
             onClick={() => setActiveTab('catalog')}
             className={`flex items-center justify-center space-x-1.5 px-2 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer select-none min-w-0 ${
-              activeTab === 'catalog' || activeTab === 'home'
+              activeTab === 'catalog'
                 ? 'bg-base-surface text-text-primary border border-border shadow-xs'
                 : 'text-text-secondary hover:text-text-primary hover:bg-base-surface'
             }`}
@@ -624,8 +643,276 @@ export default function CustomerPortal({
         </div>
       )}
 
-      {/* TAB 1: PRODUCT CATALOG (Active on 'catalog' or 'home') */}
-      {(activeTab === 'catalog' || activeTab === 'home') && (
+      {/* TAB 0: DEALER EXECUTIVE HOME OVERVIEW */}
+      {activeTab === 'home' && (
+        <div className="space-y-6 ui-tab-fade">
+          {/* Mobile Dealer ERP Experience (Identical to Admin Mobile ERP) */}
+          <div className="block md:hidden">
+            <MobileDealerOverview
+              user={currentUser}
+              products={products}
+              orders={orders}
+              quotes={quotes}
+              loading={ordersLoading || productsLoading}
+              error={ordersError || productsError}
+              onRetry={onRefresh}
+              onNavigateTab={setActiveTab}
+              onOpenQuickOrder={() => setShowBulkOrderModal(true)}
+              onOpenQuickQuote={() => setShowQuoteModal(true)}
+              onOpenSites={() => setShowSiteModal(true)}
+              onOpenFinancial={() => setShowFinancialModal(true)}
+              onOpenReceipt={() => setShowReceiptModal(true)}
+              onOpenPackages={() => setShowPackagesModal(true)}
+              onOpenAuth={onOpenAuth}
+              onOpenNotifications={() => document.dispatchEvent(new CustomEvent('siatek:open-notifications'))}
+              onToggleTheme={() => document.dispatchEvent(new CustomEvent('siatek:toggle-theme'))}
+              onOpenAI={onOpenAI}
+              onAddToCart={handleAddToCart}
+              onViewOrderDetails={(order) => setSelectedOrderForPDF(order)}
+            />
+          </div>
+
+          {/* Desktop Dealer Executive Dashboard */}
+          <div className="hidden md:block space-y-6">
+            {/* Desktop Hero & Executive Welcome */}
+            <div className="p-6 rounded-3xl bg-base-surface border border-border flex items-center justify-between shadow-xs">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-extrabold uppercase tracking-widest text-ui-primary">
+                    Alpha Teknik B2B Bayi Portalı
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                    Onaylı Bayi
+                  </span>
+                </div>
+                <h1 className="text-2xl font-extrabold text-text-primary">
+                  Hoş Geldiniz, {currentUser?.companyName || currentUser?.name || 'Bayi Temsilcisi'}
+                </h1>
+                <p className="text-xs text-text-muted">
+                  Doğrudan üretici/distribütör fiyatlarıyla sipariş verin, özel bayi iskontolarınızı ve şantiye sevkiyatlarınızı yönetin.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowBulkOrderModal(true)}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-2 active:scale-[0.98] cursor-pointer"
+                >
+                  <ReceiptText className="w-4 h-4" />
+                  <span>Toplu Hızlı Sipariş</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowQuoteModal(true)}
+                  className="px-4 py-2.5 bg-base-surface-2 hover:bg-base-surface border border-border text-text-primary rounded-xl text-xs font-bold shadow-xs flex items-center gap-2 active:scale-[0.98] cursor-pointer"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Teklif İste</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowFinancialModal(true)}
+                  className="px-4 py-2.5 bg-base-surface-2 hover:bg-base-surface border border-border text-text-primary rounded-xl text-xs font-bold shadow-xs flex items-center gap-2 active:scale-[0.98] cursor-pointer"
+                >
+                  <Wallet className="w-4 h-4" />
+                  <span>Cari Ekstrem</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Desktop Metrics KPI Bar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div
+                onClick={() => setShowFinancialModal(true)}
+                className="p-5 rounded-2xl bg-base-surface border border-border hover:border-border-strong cursor-pointer transition-all shadow-xs space-y-2"
+              >
+                <div className="flex items-center justify-between text-xs text-text-muted">
+                  <span className="font-semibold">Cari Hesap Durumu</span>
+                  <Landmark className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div className="text-2xl font-black text-text-primary font-mono tabular-nums">
+                  0,00 ₺
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-text-muted pt-1 border-t border-border">
+                  <span>Ödeme Vadesi: 30 Gün</span>
+                  <span className="text-emerald-600 font-bold">Ekstre ➔</span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setActiveTab('orders')}
+                className="p-5 rounded-2xl bg-base-surface border border-border hover:border-border-strong cursor-pointer transition-all shadow-xs space-y-2"
+              >
+                <div className="flex items-center justify-between text-xs text-text-muted">
+                  <span className="font-semibold">Aktif / İşlemde Sipariş</span>
+                  <Truck className="w-4 h-4 text-sky-600" />
+                </div>
+                <div className="text-2xl font-black text-text-primary font-mono tabular-nums">
+                  {orders.filter(o => ['pending', 'approved', 'preparing', 'shipped'].includes(o.status)).length}
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-text-muted pt-1 border-t border-border">
+                  <span>Sevkiyatta veya hazırlıkta</span>
+                  <span className="text-sky-600 font-bold">Siparişler ➔</span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setActiveTab('quotes')}
+                className="p-5 rounded-2xl bg-base-surface border border-border hover:border-border-strong cursor-pointer transition-all shadow-xs space-y-2"
+              >
+                <div className="flex items-center justify-between text-xs text-text-muted">
+                  <span className="font-semibold">Bekleyen Fiyat Teklifleri</span>
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                </div>
+                <div className="text-2xl font-black text-text-primary font-mono tabular-nums">
+                  {quotes.filter(q => q.status === 'offer_sent').length}
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-text-muted pt-1 border-t border-border">
+                  <span>Onay bekleyen teklifler</span>
+                  <span className="text-amber-500 font-bold">Teklifler ➔</span>
+                </div>
+              </div>
+
+              <div
+                onClick={() => setShowSiteModal(true)}
+                className="p-5 rounded-2xl bg-base-surface border border-border hover:border-border-strong cursor-pointer transition-all shadow-xs space-y-2"
+              >
+                <div className="flex items-center justify-between text-xs text-text-muted">
+                  <span className="font-semibold">Kayıtlı Şantiyelerim</span>
+                  <Building2 className="w-4 h-4 text-ui-primary" />
+                </div>
+                <div className="text-2xl font-black text-text-primary font-mono tabular-nums">
+                  Aktif
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-text-muted pt-1 border-t border-border">
+                  <span>Şantiye teslimat lokasyonları</span>
+                  <span className="text-ui-primary font-bold">Yönet ➔</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop Two-Column Layout: Left (Recent Orders), Right (Featured Products) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-7 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-ui-primary" />
+                    <span>Son Siparişleriniz</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('orders')}
+                    className="text-xs font-bold text-ui-primary hover:underline"
+                  >
+                    Tümünü Gör ({orders.length}) ➔
+                  </button>
+                </div>
+
+                {orders.length === 0 ? (
+                  <div className="p-8 rounded-2xl bg-base-surface border border-border text-center space-y-2">
+                    <Package className="w-8 h-8 text-text-muted mx-auto" />
+                    <p className="text-xs font-bold text-text-primary">Henüz siparişiniz bulunmuyor</p>
+                    <p className="text-[11px] text-text-muted">Kataloğu inceleyerek hemen sipariş oluşturabilirsiniz.</p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('catalog')}
+                      className="mt-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold"
+                    >
+                      Kataloğu Aç
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {orders.slice(0, 4).map((order) => (
+                      <div
+                        key={order.id}
+                        className="p-4 rounded-2xl bg-base-surface border border-border hover:border-border-strong flex items-center justify-between gap-4 transition-all"
+                      >
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <span className="font-mono font-bold text-xs text-text-primary">
+                              {order.orderNumber || `#SIP-${order.id.slice(0, 6)}`}
+                            </span>
+                            {getStatusBadge(order.status)}
+                          </div>
+                          <p className="text-[11px] text-text-muted mt-1">
+                            {new Date(order.createdAt).toLocaleDateString('tr-TR')} · {order.items?.length || 0} Kalem Ürün
+                          </p>
+                        </div>
+                        <div className="text-right flex items-center gap-3">
+                          <div>
+                            <span className="font-mono font-bold text-sm text-text-primary block tabular-nums">
+                              {order.total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedOrderForPDF(order)}
+                            className="p-2 rounded-xl bg-base-surface-2 hover:bg-base-surface border border-border text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                            title="Sipariş Formu (PDF)"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="lg:col-span-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                    <Package className="w-4 h-4 text-emerald-600" />
+                    <span>Hızlı İkmal Kataloğu</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('catalog')}
+                    className="text-xs font-bold text-emerald-600 hover:underline"
+                  >
+                    Katalog ➔
+                  </button>
+                </div>
+
+                <div className="space-y-2.5">
+                  {products.filter(p => p.stock > 0).slice(0, 4).map((product) => (
+                    <div
+                      key={product.id}
+                      className="p-3.5 rounded-2xl bg-base-surface border border-border hover:border-border-strong flex items-center justify-between gap-3 transition-all"
+                    >
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-mono text-text-muted block">
+                          {product.sku || 'STOK'} · {product.stock} {product.unit || 'Adet'} Stokta
+                        </span>
+                        <h4 className="text-xs font-bold text-text-primary truncate">
+                          {product.name}
+                        </h4>
+                        <span className="text-xs font-mono font-bold text-emerald-600 tabular-nums">
+                          {product.price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleAddToCart(product, product.minOrderQuantity || 1)}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1 shadow-2xs active:scale-[0.98] cursor-pointer shrink-0"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Ekle</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 1: PRODUCT CATALOG (Active on 'catalog') */}
+      {activeTab === 'catalog' && (
         <div className="space-y-4 ui-tab-fade">
           {/* Horizontal Category Scroll Pills */}
           <div className="ui-scroll-pills-container">

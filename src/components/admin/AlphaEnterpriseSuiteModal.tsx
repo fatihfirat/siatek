@@ -616,84 +616,29 @@ export default function AlphaEnterpriseSuiteModal({
 
         {/* Tab Navigation */}
         {!fleetOnly && (
-        <div className={`flex items-center gap-1 px-3 sm:px-8 border-b border-border bg-base-surface overflow-x-auto custom-scrollbar shrink-0 ${displayMode === 'page' ? 'rounded-t-3xl' : ''}`}>
-          <button
-            type="button"
-            onClick={() => setActiveTab('studio')}
-            className={`px-3 sm:px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
-              activeTab === 'studio' 
-                ? 'border-brand-600 text-brand-600' 
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <Palette className="w-4 h-4" />
-            <span>Tasarım & Ergonomi</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('banks')}
-            className={`px-3 sm:px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
-              activeTab === 'banks' 
-                ? 'border-brand-600 text-brand-600' 
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <CreditCard className="w-4 h-4" />
-            <span>Banka & IBAN Portföyü</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('identity')}
-            className={`px-3 sm:px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
-              activeTab === 'identity' 
-                ? 'border-brand-600 text-brand-600' 
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            <span>Şirket Kimliği & Yasal</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('policies')}
-            className={`px-3 sm:px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
-              activeTab === 'policies' 
-                ? 'border-brand-600 text-brand-600' 
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>B2B & Güvenlik</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('backup')}
-            className={`px-3 sm:px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
-              activeTab === 'backup' 
-                ? 'border-brand-600 text-brand-600' 
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <Cloud className="w-4 h-4" />
-            <span>Google Drive & Yedek</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('preview')}
-            className={`px-3 sm:px-4 py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
-              activeTab === 'preview' 
-                ? 'border-brand-600 text-brand-600 bg-brand-500/5' 
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <Eye className="w-4 h-4" />
-            <span>Canlı Simülatör ({previewDevice === 'mobile' ? 'Mobil' : 'Masaüstü'})</span>
-          </button>
+        <div className={`flex items-center gap-2 px-3 sm:px-6 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 overflow-x-auto custom-scrollbar shrink-0 ${displayMode === 'page' ? 'rounded-t-3xl' : ''}`}>
+          {[
+            { id: 'studio', icon: Palette, label: 'Tasarım & Ergonomi' },
+            { id: 'banks', icon: CreditCard, label: 'Banka & IBAN Portföyü' },
+            { id: 'identity', icon: Building2, label: 'Şirket Kimliği & Yasal' },
+            { id: 'policies', icon: ShieldCheck, label: 'B2B & Güvenlik' },
+            { id: 'backup', icon: Cloud, label: 'Google Drive & Yedek' },
+            { id: 'preview', icon: Eye, label: `Canlı Simülatör (${previewDevice === 'mobile' ? 'Mobil' : 'Masaüstü'})` }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`group flex items-center gap-2.5 px-4 py-3.5 text-sm font-semibold whitespace-nowrap cursor-pointer transition-all active:scale-[0.98] border-b-[3px] min-h-[44px] ${
+                activeTab === tab.id
+                  ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-brand-50/50 dark:bg-brand-500/10'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+              }`}
+            >
+              <tab.icon className={`w-4 h-4 transition-colors ${activeTab === tab.id ? 'text-brand-500' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'}`} />
+              <span>{tab.label}</span>
+            </button>
+          ))}
         </div>
         )}
 
@@ -1174,183 +1119,200 @@ export default function AlphaEnterpriseSuiteModal({
 
           {/* TAB 3: COMPANY IDENTITY & LEGAL */}
           {activeTab === 'identity' && (
-            <div className="space-y-6 animate-in fade-in">
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted mb-2 flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-brand-600" />
+            <div className="space-y-8 animate-in fade-in">
+              <div className="bg-slate-50/50 dark:bg-slate-900/20 p-4 sm:p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800/60">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center gap-2">
+                  <div className="p-1.5 bg-brand-500/10 rounded-lg text-brand-600 dark:text-brand-400">
+                    <Building2 className="w-4 h-4" />
+                  </div>
                   Kurumsal Kimlik & Marka Bilgileri
                 </h3>
-                <p className="text-xs text-text-secondary mb-3">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 ml-9">
                   Sipariş belgeleri, teklif formları ve e-fatura çıktılarında görünen resmi şirket bilgileri.
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Tam Ticari Ünvan</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Tam Ticari Ünvan</label>
                     <input
                       type="text"
                       value={formData.companyName || ''}
                       onChange={(e) => handleFieldChange('companyName', e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-base-surface border border-border rounded-xl text-xs sm:text-sm text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Kısa Ticari İsim (Marka Adı)</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Kısa Ticari İsim (Marka Adı)</label>
                     <input
                       type="text"
                       value={formData.shortName || ''}
                       onChange={(e) => handleFieldChange('shortName', e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-base-surface border border-border rounded-xl text-xs sm:text-sm text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Slogan / Başlık</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Slogan / Başlık</label>
                     <input
                       type="text"
                       value={formData.brandTitle || ''}
                       onChange={(e) => handleFieldChange('brandTitle', e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-base-surface border border-border rounded-xl text-xs sm:text-sm text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px]"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Contact Info */}
-              <div className="pt-6 border-t border-border">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted mb-2 flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-brand-600" />
+              <div className="bg-slate-50/50 dark:bg-slate-900/20 p-4 sm:p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800/60">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center gap-2">
+                  <div className="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-600 dark:text-emerald-400">
+                    <Phone className="w-4 h-4" />
+                  </div>
                   Resmi İletişim Kanalları
                 </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 ml-9">
+                  Müşterilerinizin size ulaşabileceği doğrulanmış iletişim bilgileri.
+                </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Telefon</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Telefon</label>
                     <input
                       type="text"
                       value={formData.phone || ''}
                       onChange={(e) => handleFieldChange('phone', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px] tabular-nums"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">WhatsApp Sipariş Hattı</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">WhatsApp Sipariş Hattı</label>
                     <input
                       type="text"
                       value={formData.whatsapp || ''}
                       onChange={(e) => handleFieldChange('whatsapp', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px] tabular-nums"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">E-Posta Adresi</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">E-Posta Adresi</label>
                     <input
                       type="email"
                       value={formData.email || ''}
                       onChange={(e) => handleFieldChange('email', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Web Sitesi</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Web Sitesi</label>
                     <input
                       type="text"
                       value={formData.website || ''}
                       onChange={(e) => handleFieldChange('website', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px]"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Legal / Tax Info */}
-              <div className="pt-6 border-t border-border">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted mb-2 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-brand-600" />
+              <div className="bg-slate-50/50 dark:bg-slate-900/20 p-4 sm:p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800/60">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center gap-2">
+                  <div className="p-1.5 bg-amber-500/10 rounded-lg text-amber-600 dark:text-amber-400">
+                    <FileText className="w-4 h-4" />
+                  </div>
                   Vergi ve Resmi Sicil Kayıtları
                 </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 ml-9">
+                  E-fatura senaryoları ve B2B sözleşmeleri için gerekli resmi bilgiler.
+                </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Vergi Dairesi</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Vergi Dairesi</label>
                     <input
                       type="text"
                       value={formData.taxOffice || ''}
                       onChange={(e) => handleFieldChange('taxOffice', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Vergi Kimlik No</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Vergi Kimlik No</label>
                     <input
                       type="text"
                       value={formData.taxNumber || ''}
                       onChange={(e) => handleFieldChange('taxNumber', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs font-mono text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-mono font-bold text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px] tabular-nums"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">MERSİS No</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">MERSİS No</label>
                     <input
                       type="text"
                       value={formData.mersisNo || ''}
                       onChange={(e) => handleFieldChange('mersisNo', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs font-mono text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-mono font-bold text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px] tabular-nums"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Ticaret Sicil No</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Ticaret Sicil No</label>
                     <input
                       type="text"
                       value={formData.ticaretSicilNo || ''}
                       onChange={(e) => handleFieldChange('ticaretSicilNo', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs font-mono text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-mono font-bold text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px] tabular-nums"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Address */}
-              <div className="pt-6 border-t border-border">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted mb-2 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-brand-600" />
+              <div className="bg-slate-50/50 dark:bg-slate-900/20 p-4 sm:p-6 rounded-3xl border border-slate-200/60 dark:border-slate-800/60">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center gap-2">
+                  <div className="p-1.5 bg-sky-500/10 rounded-lg text-sky-600 dark:text-sky-400">
+                    <MapPin className="w-4 h-4" />
+                  </div>
                   Fatura ve Merkez Adresi
                 </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 ml-9">
+                  Resmi tebligatların ve kargo gönderimlerinin yapılacağı adres.
+                </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="sm:col-span-3">
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Açık Adres (Cadde/Sokak/Bina)</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Açık Adres (Cadde/Sokak/Bina)</label>
                     <input
                       type="text"
                       value={formData.address || ''}
                       onChange={(e) => handleFieldChange('address', e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-base-surface border border-border rounded-xl text-xs sm:text-sm text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">İlçe</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">İlçe</label>
                     <input
                       type="text"
                       value={formData.district || ''}
                       onChange={(e) => handleFieldChange('district', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Şehir</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Şehir</label>
                     <input
                       type="text"
                       value={formData.city || ''}
                       onChange={(e) => handleFieldChange('city', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary mb-1">Posta Kodu</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Posta Kodu</label>
                     <input
                       type="text"
                       value={formData.postalCode || ''}
                       onChange={(e) => handleFieldChange('postalCode', e.target.value)}
-                      className="w-full px-3.5 py-2 bg-base-surface border border-border rounded-xl text-xs font-mono text-text-primary"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-mono font-bold text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-950 focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 transition-all outline-none min-h-[48px] tabular-nums"
                     />
                   </div>
                 </div>

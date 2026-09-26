@@ -84,7 +84,7 @@ export type OrderStatus =
 
 /** Yönetim kabuğunda gerçekten render edilen üst seviye çalışma alanları. */
 export const ADMIN_TABS = [
-  'home', 'pos', 'orders', 'quotes', 'products', 'cariler', 'invoices',
+  'home', 'pos', 'orders', 'quotes', 'products', 'barcodes', 'cariler', 'invoices',
   'analytics', 'gider', 'cek-senet', 'kasa', 'alis-faturalari',
   'tedarikci-ekstresi', 'kar-zarar', 'kdv-ozet', 'urun-kar',
   'ops-dispatch', 'ops-drivers', 'ops-sales', 'ops-wms', 'ops-delivery',

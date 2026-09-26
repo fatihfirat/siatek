@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { User, LoginCredentials, RegisterCredentials } from '../types';
 import { loginUser, registerUser, signInWithGoogle } from '../lib/auth';
 import { 
@@ -247,7 +248,7 @@ export default function AuthModal({
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-base-surface hover:bg-base-surface-2 border border-border hover:border-border-strong rounded-2xl text-xs sm:text-sm font-bold text-text-primary shadow-xs transition-all flex items-center justify-center space-x-3 cursor-pointer disabled:opacity-50 group"
+              className="w-full py-3 px-4 bg-base-surface hover:bg-base-surface-2 border border-border hover:border-border-strong rounded-2xl text-xs sm:text-sm font-bold text-text-primary shadow-xs transition-all flex items-center justify-center space-x-3 cursor-pointer disabled:opacity-50 active:scale-[0.98] group"
             >
               {/* Google G Logo SVG */}
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">

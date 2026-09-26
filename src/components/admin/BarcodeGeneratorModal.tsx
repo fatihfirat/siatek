@@ -51,6 +51,7 @@ interface BarcodeGeneratorModalProps {
   onClose: () => void;
   products: Product[];
   initialSelectedProductIds?: string[];
+  isPageMode?: boolean;
 }
 
 // Helper: Calculate valid 13-digit EAN-13 barcode with checksum
@@ -88,6 +89,7 @@ export default function BarcodeGeneratorModal({
   onClose,
   products = [],
   initialSelectedProductIds = [],
+  isPageMode = false,
 }: BarcodeGeneratorModalProps) {
   useModalBehavior(isOpen, onClose);
   // Selection State: Map of productId -> quantity
@@ -103,6 +105,8 @@ export default function BarcodeGeneratorModal({
   // Customization Toggles
   const [companyHeader, setCompanyHeader] = useState('ALPHA TEKNİK');
   const [showCompanyHeader, setShowCompanyHeader] = useState(true);
+  const [showLogo, setShowLogo] = useState(true);
+  const [logoPosition, setLogoPosition] = useState<'left' | 'center' | 'watermark'>('left');
   const [showProductName, setShowProductName] = useState(true);
   const [showSku, setShowSku] = useState(true);
   const [showBarcodeText, setShowBarcodeText] = useState(true);
@@ -340,6 +344,32 @@ export default function BarcodeGeneratorModal({
     });
   };
 
+  // Helper: Load logo image to base64 Data URL for jsPDF
+  const getLogoDataUrl = (src: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+          } else {
+            resolve('');
+          }
+        } catch {
+          resolve('');
+        }
+      };
+      img.onerror = () => resolve('');
+      img.src = src;
+    });
+  };
+
   // Dedicated Robust Print Engine (Hidden Iframe / Popup Window)
   const handleDirectPrint = async (openInNewTab = false) => {
     if (labelList.length === 0) return;
@@ -395,10 +425,22 @@ export default function BarcodeGeneratorModal({
             `;
           }
 
+          const showLogoLeft = showLogo && logoPosition !== 'watermark';
+          const isWatermark = showLogo && logoPosition === 'watermark';
+
           return `
-            <div class="label-card ${paperPreset}">
+            <div class="label-card ${paperPreset} ${isWatermark ? 'has-watermark' : ''}">
+              ${isWatermark ? `
+                <div class="label-watermark">
+                  <img src="/branding/siatek-logo-horizontal.png" alt="Logo Watermark" />
+                </div>
+              ` : ''}
+
               <div class="label-header">
-                ${showCompanyHeader ? `<div class="company-title">${companyHeader}</div>` : '<div></div>'}
+                <div class="company-block">
+                  ${showLogoLeft ? `<img src="/branding/siatek-logo-horizontal.png" class="label-logo" alt="Logo" />` : ''}
+                  ${showCompanyHeader ? `<span class="company-title">${companyHeader}</span>` : ''}
+                </div>
                 ${showCategory ? `<div class="category-title">${p.category}</div>` : ''}
               </div>
 
@@ -493,6 +535,7 @@ export default function BarcodeGeneratorModal({
             }
 
             .label-card {
+              position: relative;
               border: 1px solid #c0c0c0;
               border-radius: 4px;
               padding: 4px 6px;
@@ -504,6 +547,22 @@ export default function BarcodeGeneratorModal({
               break-inside: avoid;
               overflow: hidden;
             }
+            .label-card.has-watermark { position: relative; }
+            .label-watermark {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 65%;
+              height: 65%;
+              opacity: 0.06;
+              z-index: 0;
+              pointer-events: none;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .label-watermark img { max-width: 100%; max-height: 100%; object-fit: contain; filter: grayscale(100%); }
             .label-card.a4-24 { min-height: 35.5mm; height: 35.5mm; }
             .label-card.a4-40 { min-height: 27.5mm; height: 27.5mm; padding: 3px 4px; }
             .label-card.a4-14 { min-height: 40mm; height: 40mm; padding: 6px 8px; }
@@ -512,6 +571,8 @@ export default function BarcodeGeneratorModal({
             .label-card.thermal-50x30 { width: 47mm; height: 27mm; min-height: 27mm; padding: 2px 4px; }
 
             .label-header {
+              position: relative;
+              z-index: 1;
               display: flex;
               justify-content: space-between;
               align-items: center;
@@ -523,6 +584,8 @@ export default function BarcodeGeneratorModal({
               text-transform: uppercase;
               letter-spacing: 0.2px;
             }
+            .company-block { display: flex; align-items: center; gap: 4px; min-width: 0; }
+            .label-logo { height: 9px; width: auto; object-fit: contain; filter: brightness(0); }
             .company-title { color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             .category-title { color: #666; font-weight: 600; font-size: 6.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -648,6 +711,7 @@ export default function BarcodeGeneratorModal({
     try {
       let isThermal = paperPreset.startsWith('thermal');
       let pdf: jsPDF;
+      const logoDataUrl = showLogo ? await getLogoDataUrl('/branding/siatek-logo-horizontal.png') : '';
 
       if (paperPreset === 'thermal-80x50') {
         pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [50, 80] });
@@ -669,11 +733,22 @@ export default function BarcodeGeneratorModal({
           const barcodeImg = await getBarcodeDataUrl(barcodeVal, barcodeType === 'DUAL' ? 'CODE128' : barcodeType);
 
           let y = 4;
-          // Company header
+          // Logo & Company header
+          if (showLogo && logoDataUrl && logoPosition !== 'watermark') {
+            try {
+              const lWidth = paperPreset === 'thermal-50x30' ? 10 : 14;
+              const lHeight = paperPreset === 'thermal-50x30' ? 3.5 : 4.5;
+              const lX = logoPosition === 'center' ? (labelWidth - lWidth) / 2 : 4;
+              pdf.addImage(logoDataUrl, 'PNG', lX, y - 1, lWidth, lHeight);
+              if (logoPosition === 'center') y += lHeight + 1;
+            } catch {}
+          }
+
           if (showCompanyHeader && companyHeader) {
             pdf.setFontSize(7);
             pdf.setFont('helvetica', 'bold');
-            pdf.text(companyHeader.substring(0, 32), labelWidth / 2, y, { align: 'center' });
+            const hX = (showLogo && logoDataUrl && logoPosition === 'left') ? labelWidth / 2 + 5 : labelWidth / 2;
+            pdf.text(companyHeader.substring(0, 32), hX, y, { align: 'center' });
             y += 3.5;
           }
 
@@ -761,11 +836,39 @@ export default function BarcodeGeneratorModal({
 
             let curY = y + 4;
 
-            // Company Header
+            // Watermark Logo
+            if (showLogo && logoDataUrl && logoPosition === 'watermark') {
+              try {
+                // Dimmed watermark in center of card cell
+                const wmWidth = cellW * 0.55;
+                const wmHeight = cellH * 0.35;
+                pdf.saveGraphicsState();
+                // @ts-ignore
+                if (pdf.setGState) {
+                  // @ts-ignore
+                  pdf.setGState(new pdf.GState({ opacity: 0.08 }));
+                }
+                pdf.addImage(logoDataUrl, 'PNG', x + (cellW - wmWidth) / 2, y + (cellH - wmHeight) / 2, wmWidth, wmHeight);
+                pdf.restoreGraphicsState();
+              } catch {}
+            }
+
+            // Company Header & Logo
+            if (showLogo && logoDataUrl && logoPosition !== 'watermark') {
+              try {
+                const lW = paperPreset === 'a4-40' ? 8 : 10;
+                const lH = paperPreset === 'a4-40' ? 2.8 : 3.5;
+                const lPosX = logoPosition === 'center' ? x + (cellW - lW) / 2 : x + 3;
+                pdf.addImage(logoDataUrl, 'PNG', lPosX, curY - 1, lW, lH);
+                if (logoPosition === 'center') curY += lH + 1;
+              } catch {}
+            }
+
             if (showCompanyHeader && companyHeader) {
               pdf.setFontSize(6);
               pdf.setFont('helvetica', 'bold');
-              pdf.text(companyHeader.substring(0, 28), x + (cellW / 2), curY, { align: 'center' });
+              const hPosX = (showLogo && logoDataUrl && logoPosition === 'left') ? x + (cellW / 2) + 3 : x + (cellW / 2);
+              pdf.text(companyHeader.substring(0, 28), hPosX, curY, { align: 'center' });
               curY += 3;
             }
 
@@ -839,6 +942,499 @@ export default function BarcodeGeneratorModal({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  if (isPageMode) {
+    return (
+      <div className="w-full bg-base-surface border border-border rounded-2xl flex flex-col shadow-xs overflow-hidden min-h-[85vh]">
+        {/* MODAL HEADER */}
+        <div className="px-3 sm:px-5 py-3 sm:py-4 bg-base-surface-2 border-b border-border flex flex-wrap items-center justify-between gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 shrink-0 rounded-xl bg-base-surface border border-border flex items-center justify-center text-text-primary shadow-xs">
+              <BarcodeIcon className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
+                <h2 className="text-sm sm:text-base font-black text-text-primary leading-tight min-w-0">
+                  Toplu Barkod & Raf Etiketi Üretim Masası
+                </h2>
+                <span className="hidden sm:inline-block shrink-0 whitespace-nowrap px-2 py-0.5 rounded-md text-[11px] font-bold bg-bg-success text-success-text border border-success-border">
+                  Code-128 / EAN-13 / QR / Termal
+                </span>
+              </div>
+              <p className="hidden sm:block text-xs text-text-muted">
+                Stoklarınız için anında çizgili barkod ve QR etiketleri oluşturun, A4 tabaka veya termal rulo yazıcıdan milimetrik yazdırın.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 basis-full sm:basis-auto min-w-0 sm:ml-auto">
+            {/* View Switcher Tabs */}
+            <div className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto overscroll-x-contain bg-base-surface p-1 rounded-xl border border-border">
+              <button
+                type="button"
+                onClick={() => setActiveTab('select')}
+                className={`flex items-center shrink-0 whitespace-nowrap gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'select'
+                    ? 'bg-base-surface-2 text-text-primary shadow-xs'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                <CheckSquare className="w-3.5 h-3.5" />
+                <span>Ürün Seçimi ({totalSelectedProducts})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('studio')}
+                className={`flex items-center shrink-0 whitespace-nowrap gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'studio'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>Tasarım Stüdyosu</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('preview')}
+                className={`flex items-center shrink-0 whitespace-nowrap gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'preview'
+                    ? 'bg-base-surface-2 text-text-primary shadow-xs'
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Baskı Önizleme ({totalLabelsToPrint} Etiket)</span>
+              </button>
+            </div>
+
+            {!isPageMode && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3 py-1.5 bg-base-surface hover:bg-base-surface-2 text-text-primary rounded-xl text-xs font-bold border border-border flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+                title="Pencereyi Kapat"
+              >
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Kapat</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* TAB 1: PRODUCT SELECTION TAB */}
+        {activeTab === 'select' && (
+          <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+            {/* Left Column: Filter & Product Table */}
+            <div className="flex-1 flex flex-col min-h-0 border-b md:border-b-0 md:border-r border-border">
+              {/* Filter Bar */}
+              <div className="p-3 bg-base-surface border-b border-border flex flex-wrap items-center justify-between gap-2.5">
+                <div className="flex flex-1 items-center gap-2 min-w-[200px]">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Ürün adı, ST kodu veya barkod ara..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 bg-base-surface-2 border border-border rounded-xl text-xs text-text-primary placeholder:text-text-muted focus:outline-hidden focus:border-border-strong"
+                    />
+                  </div>
+
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="px-2.5 py-1.5 bg-base-surface-2 border border-border rounded-xl text-xs text-text-secondary font-medium cursor-pointer"
+                  >
+                    {categories.map((c) => (
+                      <option key={c} value={c}>
+                        {c === 'ALL' ? 'Tüm Kategoriler' : c}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={stockFilter}
+                    onChange={(e) => setStockFilter(e.target.value as any)}
+                    className="px-2.5 py-1.5 bg-base-surface-2 border border-border rounded-xl text-xs text-text-secondary font-medium cursor-pointer"
+                  >
+                    <option value="ALL">Tüm Stoklar</option>
+                    <option value="IN_STOCK">Sadece Stoktakiler</option>
+                    <option value="LOW_STOCK">Kritik Stok (≤5)</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAllFiltered(1)}
+                    className="px-2.5 py-1.5 bg-base-surface-2 hover:bg-base-surface text-text-primary rounded-xl text-xs font-bold border border-border transition-colors cursor-pointer"
+                  >
+                    Tümünü Seç ({filteredProducts.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeselectAllFiltered}
+                    className="px-2.5 py-1.5 text-text-muted hover:text-danger-text rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Temizle
+                  </button>
+                </div>
+              </div>
+
+              {/* Product Table */}
+              <div className="flex-1 overflow-y-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead className="sticky top-0 bg-base-surface-2 text-text-secondary border-b border-border z-10 font-bold">
+                    <tr>
+                      <th className="py-2.5 px-3 w-10 text-center">
+                        <input
+                          type="checkbox"
+                          checked={filteredProducts.length > 0 && filteredProducts.every((p) => (selectedItems[p.id] || 0) > 0)}
+                          onChange={(e) => {
+                            if (e.target.checked) selectAllFiltered();
+                            else clearAllSelection();
+                          }}
+                          className="rounded border-border cursor-pointer accent-emerald-600"
+                        />
+                      </th>
+                      <th className="py-2.5 px-3">Ürün Tanımı & ST Kodu</th>
+                      <th className="py-2.5 px-3">Kategori</th>
+                      <th className="py-2.5 px-3">Barkod No</th>
+                      <th className="py-2.5 px-3 text-right">Stok</th>
+                      <th className="py-2.5 px-3 text-right">Fiyat</th>
+                      <th className="py-2.5 px-3 w-28 text-center">Etiket Adedi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredProducts.map((p) => {
+                      const qty = selectedItems[p.id] || 0;
+                      const isSelected = qty > 0;
+                      return (
+                        <tr
+                          key={p.id}
+                          className={`hover:bg-base-surface-2 transition-colors ${
+                            isSelected ? 'bg-emerald-500/5 dark:bg-emerald-500/10' : ''
+                          }`}
+                        >
+                          <td className="py-2 px-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelectProduct(p.id)}
+                              className="rounded border-border cursor-pointer accent-emerald-600"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <div className="font-bold text-text-primary">{p.name}</div>
+                            <div className="text-[11px] font-mono text-text-muted">{p.sku}</div>
+                          </td>
+                          <td className="py-2 px-3 text-text-secondary">{p.category}</td>
+                          <td className="py-2 px-3 font-mono text-text-secondary text-[11px]">
+                            {p.barcode || <span className="text-warning-text italic">Otomatik EAN</span>}
+                          </td>
+                          <td className="py-2 px-3 text-right tabular-nums font-bold">
+                            <span className={p.stock <= 5 ? 'text-danger-text' : 'text-text-primary'}>
+                              {p.stock} {p.unit}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-right tabular-nums font-mono font-bold text-text-primary">
+                            ₺{p.price.toLocaleString('tr-TR')}
+                          </td>
+                          <td className="py-2 px-3">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => setProductQuantity(p.id, Math.max(0, qty - 1))}
+                                disabled={qty === 0}
+                                className="w-6 h-6 rounded-md bg-base-surface border border-border flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </button>
+                              <input
+                                type="number"
+                                min="0"
+                                max="999"
+                                value={qty}
+                                onChange={(e) => setProductQuantity(p.id, parseInt(e.target.value, 10) || 0)}
+                                className="w-10 py-0.5 text-center text-xs font-mono font-bold bg-base-surface border border-border rounded-md"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setProductQuantity(p.id, qty + 1)}
+                                className="w-6 h-6 rounded-md bg-base-surface border border-border flex items-center justify-center text-text-secondary hover:text-text-primary cursor-pointer"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Right Column: Fast Config Sidebar */}
+            <div className="w-full md:w-80 p-4 bg-base-surface-2 flex flex-col gap-4 overflow-y-auto shrink-0 border-t md:border-t-0">
+              <div className="bg-base-surface p-3.5 rounded-2xl border border-border space-y-3">
+                <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Hızlı Etiket Şablonu</span>
+                </h3>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-secondary mb-1">Kağıt / Etiket Boyutu</label>
+                  <select
+                    value={paperPreset}
+                    onChange={(e) => setPaperPreset(e.target.value as any)}
+                    className="w-full px-2.5 py-1.5 bg-base-surface-2 border border-border rounded-xl text-xs font-bold text-text-primary cursor-pointer"
+                  >
+                    <option value="a4-24">A4 Tabaka (24 Etiket - 70x37mm)</option>
+                    <option value="a4-40">A4 Tabaka (40 Etiket - 48.5x25.4mm)</option>
+                    <option value="a4-14">A4 Tabaka (14 Etiket - 105x42.3mm)</option>
+                    <option value="shelf-talker">A4 Raf Etiketi (8 Etiket - Büyük)</option>
+                    <option value="thermal-80x50">Termal Rulo (80x50mm)</option>
+                    <option value="thermal-50x30">Termal Rulo (50x30mm)</option>
+                    <option value="thermal-100x150">Koli / Lojistik (100x150mm)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-text-secondary mb-1">Barkod Tipi</label>
+                  <select
+                    value={barcodeType}
+                    onChange={(e) => setBarcodeType(e.target.value as any)}
+                    className="w-full px-2.5 py-1.5 bg-base-surface-2 border border-border rounded-xl text-xs font-bold text-text-primary cursor-pointer"
+                  >
+                    <option value="CODE128">Code-128 (Standart Çizgili)</option>
+                    <option value="EAN13">EAN-13 (Perakende Standart)</option>
+                    <option value="QR">QR Karekod</option>
+                    <option value="DUAL">Hibrit (Çizgili + QR Yan Yana)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Summary and Next Action */}
+              <div className="mt-auto bg-base-surface p-4 rounded-2xl border border-border space-y-3">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-text-muted">Seçili Ürün:</span>
+                  <strong className="text-text-primary font-bold">{totalSelectedProducts} adet</strong>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-text-muted">Yazdırılacak Toplam:</span>
+                  <strong className="text-emerald-600 font-bold font-mono text-sm">{totalLabelsToPrint} etiket</strong>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('preview')}
+                  disabled={totalLabelsToPrint === 0}
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Baskı Önizlemeye Geç</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: STUDIO (RENDERED IN FULL PAGE MODE) */}
+        {activeTab === 'studio' && (
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden p-3 sm:p-4 space-y-3 bg-[#0B0F19]">
+            {/* Top Studio Action Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5 px-3 py-2 bg-[#0E131F] border border-slate-800 rounded-xl shrink-0">
+              <div className="flex items-center gap-2 min-w-[260px] flex-1">
+                <span className="text-xs font-semibold text-slate-400 shrink-0">Örnek Ürün:</span>
+                <select
+                  value={studioPreviewProductId || studioPreviewProduct.id}
+                  onChange={(e) => setStudioPreviewProductId(e.target.value)}
+                  className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white flex-1 focus:border-blue-500 truncate"
+                >
+                  {safeProducts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.sku ? `[${p.sku}] ` : ''}{p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleCopyZpl}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition border cursor-pointer active:scale-[0.98] ${
+                    copiedZpl
+                      ? 'bg-emerald-600 text-white border-emerald-500'
+                      : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                  }`}
+                  title="Zebra Barkod Yazıcıları için ZPL-II ham kodunu kopyala"
+                >
+                  <Code className="w-3.5 h-3.5" />
+                  <span>{copiedZpl ? 'ZPL Kopyalandı!' : 'Zebra ZPL Kodu'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('preview')}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition cursor-pointer active:scale-[0.98]"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Bu Tasarımla Yazdır</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Studio Split Workspace: Left Canvas + Right Property Inspector */}
+            <div className="flex-1 flex flex-col lg:flex-row gap-3 min-h-0 overflow-hidden">
+              {/* Center Canvas */}
+              <div className="flex-1 min-h-[360px] lg:min-h-0 overflow-hidden">
+                <RulerCanvas
+                  product={studioPreviewProduct}
+                  config={studioConfig}
+                  zoom={studioZoom}
+                  onZoomChange={setStudioZoom}
+                  onConfigChange={setStudioConfig}
+                />
+              </div>
+
+              {/* Right Property Inspector */}
+              <div className="w-full lg:w-80 shrink-0 h-64 lg:h-full overflow-hidden">
+                <PropertyInspector
+                  config={studioConfig}
+                  onChange={setStudioConfig}
+                  activePreset={paperPreset}
+                  onSelectPreset={(p) => setPaperPreset(p)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'preview' && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="p-3 bg-base-surface border-b border-border flex flex-wrap items-center justify-between gap-2">
+              <div className="text-xs text-text-secondary flex items-center gap-2">
+                <Eye className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Toplam <strong className="text-text-primary font-bold">{totalLabelsToPrint}</strong> etiket yazdırılmaya hazır.</span>
+                <span className="font-mono text-[11px] text-text-muted hidden sm:inline">({paperPreset.toUpperCase()} | {barcodeType})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Zoom Controls */}
+                <div className="flex items-center space-x-1 bg-base-surface-2 px-1.5 py-1 rounded-lg border border-border">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewZoom(z => Math.max(40, z - 15))}
+                    className="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-base-surface transition-colors cursor-pointer"
+                    title="Küçült"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </button>
+                  <span className="text-[10px] font-mono font-bold text-text-primary w-9 text-center select-none">
+                    %{previewZoom}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewZoom(z => Math.min(150, z + 15))}
+                    className="p-1 rounded text-text-secondary hover:text-text-primary hover:bg-base-surface transition-colors cursor-pointer"
+                    title="Büyüt"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDirectPrint(false)}
+                  disabled={totalLabelsToPrint === 0 || isPrinting}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>{isPrinting ? 'Yazıcıya Gönderiliyor...' : 'Yazıcıya Gönder (Hızlı Yazdır)'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  disabled={totalLabelsToPrint === 0 || isGeneratingPdf}
+                  className="px-3 py-1.5 bg-base-surface-2 hover:bg-base-surface text-text-primary border border-border rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all disabled:opacity-50"
+                >
+                  <Download className="w-4 h-4 text-emerald-600" />
+                  <span>{isGeneratingPdf ? 'PDF Hazırlanıyor...' : 'PDF Olarak İndir'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 p-6 overflow-y-auto bg-slate-100 dark:bg-slate-900/40 flex justify-center items-start">
+              {labelList.length === 0 ? (
+                <div className="p-12 text-center text-text-muted bg-base-surface rounded-xl border border-border max-w-md my-auto shadow-sm">
+                  <AlertCircle className="w-8 h-8 mx-auto mb-2 text-warning-text" />
+                  <div className="font-bold text-sm text-text-primary mb-1">Hiç Etiket Seçilmedi</div>
+                  <p className="text-xs mb-4">Lütfen barkodunu basmak istediğiniz ürünleri ve adetlerini belirleyin.</p>
+                  <button
+                    onClick={() => setActiveTab('select')}
+                    className="px-4 py-2 rounded-xl bg-text-primary text-base font-bold text-xs cursor-pointer active:scale-[0.98]"
+                  >
+                    Ürün Seçimine Git
+                  </button>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    transform: `scale(${previewZoom / 100})`,
+                    transformOrigin: 'top center',
+                    marginBottom: previewZoom > 100 ? `${(previewZoom - 100) * 8}px` : undefined
+                  }}
+                  className="transition-transform duration-150 origin-top"
+                >
+                  <div
+                    id="barcode-print-container"
+                    ref={printAreaRef}
+                    className={`bg-white text-black transition-all shadow-lg rounded-sm ${
+                      paperPreset === 'a4-24'
+                        ? 'w-[210mm] min-h-[297mm] p-[5mm] grid grid-cols-3 gap-[2.5mm]'
+                        : paperPreset === 'a4-40'
+                        ? 'w-[210mm] min-h-[297mm] p-[4mm] grid grid-cols-4 gap-[1.5mm]'
+                        : paperPreset === 'a4-14'
+                        ? 'w-[210mm] min-h-[297mm] p-[5mm] grid grid-cols-2 gap-[3mm]'
+                        : paperPreset === 'shelf-talker'
+                        ? 'w-[210mm] min-h-[297mm] p-[6mm] grid grid-cols-2 gap-[4mm]'
+                        : paperPreset === 'thermal-80x50'
+                        ? 'w-[80mm] p-[3mm] flex flex-col space-y-[4mm]'
+                        : 'w-[50mm] p-[2mm] flex flex-col space-y-[3mm]'
+                    }`}
+                  >
+                    {labelList.map((product, idx) => (
+                      <BarcodeSingleCard
+                        key={`${product.id}-${idx}`}
+                        product={product}
+                        preset={paperPreset}
+                        barcodeType={barcodeType}
+                        companyHeader={companyHeader}
+                        showCompanyHeader={showCompanyHeader}
+                        showLogo={showLogo}
+                        logoPosition={logoPosition}
+                        showProductName={showProductName}
+                        showSku={showSku}
+                        showBarcodeText={showBarcodeText}
+                        showPrice={showPrice}
+                        priceType={priceType}
+                        showVatInfo={showVatInfo}
+                        showUnit={showUnit}
+                        showCategory={showCategory}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -1390,6 +1986,8 @@ export default function BarcodeGeneratorModal({
                             barcodeType={barcodeType}
                             companyHeader={companyHeader}
                             showCompanyHeader={showCompanyHeader}
+                            showLogo={showLogo}
+                            logoPosition={logoPosition}
                             showProductName={showProductName}
                             showSku={showSku}
                             showBarcodeText={showBarcodeText}
@@ -1489,6 +2087,56 @@ export default function BarcodeGeneratorModal({
                       className="w-full px-3 py-1.5 bg-base-surface-2 border border-border rounded-lg text-xs font-medium text-text-primary"
                     />
                   )}
+
+                  {/* Logo Options */}
+                  <div className="pt-2 border-t border-border/60">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-text-primary">Şirket / Siatek Logosu</span>
+                      <input
+                        type="checkbox"
+                        checked={showLogo}
+                        onChange={e => setShowLogo(e.target.checked)}
+                        className="rounded cursor-pointer"
+                      />
+                    </div>
+                    {showLogo && (
+                      <div className="mt-2 grid grid-cols-3 gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setLogoPosition('left')}
+                          className={`py-1 px-1.5 rounded text-[10px] font-semibold border transition ${
+                            logoPosition === 'left'
+                              ? 'bg-accent-fill/10 border-accent-border text-text-primary font-bold'
+                              : 'bg-base-surface-2 border-border text-text-secondary hover:text-text-primary'
+                          }`}
+                        >
+                          Sol Üst
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLogoPosition('center')}
+                          className={`py-1 px-1.5 rounded text-[10px] font-semibold border transition ${
+                            logoPosition === 'center'
+                              ? 'bg-accent-fill/10 border-accent-border text-text-primary font-bold'
+                              : 'bg-base-surface-2 border-border text-text-secondary hover:text-text-primary'
+                          }`}
+                        >
+                          Ortala
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setLogoPosition('watermark')}
+                          className={`py-1 px-1.5 rounded text-[10px] font-semibold border transition ${
+                            logoPosition === 'watermark'
+                              ? 'bg-accent-fill/10 border-accent-border text-text-primary font-bold'
+                              : 'bg-base-surface-2 border-border text-text-secondary hover:text-text-primary'
+                          }`}
+                        >
+                          Filigran
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Content Field Toggles */}
@@ -1638,6 +2286,8 @@ interface BarcodeSingleCardProps {
   barcodeType: BarcodeType;
   companyHeader: string;
   showCompanyHeader: boolean;
+  showLogo?: boolean;
+  logoPosition?: 'left' | 'center' | 'watermark';
   showProductName: boolean;
   showSku: boolean;
   showBarcodeText: boolean;
@@ -1654,6 +2304,8 @@ function BarcodeSingleCard({
   barcodeType,
   companyHeader,
   showCompanyHeader,
+  showLogo = true,
+  logoPosition = 'left',
   showProductName,
   showSku,
   showBarcodeText,
@@ -1728,13 +2380,33 @@ function BarcodeSingleCard({
         isShelfTalker ? 'p-3 min-h-[68mm]' : isCompact40 ? 'p-1 min-h-[27mm]' : 'min-h-[35mm]'
       }`}
     >
-      {/* 1. Header (Company Name & Category) */}
-      <div className="flex items-center justify-between border-b border-neutral-200 pb-0.5 mb-1 leading-none">
-        {showCompanyHeader && (
-          <span className="font-extrabold tracking-tight text-[8px] text-neutral-800 uppercase truncate">
-            {companyHeader}
-          </span>
-        )}
+      {/* Watermark Logo */}
+      {showLogo && logoPosition === 'watermark' && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06] z-0 overflow-hidden">
+          <img
+            src="/branding/siatek-logo-horizontal.png"
+            alt="Logo Watermark"
+            className="max-w-[70%] max-h-[70%] object-contain grayscale"
+          />
+        </div>
+      )}
+
+      {/* 1. Header (Company Name & Category & Logo) */}
+      <div className="flex items-center justify-between border-b border-neutral-200 pb-0.5 mb-1 leading-none relative z-10">
+        <div className="flex items-center space-x-1 min-w-0">
+          {showLogo && logoPosition !== 'watermark' && (
+            <img
+              src="/branding/siatek-logo-horizontal.png"
+              alt="Logo"
+              className="h-2.5 w-auto object-contain shrink-0 brightness-0"
+            />
+          )}
+          {showCompanyHeader && (
+            <span className="font-extrabold tracking-tight text-[8px] text-neutral-800 uppercase truncate">
+              {companyHeader}
+            </span>
+          )}
+        </div>
         {showCategory && (
           <span className="text-[7px] text-neutral-500 font-semibold truncate ml-1">
             {product.category}
