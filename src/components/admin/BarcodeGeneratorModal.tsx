@@ -91,7 +91,8 @@ export default function BarcodeGeneratorModal({
   initialSelectedProductIds = [],
   isPageMode = false,
 }: BarcodeGeneratorModalProps) {
-  useModalBehavior(isOpen, onClose);
+  // Müstakil sayfa modunda sayfa kaydırması kilitlenmemeli, Escape sayfayı kapatmamalı.
+  useModalBehavior(isOpen, onClose, { lockScroll: !isPageMode, closeOnEsc: !isPageMode });
   // Selection State: Map of productId -> quantity
   const [selectedItems, setSelectedItems] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState('');
@@ -935,11 +936,11 @@ export default function BarcodeGeneratorModal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    if (isOpen) {
+    if (isOpen && !isPageMode) {
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, isPageMode, onClose]);
 
   if (!isOpen) return null;
 
