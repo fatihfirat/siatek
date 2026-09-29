@@ -474,14 +474,14 @@ export default function SalesPerformanceTrendChart({
     <div 
       id="sales-performance-trend-container" 
       ref={containerRef}
-      className={`bg-white dark:bg-base-surface rounded-3xl border border-[#E7E0D4] p-5 sm:p-6 shadow-xs space-y-5 ${className}`}
+      className={`bg-white dark:bg-base-surface rounded-3xl border border-[#E7E0D4] dark:border-border p-5 sm:p-6 shadow-xs space-y-5 ${className}`}
     >
       
       {/* Top Header Strip */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#EAE3D6]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#EAE3D6] dark:border-border">
         <div className="space-y-1">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 text-[#2E5438] border border-emerald-200 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 text-[#2E5438] dark:text-emerald-400 border border-emerald-200 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
             <div>
@@ -501,14 +501,14 @@ export default function SalesPerformanceTrendChart({
         {/* View Mode & Filter Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Mode Switcher */}
-          <div className="flex items-center bg-[#F4EFE6] p-1 rounded-xl border border-[#DDD5C7] text-xs">
+          <div className="flex items-center bg-[#F4EFE6] dark:bg-base-surface-2 p-1 rounded-xl border border-[#DDD5C7] dark:border-border text-xs">
             <button
               type="button"
               onClick={() => setViewMode('volume')}
               className={`min-h-[44px] px-3.5 py-2 rounded-lg font-bold transition-all cursor-pointer touch-manipulation ${
                 viewMode === 'volume'
                   ? 'bg-[#2E5438] text-white shadow-2xs'
-                  : 'text-stone-600 dark:text-text-secondary hover:text-stone-900'
+                  : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
               }`}
             >
               Hacim (Sipariş Adeti)
@@ -519,7 +519,7 @@ export default function SalesPerformanceTrendChart({
               className={`min-h-[44px] px-3.5 py-2 rounded-lg font-bold transition-all cursor-pointer touch-manipulation ${
                 viewMode === 'revenue'
                   ? 'bg-[#8C4A32] text-white shadow-2xs'
-                  : 'text-stone-600 dark:text-text-secondary hover:text-stone-900'
+                  : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
               }`}
             >
               Ciro (₺)
@@ -530,7 +530,7 @@ export default function SalesPerformanceTrendChart({
               className={`min-h-[44px] px-3.5 py-2 rounded-lg font-bold transition-all cursor-pointer touch-manipulation ${
                 viewMode === 'combined'
                   ? 'bg-stone-900 text-white shadow-2xs'
-                  : 'text-stone-600 dark:text-text-secondary hover:text-stone-900'
+                  : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
               }`}
             >
               Kombine Görünüm
@@ -544,7 +544,7 @@ export default function SalesPerformanceTrendChart({
             className={`min-h-[44px] px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer touch-manipulation ${
               includeCancelled
                 ? 'bg-amber-50 dark:bg-amber-500/15 border-amber-300 text-amber-900 dark:text-amber-300'
-                : 'bg-white dark:bg-base-surface border-[#DDD5C7] text-stone-600 dark:text-text-secondary hover:bg-stone-50'
+                : 'bg-white dark:bg-base-surface border-[#DDD5C7] dark:border-border text-stone-600 dark:text-text-secondary hover:bg-stone-50'
             }`}
             title="İptal edilen siparişleri de grafiğe dahil et veya hariç tut"
           >
@@ -557,12 +557,12 @@ export default function SalesPerformanceTrendChart({
       {/* 4-KPI Metric Highlights Banner */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         
-        <div className="p-3.5 bg-[#FAF8F5] rounded-2xl border border-[#E7E0D4] space-y-1">
+        <div className="p-3.5 bg-[#FAF8F5] dark:bg-base-surface-2 rounded-2xl border border-[#E7E0D4] dark:border-border space-y-1">
           <div className="flex items-center justify-between text-xs text-stone-500 dark:text-text-muted">
             <span className="font-medium">7 Günlük Sipariş Hacmi</span>
-            <ShoppingBag className="w-3.5 h-3.5 text-[#2E5438]" />
+            <ShoppingBag className="w-3.5 h-3.5 text-[#2E5438] dark:text-emerald-400" />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-[#2E5438] font-mono">
+          <div className="text-xl sm:text-2xl font-black text-[#2E5438] dark:text-emerald-400 font-mono">
             {totalVolume7Days} <span className="text-xs font-normal text-stone-600 dark:text-text-secondary">Sipariş</span>
           </div>
           <div className="text-[11px] text-stone-500 dark:text-text-muted">
@@ -570,12 +570,12 @@ export default function SalesPerformanceTrendChart({
           </div>
         </div>
 
-        <div className="p-3.5 bg-[#FAF8F5] rounded-2xl border border-[#E7E0D4] space-y-1">
+        <div className="p-3.5 bg-[#FAF8F5] dark:bg-base-surface-2 rounded-2xl border border-[#E7E0D4] dark:border-border space-y-1">
           <div className="flex items-center justify-between text-xs text-stone-500 dark:text-text-muted">
             <span className="font-medium">7 Günlük Toplam Ciro</span>
-            <DollarSign className="w-3.5 h-3.5 text-[#8C4A32]" />
+            <DollarSign className="w-3.5 h-3.5 text-[#8C4A32] dark:text-orange-300" />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-[#8C4A32] font-mono">
+          <div className="text-xl sm:text-2xl font-black text-[#8C4A32] dark:text-orange-300 font-mono">
             {totalRevenue7Days.toLocaleString('tr-TR')} ₺
           </div>
           <div className="text-[11px] text-stone-500 dark:text-text-muted">
@@ -583,7 +583,7 @@ export default function SalesPerformanceTrendChart({
           </div>
         </div>
 
-        <div className="p-3.5 bg-[#FAF8F5] rounded-2xl border border-[#E7E0D4] space-y-1">
+        <div className="p-3.5 bg-[#FAF8F5] dark:bg-base-surface-2 rounded-2xl border border-[#E7E0D4] dark:border-border space-y-1">
           <div className="flex items-center justify-between text-xs text-stone-500 dark:text-text-muted">
             <span className="font-medium">Günlük Ortalama Hacim</span>
             <BarChart2 className="w-3.5 h-3.5 text-stone-700 dark:text-text-secondary" />
@@ -612,7 +612,7 @@ export default function SalesPerformanceTrendChart({
       </div>
 
       {/* D3 Graphic Canvas Container */}
-      <div className="relative bg-[#FCFBF9] p-4 rounded-2xl border border-[#E7E0D4] overflow-hidden">
+      <div className="relative bg-[#FCFBF9] dark:bg-base-surface-2 p-4 rounded-2xl border border-[#E7E0D4] dark:border-border overflow-hidden">
         
         {/* Legend */}
         <div className="flex flex-wrap items-center justify-between gap-2 mb-2 text-xs">
@@ -712,7 +712,7 @@ export default function SalesPerformanceTrendChart({
                   ? 'bg-emerald-50 dark:bg-emerald-500/15 border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
                   : day.isPeakDay
                   ? 'bg-amber-50/50 dark:bg-amber-500/15 border-amber-300 hover:bg-amber-50'
-                  : 'bg-white dark:bg-base-surface border-[#E7E0D4] hover:border-stone-400 hover:bg-stone-50/60'
+                  : 'bg-white dark:bg-base-surface border-[#E7E0D4] dark:border-border hover:border-stone-400 hover:bg-stone-50/60'
               }`}
             >
               <div className="flex items-center justify-between text-[11px]">
@@ -721,7 +721,7 @@ export default function SalesPerformanceTrendChart({
               </div>
               
               <div className="mt-2 flex items-baseline justify-between">
-                <span className="text-lg font-black font-mono text-[#2E5438]">
+                <span className="text-lg font-black font-mono text-[#2E5438] dark:text-emerald-400">
                   {day.orderCount}
                 </span>
                 <span className="text-[10px] text-stone-500 dark:text-text-muted font-medium">sipariş</span>

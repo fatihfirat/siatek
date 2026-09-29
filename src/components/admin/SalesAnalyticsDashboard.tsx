@@ -726,10 +726,10 @@ export default function SalesAnalyticsDashboard({
     <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* Top Header & Interactive Filter Bar */}
-      <div className="bg-white dark:bg-base-surface p-4 sm:p-5 rounded-2xl border border-[#E7E0D4] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-base-surface p-4 sm:p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-xl bg-[#2E5438]/10 text-[#2E5438] border border-[#2E5438]/20">
+            <div className="p-2 rounded-xl bg-[#2E5438]/10 text-[#2E5438] dark:text-emerald-400 border border-[#2E5438]/20">
               <TrendingUp className="w-5 h-5" />
             </div>
             <div>
@@ -750,11 +750,11 @@ export default function SalesAnalyticsDashboard({
         <div className="flex flex-wrap items-center gap-2">
           
           {/* Time Range Selector */}
-          <div className="flex items-center bg-[#F2EDE4] p-1 rounded-xl border border-[#DDD5C7] text-xs">
+          <div className="flex items-center bg-[#F2EDE4] dark:bg-base-surface-2 p-1 rounded-xl border border-[#DDD5C7] dark:border-border text-xs">
             <button
               onClick={() => setTimeRange('7d')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                timeRange === '7d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900'
+                timeRange === '7d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
               }`}
             >
               Son 7 Gün
@@ -762,7 +762,7 @@ export default function SalesAnalyticsDashboard({
             <button
               onClick={() => setTimeRange('14d')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                timeRange === '14d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900'
+                timeRange === '14d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
               }`}
             >
               Son 14 Gün
@@ -770,7 +770,7 @@ export default function SalesAnalyticsDashboard({
             <button
               onClick={() => setTimeRange('30d')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                timeRange === '30d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900'
+                timeRange === '30d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
               }`}
             >
               Son 30 Gün
@@ -778,12 +778,12 @@ export default function SalesAnalyticsDashboard({
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center space-x-1.5 bg-[#FAF8F5] px-3 py-1.5 rounded-xl border border-[#DDD5C7] text-xs">
+          <div className="flex items-center space-x-1.5 bg-[#FAF8F5] dark:bg-base-surface-2 px-3 py-1.5 rounded-xl border border-[#DDD5C7] dark:border-border text-xs">
             <Filter className="w-3.5 h-3.5 text-stone-500 dark:text-text-muted" />
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as any)}
-              className="bg-transparent font-semibold text-stone-800 dark:text-text-primary cursor-pointer text-xs"
+              className="bg-transparent dark:bg-base-surface font-semibold text-stone-800 dark:text-text-primary cursor-pointer text-xs"
             >
               <option value="all">Tüm Siparişler</option>
               <option value="valid_only">Yalnızca Geçerli (İptaller Hariç)</option>
@@ -818,29 +818,29 @@ export default function SalesAnalyticsDashboard({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Total Revenue */}
-        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] shadow-xs">
+        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs text-stone-500 dark:text-text-muted font-medium">
               {timeRange === '7d' ? 'Son 7 Günlük' : timeRange === '14d' ? 'Son 14 Günlük' : 'Son 30 Günlük'} Toplam Ciro
             </span>
-            <div className="p-2 rounded-xl bg-[#2E5438]/10 text-[#2E5438] border border-[#2E5438]/20">
+            <div className="p-2 rounded-xl bg-[#2E5438]/10 text-[#2E5438] dark:text-emerald-400 border border-[#2E5438]/20">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-black text-stone-900 dark:text-text-primary mt-2 font-mono">
             {totalRevenue.toLocaleString('tr-TR')} ₺
           </div>
-          <div className="flex items-center space-x-1 mt-1 text-[11px] text-[#2E5438] font-semibold">
+          <div className="flex items-center space-x-1 mt-1 text-[11px] text-[#2E5438] dark:text-emerald-400 font-semibold">
             <ArrowUpRight className="w-3.5 h-3.5" />
             <span>Günlük ortalama: {Math.round(totalRevenue / (timeRange === '7d' ? 7 : timeRange === '14d' ? 14 : 30)).toLocaleString('tr-TR')} ₺</span>
           </div>
         </div>
 
         {/* Total Orders & AOV */}
-        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] shadow-xs">
+        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs text-stone-500 dark:text-text-muted font-medium">Toplam Sipariş & Hacim</span>
-            <div className="p-2 rounded-xl bg-[#8C4A32]/10 text-[#8C4A32] border border-[#8C4A32]/20">
+            <div className="p-2 rounded-xl bg-[#8C4A32]/10 text-[#8C4A32] dark:text-orange-300 border border-[#8C4A32]/20">
               <ShoppingBag className="w-4 h-4" />
             </div>
           </div>
@@ -853,7 +853,7 @@ export default function SalesAnalyticsDashboard({
         </div>
 
         {/* Top Category */}
-        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] shadow-xs">
+        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs text-stone-500 dark:text-text-muted font-medium">Lider Ürün Kategorisi</span>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
@@ -869,7 +869,7 @@ export default function SalesAnalyticsDashboard({
         </div>
 
         {/* Peak Sales Day */}
-        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] shadow-xs">
+        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs text-stone-500 dark:text-text-muted font-medium">En Yüksek Satış Yapılan Gün</span>
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-700 border border-blue-500/20">
@@ -887,10 +887,10 @@ export default function SalesAnalyticsDashboard({
       </div>
 
       {/* D3 SALES TREND AREA & LINE CHART */}
-      <div className="bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] shadow-xs space-y-4">
+      <div className="bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs space-y-4">
         
         {/* Chart Header & Metric Toggles */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F0EBE1] pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F0EBE1] dark:border-border pb-3">
           <div>
             <h3 className="font-bold text-stone-900 dark:text-text-primary text-sm flex items-center space-x-2">
               <span>Günlük Satış & Gelir Trend Grafiği (D3)</span>
@@ -904,11 +904,11 @@ export default function SalesAnalyticsDashboard({
           <div className="flex flex-wrap items-center gap-2">
             
             {/* Metric Switcher */}
-            <div className="flex items-center bg-[#F2EDE4] p-1 rounded-xl border border-[#DDD5C7] text-xs">
+            <div className="flex items-center bg-[#F2EDE4] dark:bg-base-surface-2 p-1 rounded-xl border border-[#DDD5C7] dark:border-border text-xs">
               <button
                 onClick={() => setActiveMetric('revenue')}
                 className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  activeMetric === 'revenue' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900'
+                  activeMetric === 'revenue' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
                 }`}
               >
                 Ciro (₺)
@@ -916,7 +916,7 @@ export default function SalesAnalyticsDashboard({
               <button
                 onClick={() => setActiveMetric('orders')}
                 className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  activeMetric === 'orders' ? 'bg-[#8C4A32] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900'
+                  activeMetric === 'orders' ? 'bg-[#8C4A32] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
                 }`}
               >
                 Sipariş Sayısı
@@ -924,7 +924,7 @@ export default function SalesAnalyticsDashboard({
               <button
                 onClick={() => setActiveMetric('items')}
                 className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  activeMetric === 'items' ? 'bg-[#2563EB] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900'
+                  activeMetric === 'items' ? 'bg-[#2563EB] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
                 }`}
               >
                 Ürün Miktarı
@@ -938,7 +938,7 @@ export default function SalesAnalyticsDashboard({
                   type="checkbox"
                   checked={showMovingAverage}
                   onChange={e => setShowMovingAverage(e.target.checked)}
-                  className="rounded border-[#DDD5C7] text-[#2E5438] focus:ring-[#2E5438]"
+                  className="rounded border-[#DDD5C7] dark:border-border text-[#2E5438] dark:text-emerald-400 focus:ring-[#2E5438]"
                 />
                 <span className="flex items-center space-x-1">
                   <span className="w-3 h-0.5 bg-amber-500 inline-block border-b border-dashed" />
@@ -993,7 +993,7 @@ export default function SalesAnalyticsDashboard({
         </div>
 
         {/* Trend Legend / Footnote */}
-        <div className="flex flex-wrap items-center justify-between text-xs text-stone-500 dark:text-text-muted pt-2 border-t border-[#F0EBE1]">
+        <div className="flex flex-wrap items-center justify-between text-xs text-stone-500 dark:text-text-muted pt-2 border-t border-[#F0EBE1] dark:border-border">
           <div className="flex items-center space-x-4">
             <span className="flex items-center space-x-1.5">
               <span className={`w-3 h-3 rounded-full ${
@@ -1022,12 +1022,12 @@ export default function SalesAnalyticsDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left (5 cols): D3 Donut Chart with Hover Arc Interaction */}
-        <div className="lg:col-span-5 bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] shadow-xs flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between border-b border-[#F0EBE1] pb-3">
+            <div className="flex items-center justify-between border-b border-[#F0EBE1] dark:border-border pb-3">
               <div>
                 <h3 className="font-bold text-stone-900 dark:text-text-primary text-sm flex items-center space-x-2">
-                  <PieChartIcon className="w-4 h-4 text-[#8C4A32]" />
+                  <PieChartIcon className="w-4 h-4 text-[#8C4A32] dark:text-orange-300" />
                   <span>Kategori Satış Dağılımı (D3 Donut)</span>
                 </h3>
                 <p className="text-xs text-stone-500 dark:text-text-muted mt-0.5">
@@ -1058,7 +1058,7 @@ export default function SalesAnalyticsDashboard({
                     <span className="text-sm font-black text-stone-900 dark:text-text-primary font-mono mt-0.5">
                       {donutHovered.revenue.toLocaleString('tr-TR')} ₺
                     </span>
-                    <span className="text-[11px] font-bold text-[#2E5438]">
+                    <span className="text-[11px] font-bold text-[#2E5438] dark:text-emerald-400">
                       %{donutHovered.percent.toFixed(1)}
                     </span>
                   </>
@@ -1080,7 +1080,7 @@ export default function SalesAnalyticsDashboard({
           </div>
 
           {/* Interactive Legend List */}
-          <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pt-2 border-t border-[#F0EBE1]">
+          <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pt-2 border-t border-[#F0EBE1] dark:border-border">
             {categoryAnalyticsData.categories.map(cat => {
               const isSelected = selectedCategory === cat.category;
               return (
@@ -1109,11 +1109,11 @@ export default function SalesAnalyticsDashboard({
         <div className="lg:col-span-7 space-y-6">
           
           {/* Ranked Horizontal Bar Chart (D3) */}
-          <div className="bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-[#F0EBE1] pb-3">
+          <div className="bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-[#F0EBE1] dark:border-border pb-3">
               <div>
                 <h3 className="font-bold text-stone-900 dark:text-text-primary text-sm flex items-center space-x-2">
-                  <BarChart3 className="w-4 h-4 text-[#2E5438]" />
+                  <BarChart3 className="w-4 h-4 text-[#2E5438] dark:text-emerald-400" />
                   <span>En Çok Ciro Getiren Kategoriler (D3 Sıralı Bar)</span>
                 </h3>
                 <p className="text-xs text-stone-500 dark:text-text-muted mt-0.5">
@@ -1132,8 +1132,8 @@ export default function SalesAnalyticsDashboard({
           </div>
 
           {/* Top 5 Best Selling Products Leaderboard */}
-          <div className="bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-[#F0EBE1] pb-3">
+          <div className="bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-[#F0EBE1] dark:border-border pb-3">
               <div className="flex items-center space-x-2">
                 <div className="p-1.5 rounded-lg bg-amber-100 text-amber-800 dark:text-amber-300">
                   <Award className="w-4 h-4" />
