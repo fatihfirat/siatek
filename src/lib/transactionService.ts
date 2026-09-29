@@ -1,7 +1,7 @@
 import type { Order, OrderStatus } from '../types';
 import { STOCK_PDF_PRODUCTS } from '../data/stockProducts';
 import { prepareOrder, type CanonicalProduct } from '../utils/orderCore';
-import { auth, db, collection, doc, getDoc, runTransaction, setDoc } from './firebase';
+import { auth, db, collection, doc, getDoc, getDocs, query, where, runTransaction, setDoc } from './firebase';
 
 const pendingKeys = new Map<string, string>();
 const baselineProducts = new Map(STOCK_PDF_PRODUCTS.map((product) => [product.id, product]));
@@ -211,5 +211,76 @@ export async function updateTransactionalOrderStatus(orderId: string, status: Or
         ...(safeDetails.trackingNumber ? { trackingNumber: safeDetails.trackingNumber } : {}),
       }],
     });
+  });
+}
+
+/**
+ * Siparişi kalıcı siler (deneme/yanlış kayıtlar için). Tek transaction içinde:
+ * - Rezerve stok geri eklenir (audit için `order_delete_reversal` hareketi yazılır;
+ *   stock_movements kuralı güncelleme/silmeye izin vermediği için eski hareketler kalır).
+ * - Siparişe bağlı cari hareketler silinir ve cari bakiye/toplamlar geri alınır.
+ * - Sipariş belgesi silinir.
+ */
+export async function deleteTransactionalOrder(orderId: string): Promise<void> {
+  const user = activeUser();
+  const orderRef = doc(db, 'orders', orderId);
+  const ctxSnap = await getDocs(query(collection(db, 'cari_transactions'), where('orderId', '==', orderId)));
+  const ctxRefs = ctxSnap.docs.map((d) => d.ref);
+
+  await runTransaction(db, async (transaction) => {
+    const orderSnap = await transaction.get(orderRef);
+    if (!orderSnap.exists()) return;
+    const order = { id: orderSnap.id, ...orderSnap.data() } as Order;
+    const now = new Date().toISOString();
+
+    // Firestore transaction kuralı: tüm okumalar yazmalardan önce yapılır.
+    const productSnaps = order.stockState === 'reserved'
+      ? await Promise.all(order.items.map((item) => transaction.get(doc(db, 'products', item.productId))))
+      : [];
+    const txSnaps = await Promise.all(ctxRefs.map((ref) => transaction.get(ref)));
+    const cariIds = [...new Set(txSnaps.filter((s) => s.exists()).map((s) => String(s.data()!.cariId || '')).filter(Boolean))];
+    const cariSnaps = new Map<string, any>();
+    for (const cariId of cariIds) cariSnaps.set(cariId, await transaction.get(doc(db, 'cari_accounts', cariId)));
+
+    if (order.stockState === 'reserved') {
+      order.items.forEach((item, index) => {
+        const baseline = baselineProducts.get(item.productId);
+        const override = productSnaps[index].exists() ? productSnaps[index].data() : {};
+        const before = Number(override?.stock ?? baseline?.stock ?? 0);
+        const after = money(before + Number(item.quantity || 0));
+        transaction.set(doc(db, 'products', item.productId), { stock: after, updatedAt: now }, { merge: true });
+        transaction.set(doc(collection(db, 'stock_movements')), {
+          productId: item.productId, productName: item.productName, type: 'order_delete_reversal',
+          quantityDelta: item.quantity, quantityBefore: before, quantityAfter: after,
+          referenceType: 'order', referenceId: order.id, createdAt: now, createdByUid: user.uid,
+        });
+      });
+    }
+
+    const cariDelta = new Map<string, { balance: number; debit: number; credit: number }>();
+    txSnaps.forEach((snap) => {
+      if (!snap.exists()) return;
+      const tx = snap.data()!;
+      const cariId = String(tx.cariId || '');
+      const amount = Number(tx.amount || 0);
+      if (cariId && cariSnaps.get(cariId)?.exists()) {
+        const acc = cariDelta.get(cariId) || { balance: 0, debit: 0, credit: 0 };
+        if (tx.direction === 'credit') { acc.balance += amount; acc.credit -= amount; }
+        else { acc.balance -= amount; acc.debit -= amount; }
+        cariDelta.set(cariId, acc);
+      }
+      transaction.delete(snap.ref);
+    });
+    cariDelta.forEach((delta, cariId) => {
+      const cari = cariSnaps.get(cariId).data();
+      transaction.update(doc(db, 'cari_accounts', cariId), {
+        balance: money(Number(cari.balance || 0) + delta.balance),
+        totalDebit: money(Number(cari.totalDebit || 0) + delta.debit),
+        totalCredit: money(Number(cari.totalCredit || 0) + delta.credit),
+        updatedAt: now,
+      });
+    });
+
+    transaction.delete(orderRef);
   });
 }
