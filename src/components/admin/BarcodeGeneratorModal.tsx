@@ -945,7 +945,7 @@ export default function BarcodeGeneratorModal({
 
   if (isPageMode) {
     return (
-      <div className="w-full bg-base-surface border border-border rounded-2xl flex flex-col shadow-xs overflow-hidden min-h-[85vh]">
+      <div className="w-full bg-base-surface border border-border rounded-2xl flex flex-col shadow-xs min-h-[85vh]">
         {/* MODAL HEADER */}
         <div className="px-3 sm:px-5 py-3 sm:py-4 bg-base-surface-2 border-b border-border flex flex-wrap items-center justify-between gap-2 sm:gap-3 shrink-0">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
@@ -1026,7 +1026,7 @@ export default function BarcodeGeneratorModal({
 
         {/* TAB 1: PRODUCT SELECTION TAB */}
         {activeTab === 'select' && (
-          <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+          <div className="flex-1 flex flex-col md:flex-row lg:min-h-0 md:min-h-0">
             {/* Left Column: Filter & Product Table */}
             <div className="flex-1 flex flex-col min-h-0 border-b md:border-b-0 md:border-r border-border">
               {/* Filter Bar */}
@@ -1094,8 +1094,8 @@ export default function BarcodeGeneratorModal({
                           type="checkbox"
                           checked={filteredProducts.length > 0 && filteredProducts.every((p) => (selectedItems[p.id] || 0) > 0)}
                           onChange={(e) => {
-                            if (e.target.checked) selectAllFiltered();
-                            else clearAllSelection();
+                            if (e.target.checked) handleSelectAllFiltered(1);
+                            else handleDeselectAllFiltered();
                           }}
                           className="rounded border-border cursor-pointer accent-emerald-600"
                         />
@@ -1147,7 +1147,7 @@ export default function BarcodeGeneratorModal({
                             <div className="flex items-center justify-center gap-1">
                               <button
                                 type="button"
-                                onClick={() => setProductQuantity(p.id, Math.max(0, qty - 1))}
+                                onClick={() => updateProductQuantity(p.id, Math.max(0, qty - 1))}
                                 disabled={qty === 0}
                                 className="w-6 h-6 rounded-md bg-base-surface border border-border flex items-center justify-center text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                               >
@@ -1158,12 +1158,12 @@ export default function BarcodeGeneratorModal({
                                 min="0"
                                 max="999"
                                 value={qty}
-                                onChange={(e) => setProductQuantity(p.id, parseInt(e.target.value, 10) || 0)}
+                                onChange={(e) => updateProductQuantity(p.id, parseInt(e.target.value, 10) || 0)}
                                 className="w-10 py-0.5 text-center text-xs font-mono font-bold bg-base-surface border border-border rounded-md"
                               />
                               <button
                                 type="button"
-                                onClick={() => setProductQuantity(p.id, qty + 1)}
+                                onClick={() => updateProductQuantity(p.id, qty + 1)}
                                 className="w-6 h-6 rounded-md bg-base-surface border border-border flex items-center justify-center text-text-secondary hover:text-text-primary cursor-pointer"
                               >
                                 <Plus className="w-3 h-3" />
@@ -1245,7 +1245,7 @@ export default function BarcodeGeneratorModal({
 
         {/* TAB 2: STUDIO (RENDERED IN FULL PAGE MODE) */}
         {activeTab === 'studio' && (
-          <div className="flex-1 min-h-0 flex flex-col overflow-hidden p-3 sm:p-4 space-y-3 bg-[#0B0F19]">
+          <div className="flex-1 flex flex-col lg:h-[calc(100dvh-9rem)] lg:min-h-[640px] lg:overflow-hidden p-3 sm:p-4 space-y-3 bg-[#0B0F19]">
             {/* Top Studio Action Bar */}
             <div className="flex flex-wrap items-center justify-between gap-2.5 px-3 py-2 bg-[#0E131F] border border-slate-800 rounded-xl shrink-0">
               <div className="flex items-center gap-2 min-w-[260px] flex-1">
@@ -1290,9 +1290,9 @@ export default function BarcodeGeneratorModal({
             </div>
 
             {/* Studio Split Workspace: Left Canvas + Right Property Inspector */}
-            <div className="flex-1 flex flex-col lg:flex-row gap-3 min-h-0 overflow-hidden">
+            <div className="flex-1 flex flex-col lg:flex-row gap-3 lg:min-h-0 lg:overflow-hidden">
               {/* Center Canvas */}
-              <div className="flex-1 min-h-[360px] lg:min-h-0 overflow-hidden">
+              <div className="flex-1 h-[420px] lg:h-auto lg:min-h-0 overflow-hidden">
                 <RulerCanvas
                   product={studioPreviewProduct}
                   config={studioConfig}
@@ -1316,7 +1316,7 @@ export default function BarcodeGeneratorModal({
         )}
 
         {activeTab === 'preview' && (
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col">
             <div className="p-3 bg-base-surface border-b border-border flex flex-wrap items-center justify-between gap-2">
               <div className="text-xs text-text-secondary flex items-center gap-2">
                 <Eye className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
