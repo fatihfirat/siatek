@@ -41,9 +41,11 @@ import firebaseConfigData from '../../firebase-applet-config.json';
 const getDynamicAuthDomain = () => {
   if (typeof window !== 'undefined' && window.location.hostname) {
     const host = window.location.hostname;
-    // Firebase Hosting uzerindeyken (web.app / firebaseapp.com) authDomain'i
-    // ayni origin yapmak Safari ITP ve Chrome 3. parti cerez engeline takilmayi onler.
-    if (host.endsWith('.web.app') || host.endsWith('.firebaseapp.com')) {
+    // Yalniz firebaseapp.com uzerindeyken authDomain'i ayni origin yap.
+    // *.web.app icin host kullanilmaz: Google OAuth istemcisinde varsayilan olarak
+    // yalniz https://<proje>.firebaseapp.com/__/auth/handler kayitlidir; web.app
+    // adresi Hata 400 redirect_uri_mismatch uretir.
+    if (host.endsWith('.firebaseapp.com')) {
       return host;
     }
   }
