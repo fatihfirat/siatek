@@ -169,3 +169,60 @@
   .mobile-quick-sheet h2{font-size:23px}.mobile-quick-sheet>div strong{font-size:13px}
   .mobile-admin-drawer{width:min(76vw,390px)}
 }
+
+/* Karanlık mod: admin ana sayfa bileşenleri sabit açık renkliydi (#fff / koyu yazı). */
+.dark .admin-dashboard-overview{color:var(--text-primary-color)}
+.dark .admin-dashboard-overview h2,.dark .admin-dashboard-overview h3,
+.dark .admin-dashboard-metric__copy strong,.dark .admin-dashboard-order b,
+.dark .admin-dashboard-quick__grid button,.dark .admin-dashboard-agenda__list b{color:var(--text-primary-color)}
+.dark .admin-dashboard-overview__eyebrow,.dark .admin-dashboard-metric__copy small,
+.dark .admin-dashboard-metric__copy em,.dark .admin-dashboard-order,
+.dark .admin-dashboard-agenda__list small,.dark .admin-dashboard-order__customer i{color:var(--text-muted-color)}
+.dark .admin-dashboard-overview__intro p:last-child,.dark .admin-dashboard-panel__heading p,
+.dark .admin-dashboard-chart__labels,.dark .admin-dashboard-order small,
+.dark .admin-dashboard-agenda__list time,.dark .admin-dashboard-empty,
+.dark .admin-dashboard-quick__grid button>svg{color:var(--text-muted-color)}
+.dark .admin-dashboard-empty b{color:var(--text-primary-color)}
+.dark .admin-dashboard-overview__report,.dark .admin-dashboard-metric,
+.dark .admin-dashboard-panel,.dark .admin-dashboard-order,
+.dark .admin-dashboard-quick__grid button{background:var(--bg-surface);border-color:var(--border-color)}
+.dark .admin-dashboard-overview__report{color:var(--text-primary-color)}
+.dark .admin-dashboard-text-button{background:transparent;color:#34d399}
+.dark .admin-dashboard-order{border-top-color:var(--border-color)}
+.dark .admin-dashboard-order:hover,.dark .admin-dashboard-quick__grid button:hover{background:var(--bg-surface-2)}
+.dark .admin-dashboard-order__customer i,.dark .admin-dashboard-agenda__list small,
+.dark .admin-dashboard-metric--slate .admin-dashboard-metric__icon{background:var(--bg-surface-2)}
+.dark .admin-dashboard-chart__plot{background:repeating-linear-gradient(to bottom,transparent 0,transparent 54px,var(--border-color) 55px)}
+.dark .admin-dashboard-agenda__list button{border-bottom-color:var(--border-color)}
+.dark .admin-dashboard-agenda__check{border-color:var(--border-strong-color)}
+.dark .admin-dashboard-agenda__add,.dark .admin-dashboard-quick__grid button>span{color:#34d399}
+.dark .admin-dashboard-quick__grid button>span,.dark .admin-dashboard-chart__value span{background:rgba(16,185,129,.14)}
+.dark .admin-dashboard-chart__value span{color:#34d399}
+.dark .admin-dashboard-metric--coral .admin-dashboard-metric__icon{background:rgba(240,100,73,.16)}
+.dark .admin-dashboard-metric--amber .admin-dashboard-metric__icon{background:rgba(215,139,0,.16)}
+.dark .admin-dashboard-metric--emerald .admin-dashboard-metric__icon{background:rgba(7,134,95,.2)}
+.dark .admin-dashboard-status--amber{background:rgba(215,139,0,.16);color:#fbbf24}
+.dark .admin-dashboard-status--emerald{background:rgba(16,185,129,.16);color:#34d399}
+.dark .admin-dashboard-status--blue{background:rgba(37,99,235,.18);color:#93c5fd}
+.dark .admin-dashboard-status--slate{background:var(--bg-surface-2);color:var(--text-muted-color)}
+
+/* Karanlık mod: hızlı işlemler penceresi ve düzenleyicisi. */
+.dark .admin-quick-actions-dialog{background:var(--bg-surface);border-color:var(--border-color);color:var(--text-primary-color)}
+.dark .admin-quick-actions-dialog__title h2,.dark .admin-quick-actions-editor__heading h3,
+.dark .admin-quick-actions-empty b,.dark .admin-quick-actions-editor__empty b{color:var(--text-primary-color)}
+.dark .admin-quick-actions-dialog__title p,.dark .admin-quick-actions-editor__available small,
+.dark .admin-quick-actions-list>button>svg,.dark .admin-quick-actions-list>button>span{color:var(--text-muted-color)}
+.dark .admin-quick-actions-dialog__mark,.dark .admin-quick-actions-editor__icon,
+.dark .admin-quick-actions-editor__available>button>span:first-child,.dark .admin-quick-actions-editor__heading>span{background:rgba(16,185,129,.16);color:#34d399}
+.dark .admin-quick-actions-dialog__close,.dark .admin-quick-actions-customize,
+.dark .admin-quick-actions-editor__row button{background:var(--bg-surface-2);color:var(--text-muted-color)}
+.dark .admin-quick-actions-editor__row button.is-remove{color:#fb7185}
+.dark .admin-quick-actions-dialog__close:hover,.dark .admin-quick-actions-customize:hover,
+.dark .admin-quick-actions-editor__row button:hover{background:var(--border-color)}
+.dark .admin-quick-actions-list>button,.dark .admin-quick-actions-editor__available>button,
+.dark .admin-quick-actions-dialog__back{background:var(--bg-surface);border-color:var(--border-color);color:var(--text-primary-color)}
+.dark .admin-quick-actions-editor__row{border-color:var(--border-color)}
+.dark .admin-quick-actions-list>button:hover,.dark .admin-quick-actions-editor__available>button:hover{background:var(--bg-surface-2);border-color:#059669}
+.dark .admin-quick-actions-empty,.dark .admin-quick-actions-editor__empty,.dark .admin-dashboard-quick__empty{background:var(--bg-surface-2);border-color:var(--border-strong-color);color:var(--text-muted-color)}
+.dark .admin-quick-actions-editor footer{background:var(--bg-surface);border-top-color:var(--border-color)}
+.dark .admin-quick-actions-list::-webkit-scrollbar-thumb,.dark .admin-quick-actions-editor::-webkit-scrollbar-thumb{background:var(--border-strong-color)}

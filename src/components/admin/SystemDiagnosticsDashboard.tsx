@@ -521,7 +521,7 @@ export default function SystemDiagnosticsDashboard({
     <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* Top Header & Real-time Pulse Strip */}
-      <div className="bg-white/95 p-5 rounded-3xl border border-[#E7E0D4] shadow-xs backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white/95 dark:bg-base-surface p-5 rounded-3xl border border-[#E7E0D4] shadow-xs backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3.5">
           <div className="p-3 bg-[#235835]/10 text-[#235835] rounded-2xl border border-[#235835]/20 flex items-center justify-center relative">
             <Activity className="w-6 h-6 animate-pulse" />
@@ -532,15 +532,15 @@ export default function SystemDiagnosticsDashboard({
           </div>
           <div>
             <div className="flex items-center space-x-2.5 flex-wrap">
-              <h2 className="text-base font-extrabold text-stone-900">
+              <h2 className="text-base font-extrabold text-stone-900 dark:text-text-primary">
                 Sistem Tanılama & Gerçek Zamanlı Senkronizasyon Masası
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-extrabold flex items-center space-x-1">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 border border-emerald-300 text-xs font-extrabold flex items-center space-x-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
                 <span>TÜM SİSTEMLER OPERASYONEL</span>
               </span>
             </div>
-            <p className="text-xs text-stone-500 mt-0.5">
+            <p className="text-xs text-stone-500 dark:text-text-muted mt-0.5">
               Veritabanı işlemleri, SSE yayın kanalları, bellek kullanımı ve şifreleme bütünlüğü anlık olarak izlenmektedir.
             </p>
           </div>
@@ -548,7 +548,7 @@ export default function SystemDiagnosticsDashboard({
 
         {/* Controls */}
         <div className="flex items-center space-x-2 shrink-0">
-          <label className="flex items-center space-x-2 bg-[#FAF8F5] px-3 py-1.5 rounded-xl border border-[#DDD5C7] text-xs font-semibold text-stone-700 cursor-pointer select-none">
+          <label className="flex items-center space-x-2 bg-[#FAF8F5] px-3 py-1.5 rounded-xl border border-[#DDD5C7] text-xs font-semibold text-stone-700 dark:text-text-secondary cursor-pointer select-none">
             <input
               type="checkbox"
               checked={autoRefresh}
@@ -561,7 +561,7 @@ export default function SystemDiagnosticsDashboard({
           <button
             onClick={() => fetchDiagnostics(false)}
             disabled={loading}
-            className="flex items-center space-x-1.5 px-3.5 py-2 bg-[#F4EFE6] hover:bg-[#EAE3D6] text-stone-800 rounded-xl text-xs font-bold transition-all cursor-pointer border border-[#DDD5C7]"
+            className="flex items-center space-x-1.5 px-3.5 py-2 bg-[#F4EFE6] hover:bg-[#EAE3D6] text-stone-800 dark:text-text-primary rounded-xl text-xs font-bold transition-all cursor-pointer border border-[#DDD5C7]"
             title="Manuel Yenile"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -584,13 +584,13 @@ export default function SystemDiagnosticsDashboard({
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         
         {/* CARD 1: DATABASE ENGINE & STORAGE */}
-        <div className="p-5 bg-white rounded-3xl border border-[#E7E0D4] shadow-xs space-y-3 relative overflow-hidden">
+        <div className="p-5 bg-white dark:bg-base-surface rounded-3xl border border-[#E7E0D4] shadow-xs space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-600 flex items-center space-x-1.5">
+            <span className="text-xs font-bold text-stone-600 dark:text-text-secondary flex items-center space-x-1.5">
               <Database className="w-4 h-4 text-[#2E5438]" />
               <span>Veritabanı & Veri Deposu</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-200 text-[10px] font-mono font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-900 dark:text-emerald-300 border border-emerald-200 text-[10px] font-mono font-bold">
               RAM-ACID
             </span>
           </div>
@@ -599,27 +599,27 @@ export default function SystemDiagnosticsDashboard({
             <div className="text-2xl font-black text-[#235835] font-mono">
               {data?.database.collections.products || products.length} Ürün
             </div>
-            <div className="text-xs text-stone-500 font-mono">
+            <div className="text-xs text-stone-500 dark:text-text-muted font-mono">
               {data?.database.storageFormatted || '285 KB'}
             </div>
           </div>
 
-          <div className="space-y-1.5 text-xs text-stone-600 pt-2 border-t border-[#EAE3D6]">
+          <div className="space-y-1.5 text-xs text-stone-600 dark:text-text-secondary pt-2 border-t border-[#EAE3D6]">
             <div className="flex items-center justify-between">
               <span>Sipariş / Teklif:</span>
-              <span className="font-bold text-stone-900 font-mono">
+              <span className="font-bold text-stone-900 dark:text-text-primary font-mono">
                 {data?.database.collections.orders || orders.length} Sip / {data?.database.collections.quotes || quotes.length} Teklif
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Okuma / Yazma Hızı:</span>
-              <span className="font-bold text-emerald-800 font-mono">
+              <span className="font-bold text-emerald-800 dark:text-emerald-300 font-mono">
                 ~{data?.database.avgReadLatencyMs || 0.45}ms / ~{data?.database.avgWriteLatencyMs || 0.85}ms
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Bütünlük & Sağlık:</span>
-              <span className="font-bold text-emerald-800 flex items-center space-x-1">
+              <span className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center space-x-1">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>%100 Doğrulandı</span>
               </span>
@@ -628,13 +628,13 @@ export default function SystemDiagnosticsDashboard({
         </div>
 
         {/* CARD 2: REAL-TIME SSE SYNC ENGINE */}
-        <div className="p-5 bg-white rounded-3xl border border-[#E7E0D4] shadow-xs space-y-3 relative overflow-hidden">
+        <div className="p-5 bg-white dark:bg-base-surface rounded-3xl border border-[#E7E0D4] shadow-xs space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-600 flex items-center space-x-1.5">
+            <span className="text-xs font-bold text-stone-600 dark:text-text-secondary flex items-center space-x-1.5">
               <Radio className="w-4 h-4 text-[#8C4A32]" />
               <span>Gerçek Zamanlı Senkronizasyon</span>
             </span>
-            <span className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-extrabold">
+            <span className="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 text-[10px] font-extrabold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
               <span>SSE Canlı</span>
             </span>
@@ -644,21 +644,21 @@ export default function SystemDiagnosticsDashboard({
             <div className="text-2xl font-black text-[#8C4A32] font-mono">
               {data?.realtimeSync.activeClientsCount !== undefined ? data.realtimeSync.activeClientsCount : 1} İstemci
             </div>
-            <div className="text-xs text-stone-500 font-mono">
+            <div className="text-xs text-stone-500 dark:text-text-muted font-mono">
               {data?.realtimeSync.totalBroadcastsCount || 0} Olay
             </div>
           </div>
 
-          <div className="space-y-1.5 text-xs text-stone-600 pt-2 border-t border-[#EAE3D6]">
+          <div className="space-y-1.5 text-xs text-stone-600 dark:text-text-secondary pt-2 border-t border-[#EAE3D6]">
             <div className="flex items-center justify-between">
               <span>Protokol Türü:</span>
-              <span className="font-bold text-stone-900 font-mono text-[11px]">
+              <span className="font-bold text-stone-900 dark:text-text-primary font-mono text-[11px]">
                 SSE + HTTP Polling
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Heartbeat Nabız Aralığı:</span>
-              <span className="font-bold text-stone-900 font-mono">
+              <span className="font-bold text-stone-900 dark:text-text-primary font-mono">
                 {((data?.realtimeSync.heartbeatIntervalMs || 20000) / 1000)} sn
               </span>
             </div>
@@ -672,28 +672,28 @@ export default function SystemDiagnosticsDashboard({
         </div>
 
         {/* CARD 3: SERVER RUNTIME & MEMORY */}
-        <div className="p-5 bg-white rounded-3xl border border-[#E7E0D4] shadow-xs space-y-3 relative overflow-hidden">
+        <div className="p-5 bg-white dark:bg-base-surface rounded-3xl border border-[#E7E0D4] shadow-xs space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-600 flex items-center space-x-1.5">
-              <Cpu className="w-4 h-4 text-stone-700" />
+            <span className="text-xs font-bold text-stone-600 dark:text-text-secondary flex items-center space-x-1.5">
+              <Cpu className="w-4 h-4 text-stone-700 dark:text-text-secondary" />
               <span>Sunucu & Bellek (Runtime)</span>
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-800 text-[10px] font-mono font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-stone-100 dark:bg-base-surface-2 text-stone-800 dark:text-text-primary text-[10px] font-mono font-bold">
               {data?.server.nodeVersion || 'Node v20+'}
             </span>
           </div>
 
           <div className="flex items-baseline justify-between pt-1">
-            <div className="text-2xl font-black text-stone-900 font-mono">
+            <div className="text-2xl font-black text-stone-900 dark:text-text-primary font-mono">
               {data?.server.memory.heapUsedFormatted || '38.4 MB'}
             </div>
-            <div className="text-xs text-stone-500 font-mono">
+            <div className="text-xs text-stone-500 dark:text-text-muted font-mono">
               Heap / {data?.server.memory.heapTotalFormatted || '64.0 MB'}
             </div>
           </div>
 
           {/* Memory Bar */}
-          <div className="w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-stone-100 dark:bg-base-surface-2 rounded-full h-1.5 overflow-hidden">
             <div
               className="bg-[#2E5438] h-full rounded-full transition-all duration-500"
               style={{
@@ -702,16 +702,16 @@ export default function SystemDiagnosticsDashboard({
             ></div>
           </div>
 
-          <div className="space-y-1.5 text-xs text-stone-600 pt-2 border-t border-[#EAE3D6]">
+          <div className="space-y-1.5 text-xs text-stone-600 dark:text-text-secondary pt-2 border-t border-[#EAE3D6]">
             <div className="flex items-center justify-between">
               <span>Çalışma Süresi (Uptime):</span>
-              <span className="font-bold text-stone-900 font-mono">
+              <span className="font-bold text-stone-900 dark:text-text-primary font-mono">
                 {data?.server.uptimeFormatted || 'Aktif'}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Yapay Zeka:</span>
-              <span className="font-bold text-emerald-800 flex items-center space-x-1">
+              <span className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center space-x-1">
                 <Sparkles className="w-3 h-3 text-emerald-600" />
                 <span>Yedek Mod</span>
               </span>
@@ -720,9 +720,9 @@ export default function SystemDiagnosticsDashboard({
         </div>
 
         {/* CARD 4: CRYPTOGRAPHY & E2EE SECURITY */}
-        <div className="p-5 bg-white rounded-3xl border border-[#E7E0D4] shadow-xs space-y-3 relative overflow-hidden">
+        <div className="p-5 bg-white dark:bg-base-surface rounded-3xl border border-[#E7E0D4] shadow-xs space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-600 flex items-center space-x-1.5">
+            <span className="text-xs font-bold text-stone-600 dark:text-text-secondary flex items-center space-x-1.5">
               <ShieldCheck className="w-4 h-4 text-teal-700" />
               <span>Şifreleme & İmza Bütünlüğü</span>
             </span>
@@ -740,22 +740,22 @@ export default function SystemDiagnosticsDashboard({
             </div>
           </div>
 
-          <div className="space-y-1.5 text-xs text-stone-600 pt-2 border-t border-[#EAE3D6]">
+          <div className="space-y-1.5 text-xs text-stone-600 dark:text-text-secondary pt-2 border-t border-[#EAE3D6]">
             <div className="flex items-center justify-between">
               <span>Kimlik Özetleme:</span>
-              <span className="font-bold text-stone-900 font-mono text-[11px]">
+              <span className="font-bold text-stone-900 dark:text-text-primary font-mono text-[11px]">
                 PBKDF2 (100k) + Salt
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Oturum Doğrulama:</span>
-              <span className="font-bold text-stone-900 font-mono">
+              <span className="font-bold text-stone-900 dark:text-text-primary font-mono">
                 HMAC-SHA256 Token
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span>Sipariş Gizlilik Şifresi:</span>
-              <span className="font-bold text-emerald-800 flex items-center space-x-1">
+              <span className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center space-x-1">
                 <Lock className="w-3 h-3 text-emerald-600" />
                 <span>Uçtan Uca Koruma</span>
               </span>
@@ -766,20 +766,20 @@ export default function SystemDiagnosticsDashboard({
       </div>
 
       {/* Interactive Diagnostics Suite & Actions */}
-      <div className="bg-white p-6 rounded-3xl border border-[#E7E0D4] shadow-xs space-y-5">
+      <div className="bg-white dark:bg-base-surface p-6 rounded-3xl border border-[#E7E0D4] shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EAE3D6] pb-4">
           <div>
-            <h3 className="text-sm font-extrabold text-stone-900 flex items-center space-x-2">
+            <h3 className="text-sm font-extrabold text-stone-900 dark:text-text-primary flex items-center space-x-2">
               <Sliders className="w-4 h-4 text-[#2E5438]" />
               <span>İnteraktif Sistem Tanılama & Test Suite Masası</span>
             </h3>
-            <p className="text-xs text-stone-500 mt-0.5">
+            <p className="text-xs text-stone-500 dark:text-text-muted mt-0.5">
               Veritabanı bütünlüğünü denetleyin, gecikmeyi (ping) ölçün ve senkronizasyon sinyallerini canlı olarak test edin.
             </p>
           </div>
 
           {lastRefreshedAt && (
-            <div className="text-[11px] text-stone-500 font-mono">
+            <div className="text-[11px] text-stone-500 dark:text-text-muted font-mono">
               Son Yenilenme: {lastRefreshedAt.toLocaleTimeString('tr-TR')}
             </div>
           )}
@@ -792,7 +792,7 @@ export default function SystemDiagnosticsDashboard({
           <div className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#DDD5C7] space-y-3 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-stone-900 flex items-center space-x-1.5">
+                <span className="text-xs font-bold text-stone-900 dark:text-text-primary flex items-center space-x-1.5">
                   <Zap className="w-3.5 h-3.5 text-amber-600" />
                   <span>Canlı Gecikme (Ping)</span>
                 </span>
@@ -800,7 +800,7 @@ export default function SystemDiagnosticsDashboard({
                   {avgPing} ms
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 mt-1">
+              <p className="text-[11px] text-stone-500 dark:text-text-muted mt-1">
                 İstemci ile sunucu arasındaki gidiş-dönüş yanıt süresini milisaniye cinsinden ölçer.
               </p>
             </div>
@@ -809,7 +809,7 @@ export default function SystemDiagnosticsDashboard({
               type="button"
               onClick={handleRunPing}
               disabled={isPinging}
-              className="w-full py-2 bg-white hover:bg-stone-50 text-stone-800 border border-[#DDD5C7] rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
+              className="w-full py-2 bg-white dark:bg-base-surface hover:bg-stone-50 text-stone-800 dark:text-text-primary border border-[#DDD5C7] rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
             >
               <Zap className={`w-3.5 h-3.5 ${isPinging ? 'animate-bounce text-amber-600' : 'text-amber-500'}`} />
               <span>{isPinging ? 'Ölçülüyor...' : 'Ping Testi Yap'}</span>
@@ -820,15 +820,15 @@ export default function SystemDiagnosticsDashboard({
           <div className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#DDD5C7] space-y-3 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-stone-900 flex items-center space-x-1.5">
+                <span className="text-xs font-bold text-stone-900 dark:text-text-primary flex items-center space-x-1.5">
                   <Send className="w-3.5 h-3.5 text-[#8C4A32]" />
                   <span>Test Senkronizasyonu</span>
                 </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-mono font-bold">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 dark:text-amber-300 font-mono font-bold">
                   SSE Broadcast
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 mt-1">
+              <p className="text-[11px] text-stone-500 dark:text-text-muted mt-1">
                 Tüm bağlı istemcilere test sinyali fırlatarak gerçek zamanlı iletiyi doğrular.
               </p>
             </div>
@@ -848,15 +848,15 @@ export default function SystemDiagnosticsDashboard({
           <div className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#DDD5C7] space-y-3 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-stone-900 flex items-center space-x-1.5">
+                <span className="text-xs font-bold text-stone-900 dark:text-text-primary flex items-center space-x-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#2E5438]" />
                   <span>Bütünlük Taraması</span>
                 </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-900 font-mono font-bold">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 font-mono font-bold">
                   Audit
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 mt-1">
+              <p className="text-[11px] text-stone-500 dark:text-text-muted mt-1">
                 SKU benzersizliğini, sipariş hesaplamalarını ve veri tablolarını baştan sona denetler.
               </p>
             </div>
@@ -876,15 +876,15 @@ export default function SystemDiagnosticsDashboard({
           <div className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#DDD5C7] space-y-3 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-stone-900 flex items-center space-x-1.5">
-                  <RefreshCw className="w-3.5 h-3.5 text-stone-700" />
+                <span className="text-xs font-bold text-stone-900 dark:text-text-primary flex items-center space-x-1.5">
+                  <RefreshCw className="w-3.5 h-3.5 text-stone-700 dark:text-text-secondary" />
                   <span>Kanalı Tazele (Flush)</span>
                 </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-stone-200 text-stone-800 font-mono font-bold">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-stone-200 text-stone-800 dark:text-text-primary font-mono font-bold">
                   Keepalive
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 mt-1">
+              <p className="text-[11px] text-stone-500 dark:text-text-muted mt-1">
                 SSE tamponlarını sıfırlar ve tüm istemcilere zorunlu veri tazeleme sinyali iletir.
               </p>
             </div>
@@ -893,7 +893,7 @@ export default function SystemDiagnosticsDashboard({
               type="button"
               onClick={handleFlushCache}
               disabled={isFlushing}
-              className="w-full py-2 bg-white hover:bg-stone-50 text-stone-800 border border-[#DDD5C7] rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
+              className="w-full py-2 bg-white dark:bg-base-surface hover:bg-stone-50 text-stone-800 dark:text-text-primary border border-[#DDD5C7] rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isFlushing ? 'animate-spin' : ''}`} />
               <span>{isFlushing ? 'Tazeleniyor...' : 'Zorunlu Senkronize Et'}</span>
@@ -904,24 +904,24 @@ export default function SystemDiagnosticsDashboard({
 
         {/* Feedback Banners */}
         {broadcastFeedback && (
-          <div className="p-3 bg-amber-50 border border-amber-300 text-amber-950 rounded-xl text-xs flex items-center justify-between animate-in fade-in">
+          <div className="p-3 bg-amber-50 dark:bg-amber-500/15 border border-amber-300 text-amber-950 dark:text-amber-300 rounded-xl text-xs flex items-center justify-between animate-in fade-in">
             <div className="flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-amber-700 dark:text-amber-400 shrink-0" />
               <span>{broadcastFeedback}</span>
             </div>
-            <button onClick={() => setBroadcastFeedback(null)} className="text-amber-800 font-bold hover:underline cursor-pointer">
+            <button onClick={() => setBroadcastFeedback(null)} className="text-amber-800 dark:text-amber-300 font-bold hover:underline cursor-pointer">
               Kapat
             </button>
           </div>
         )}
 
         {flushFeedback && (
-          <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-950 rounded-xl text-xs flex items-center justify-between animate-in fade-in">
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-300 text-emerald-950 dark:text-emerald-300 rounded-xl text-xs flex items-center justify-between animate-in fade-in">
             <div className="flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
               <span>{flushFeedback}</span>
             </div>
-            <button onClick={() => setFlushFeedback(null)} className="text-emerald-800 font-bold hover:underline cursor-pointer">
+            <button onClick={() => setFlushFeedback(null)} className="text-emerald-800 dark:text-emerald-300 font-bold hover:underline cursor-pointer">
               Kapat
             </button>
           </div>
@@ -929,31 +929,31 @@ export default function SystemDiagnosticsDashboard({
 
         {/* Audit Report Modal/Box */}
         {auditResult && (
-          <div className="p-4 bg-emerald-50/80 border border-emerald-300 rounded-2xl space-y-2 animate-in fade-in">
+          <div className="p-4 bg-emerald-50/80 dark:bg-emerald-500/15 border border-emerald-300 rounded-2xl space-y-2 animate-in fade-in">
             <div className="flex items-center justify-between">
-              <span className="font-extrabold text-xs text-emerald-950 flex items-center space-x-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+              <span className="font-extrabold text-xs text-emerald-950 dark:text-emerald-300 flex items-center space-x-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                 <span>Veritabanı Bütünlük Raporu — Sonuç: %100 Başarılı ({auditResult.durationMs}ms)</span>
               </span>
               <button
                 onClick={() => setAuditResult(null)}
-                className="text-emerald-800 text-xs font-bold hover:underline cursor-pointer"
+                className="text-emerald-800 dark:text-emerald-300 text-xs font-bold hover:underline cursor-pointer"
               >
                 Kapat
               </button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-emerald-900 pt-1">
-              <div className="bg-white/80 p-2 rounded-lg border border-emerald-200">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-emerald-900 dark:text-emerald-300 pt-1">
+              <div className="bg-white/80 dark:bg-base-surface p-2 rounded-lg border border-emerald-200">
                 <span>Taranan Ürünler:</span> <strong>{auditResult.report.productsChecked} Adet</strong>
               </div>
-              <div className="bg-white/80 p-2 rounded-lg border border-emerald-200">
+              <div className="bg-white/80 dark:bg-base-surface p-2 rounded-lg border border-emerald-200">
                 <span>Taranan Siparişler:</span> <strong>{auditResult.report.ordersChecked} Adet</strong>
               </div>
-              <div className="bg-white/80 p-2 rounded-lg border border-emerald-200">
+              <div className="bg-white/80 dark:bg-base-surface p-2 rounded-lg border border-emerald-200">
                 <span>Taranan Teklifler:</span> <strong>{auditResult.report.quotesChecked} Adet</strong>
               </div>
-              <div className="bg-white/80 p-2 rounded-lg border border-emerald-200">
-                <span>Kopuk İlişki / Hata:</span> <strong className="text-emerald-700">0 Hata (Kusursuz)</strong>
+              <div className="bg-white/80 dark:bg-base-surface p-2 rounded-lg border border-emerald-200">
+                <span>Kopuk İlişki / Hata:</span> <strong className="text-emerald-700 dark:text-emerald-400">0 Hata (Kusursuz)</strong>
               </div>
             </div>
           </div>
@@ -961,8 +961,8 @@ export default function SystemDiagnosticsDashboard({
       </div>
 
       {/* Database Collections Table Breakdown */}
-      <div className="bg-white p-6 rounded-3xl border border-[#E7E0D4] shadow-xs space-y-4">
-        <h3 className="text-sm font-extrabold text-stone-900 flex items-center space-x-2">
+      <div className="bg-white dark:bg-base-surface p-6 rounded-3xl border border-[#E7E0D4] shadow-xs space-y-4">
+        <h3 className="text-sm font-extrabold text-stone-900 dark:text-text-primary flex items-center space-x-2">
           <Layers className="w-4 h-4 text-[#2E5438]" />
           <span>Veritabanı Tablo / Koleksiyon Dağılımı ve İşlem İstatistikleri</span>
         </h3>
@@ -970,7 +970,7 @@ export default function SystemDiagnosticsDashboard({
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="bg-[#FAF8F5] border-b border-[#DDD5C7] text-stone-600 font-bold uppercase tracking-wider text-[11px]">
+              <tr className="bg-[#FAF8F5] border-b border-[#DDD5C7] text-stone-600 dark:text-text-secondary font-bold uppercase tracking-wider text-[11px]">
                 <th className="py-3 px-4">Koleksiyon Adı</th>
                 <th className="py-3 px-4 text-center">Kayıt Sayısı</th>
                 <th className="py-3 px-4 text-center">Tahmini Bellek</th>
@@ -982,95 +982,95 @@ export default function SystemDiagnosticsDashboard({
             <tbody className="divide-y divide-[#EAE3D6]">
               
               <tr className="hover:bg-[#FAF8F5] transition-colors">
-                <td className="py-3 px-4 font-bold text-stone-900 flex items-center space-x-2">
+                <td className="py-3 px-4 font-bold text-stone-900 dark:text-text-primary flex items-center space-x-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                   <span>products (stok.pdf Kataloğu)</span>
                 </td>
                 <td className="py-3 px-4 text-center font-mono font-bold text-[#235835]">
                   {products.length} Kayıt
                 </td>
-                <td className="py-3 px-4 text-center font-mono text-stone-600">
+                <td className="py-3 px-4 text-center font-mono text-stone-600 dark:text-text-secondary">
                   ~148 KB
                 </td>
-                <td className="py-3 px-4 text-center text-stone-600">
+                <td className="py-3 px-4 text-center text-stone-600 dark:text-text-secondary">
                   ID (PK), SKU (Unique), Kategori
                 </td>
                 <td className="py-3 px-4 text-center">
-                  <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-800 text-[10px] font-mono">
+                  <span className="px-2 py-0.5 rounded-full bg-stone-100 dark:bg-base-surface-2 text-stone-800 dark:text-text-primary text-[10px] font-mono">
                     Okuma-Ağırlıklı (R/W: 8:1)
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold text-[10px]">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 font-bold text-[10px]">
                     Aktif
                   </span>
                 </td>
               </tr>
 
               <tr className="hover:bg-[#FAF8F5] transition-colors">
-                <td className="py-3 px-4 font-bold text-stone-900 flex items-center space-x-2">
+                <td className="py-3 px-4 font-bold text-stone-900 dark:text-text-primary flex items-center space-x-2">
                   <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                   <span>orders (30 Günlük Geçmiş + Canlı)</span>
                 </td>
-                <td className="py-3 px-4 text-center font-mono font-bold text-amber-800">
+                <td className="py-3 px-4 text-center font-mono font-bold text-amber-800 dark:text-amber-300">
                   {orders.length} Kayıt
                 </td>
-                <td className="py-3 px-4 text-center font-mono text-stone-600">
+                <td className="py-3 px-4 text-center font-mono text-stone-600 dark:text-text-secondary">
                   ~92 KB
                 </td>
-                <td className="py-3 px-4 text-center text-stone-600">
+                <td className="py-3 px-4 text-center text-stone-600 dark:text-text-secondary">
                   ID (PK), OrderNumber, CreatedAt
                 </td>
                 <td className="py-3 px-4 text-center">
-                  <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-800 text-[10px] font-mono">
+                  <span className="px-2 py-0.5 rounded-full bg-stone-100 dark:bg-base-surface-2 text-stone-800 dark:text-text-primary text-[10px] font-mono">
                     Canlı İşlem (R/W: 3:1)
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold text-[10px]">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 font-bold text-[10px]">
                     Aktif
                   </span>
                 </td>
               </tr>
 
               <tr className="hover:bg-[#FAF8F5] transition-colors">
-                <td className="py-3 px-4 font-bold text-stone-900 flex items-center space-x-2">
+                <td className="py-3 px-4 font-bold text-stone-900 dark:text-text-primary flex items-center space-x-2">
                   <span className="w-2 h-2 rounded-full bg-[#8C4A32]"></span>
                   <span>quotes (Proforma Teklif Talepleri)</span>
                 </td>
                 <td className="py-3 px-4 text-center font-mono font-bold text-[#8C4A32]">
                   {quotes.length} Kayıt
                 </td>
-                <td className="py-3 px-4 text-center font-mono text-stone-600">
+                <td className="py-3 px-4 text-center font-mono text-stone-600 dark:text-text-secondary">
                   ~28 KB
                 </td>
-                <td className="py-3 px-4 text-center text-stone-600">
+                <td className="py-3 px-4 text-center text-stone-600 dark:text-text-secondary">
                   ID (PK), QuoteNumber, Status
                 </td>
                 <td className="py-3 px-4 text-center">
-                  <span className="px-2 py-0.5 rounded-full bg-stone-100 text-stone-800 text-[10px] font-mono">
+                  <span className="px-2 py-0.5 rounded-full bg-stone-100 dark:bg-base-surface-2 text-stone-800 dark:text-text-primary text-[10px] font-mono">
                     AI Destekli Fiyatlama
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold text-[10px]">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 font-bold text-[10px]">
                     Aktif
                   </span>
                 </td>
               </tr>
 
               <tr className="hover:bg-[#FAF8F5] transition-colors">
-                <td className="py-3 px-4 font-bold text-stone-900 flex items-center space-x-2">
+                <td className="py-3 px-4 font-bold text-stone-900 dark:text-text-primary flex items-center space-x-2">
                   <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                   <span>users (Bayi & Yönetici Hesapları)</span>
                 </td>
                 <td className="py-3 px-4 text-center font-mono font-bold text-purple-800">
                   {data?.database.collections.users || 3} Hesap
                 </td>
-                <td className="py-3 px-4 text-center font-mono text-stone-600">
+                <td className="py-3 px-4 text-center font-mono text-stone-600 dark:text-text-secondary">
                   ~14 KB
                 </td>
-                <td className="py-3 px-4 text-center text-stone-600">
+                <td className="py-3 px-4 text-center text-stone-600 dark:text-text-secondary">
                   ID (PK), Email (Unique), PBKDF2 Salt
                 </td>
                 <td className="py-3 px-4 text-center">
@@ -1079,7 +1079,7 @@ export default function SystemDiagnosticsDashboard({
                   </span>
                 </td>
                 <td className="py-3 px-4 text-right">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold text-[10px]">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 font-bold text-[10px]">
                     Aktif
                   </span>
                 </td>
@@ -1093,7 +1093,7 @@ export default function SystemDiagnosticsDashboard({
       {/* ========================================================================= */}
       {/* LOCAL DATABASE BACKUP (EXPORT) & RESTORE (IMPORT) MODULE                  */}
       {/* ========================================================================= */}
-      <div className="bg-white p-6 sm:p-7 rounded-3xl border border-[#E7E0D4] shadow-xs space-y-6">
+      <div className="bg-white dark:bg-base-surface p-6 sm:p-7 rounded-3xl border border-[#E7E0D4] shadow-xs space-y-6">
         
         {/* Module Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-[#E7E0D4] gap-4">
@@ -1102,21 +1102,21 @@ export default function SystemDiagnosticsDashboard({
               <div className="w-9 h-9 rounded-2xl bg-[#2E5438]/10 text-[#2E5438] flex items-center justify-center">
                 <FolderArchive className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-black text-stone-900">
+              <h3 className="text-base font-black text-stone-900 dark:text-text-primary">
                 Yerel Veritabanı Yedekleme (Export) ve Geri Yükleme (Import)
               </h3>
             </div>
-            <p className="text-xs text-stone-600 leading-relaxed max-w-3xl">
+            <p className="text-xs text-stone-600 dark:text-text-secondary leading-relaxed max-w-3xl">
               <strong>ALPHA TEKNİK DOĞALGAZ SIHHİ TESİSAT</strong> sistemindeki stok ürünleri, sipariş kayıtları ve resmi teklifleri yerel JSON veya Excel CSV dosyası olarak bilgisayarınıza indirin; istediğiniz zaman tek tıkla geri yükleyin.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[11px] px-3 py-1 rounded-full bg-emerald-50 text-emerald-900 border border-emerald-200 font-bold flex items-center space-x-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
+            <span className="text-[11px] px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-900 dark:text-emerald-300 border border-emerald-200 font-bold flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
               <span>Yerel & Güvenli</span>
             </span>
-            <span className="text-[11px] px-3 py-1 rounded-full bg-stone-100 text-stone-700 font-mono font-bold">
+            <span className="text-[11px] px-3 py-1 rounded-full bg-stone-100 dark:bg-base-surface-2 text-stone-700 dark:text-text-secondary font-mono font-bold">
               v2026.2-PRO
             </span>
           </div>
@@ -1130,16 +1130,16 @@ export default function SystemDiagnosticsDashboard({
             <div className="space-y-4">
               
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-stone-900 flex items-center space-x-2">
+                <span className="text-xs font-black text-stone-900 dark:text-text-primary flex items-center space-x-2">
                   <Download className="w-4 h-4 text-[#2E5438]" />
                   <span>1. Veritabanını Yerel Olarak Yedekle (Export)</span>
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 font-bold">
                   JSON & CSV
                 </span>
               </div>
 
-              <p className="text-xs text-stone-600 leading-relaxed">
+              <p className="text-xs text-stone-600 dark:text-text-secondary leading-relaxed">
                 Yedeklemek istediğiniz veri kapsamını seçip bilgisayarınıza anında JSON dosyası olarak kaydedin:
               </p>
 
@@ -1151,18 +1151,18 @@ export default function SystemDiagnosticsDashboard({
                   onClick={() => setExportScope('all')}
                   className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                     exportScope === 'all'
-                      ? 'bg-white border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
-                      : 'bg-stone-50/70 border-stone-200 hover:bg-white text-stone-700'
+                      ? 'bg-white dark:bg-base-surface border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
+                      : 'bg-stone-50/70 dark:bg-base-surface-2 border-stone-200 dark:border-border hover:bg-white text-stone-700 dark:text-text-secondary'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-stone-900 flex items-center space-x-1.5">
+                    <span className="font-bold text-stone-900 dark:text-text-primary flex items-center space-x-1.5">
                       <Database className="w-3.5 h-3.5 text-[#2E5438]" />
                       <span>Tam Sistem Yedeği (Önerilen)</span>
                     </span>
                     {exportScope === 'all' && <CheckCircle className="w-4 h-4 text-[#2E5438]" />}
                   </div>
-                  <div className="text-[10px] text-stone-500 mt-1">
+                  <div className="text-[10px] text-stone-500 dark:text-text-muted mt-1">
                     Ürünler ({products.length}) + Siparişler ({orders.length}) + Teklifler ({quotes.length}) + Cari Hesaplar + Bildirimler
                   </div>
                 </button>
@@ -1173,18 +1173,18 @@ export default function SystemDiagnosticsDashboard({
                     onClick={() => setExportScope('products')}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       exportScope === 'products'
-                        ? 'bg-white border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
-                        : 'bg-stone-50/70 border-stone-200 hover:bg-white text-stone-700'
+                        ? 'bg-white dark:bg-base-surface border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
+                        : 'bg-stone-50/70 dark:bg-base-surface-2 border-stone-200 dark:border-border hover:bg-white text-stone-700 dark:text-text-secondary'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-stone-900 text-xs flex items-center space-x-1.5">
-                        <FileJson className="w-3.5 h-3.5 text-emerald-700" />
+                      <span className="font-bold text-stone-900 dark:text-text-primary text-xs flex items-center space-x-1.5">
+                        <FileJson className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                         <span>Stok Kataloğu</span>
                       </span>
                       {exportScope === 'products' && <CheckCircle className="w-3.5 h-3.5 text-[#2E5438]" />}
                     </div>
-                    <div className="text-[10px] text-stone-500 mt-0.5">
+                    <div className="text-[10px] text-stone-500 dark:text-text-muted mt-0.5">
                       {products.length} ürün ve fiyat
                     </div>
                   </button>
@@ -1194,18 +1194,18 @@ export default function SystemDiagnosticsDashboard({
                     onClick={() => setExportScope('orders')}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       exportScope === 'orders'
-                        ? 'bg-white border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
-                        : 'bg-stone-50/70 border-stone-200 hover:bg-white text-stone-700'
+                        ? 'bg-white dark:bg-base-surface border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
+                        : 'bg-stone-50/70 dark:bg-base-surface-2 border-stone-200 dark:border-border hover:bg-white text-stone-700 dark:text-text-secondary'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-stone-900 text-xs flex items-center space-x-1.5">
+                      <span className="font-bold text-stone-900 dark:text-text-primary text-xs flex items-center space-x-1.5">
                         <FolderArchive className="w-3.5 h-3.5 text-blue-700" />
                         <span>Siparişler</span>
                       </span>
                       {exportScope === 'orders' && <CheckCircle className="w-3.5 h-3.5 text-[#2E5438]" />}
                     </div>
-                    <div className="text-[10px] text-stone-500 mt-0.5">
+                    <div className="text-[10px] text-stone-500 dark:text-text-muted mt-0.5">
                       {orders.length} sipariş kaydı
                     </div>
                   </button>
@@ -1215,18 +1215,18 @@ export default function SystemDiagnosticsDashboard({
                     onClick={() => setExportScope('quotes')}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       exportScope === 'quotes'
-                        ? 'bg-white border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
-                        : 'bg-stone-50/70 border-stone-200 hover:bg-white text-stone-700'
+                        ? 'bg-white dark:bg-base-surface border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
+                        : 'bg-stone-50/70 dark:bg-base-surface-2 border-stone-200 dark:border-border hover:bg-white text-stone-700 dark:text-text-secondary'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-stone-900 text-xs flex items-center space-x-1.5">
-                        <FileSpreadsheet className="w-3.5 h-3.5 text-amber-700" />
+                      <span className="font-bold text-stone-900 dark:text-text-primary text-xs flex items-center space-x-1.5">
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                         <span>Teklifler</span>
                       </span>
                       {exportScope === 'quotes' && <CheckCircle className="w-3.5 h-3.5 text-[#2E5438]" />}
                     </div>
-                    <div className="text-[10px] text-stone-500 mt-0.5">
+                    <div className="text-[10px] text-stone-500 dark:text-text-muted mt-0.5">
                       {quotes.length} proforma teklif
                     </div>
                   </button>
@@ -1236,18 +1236,18 @@ export default function SystemDiagnosticsDashboard({
                     onClick={() => setExportScope('cariler')}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       exportScope === 'cariler'
-                        ? 'bg-white border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
-                        : 'bg-stone-50/70 border-stone-200 hover:bg-white text-stone-700'
+                        ? 'bg-white dark:bg-base-surface border-[#2E5438] ring-2 ring-[#2E5438]/20 shadow-xs'
+                        : 'bg-stone-50/70 dark:bg-base-surface-2 border-stone-200 dark:border-border hover:bg-white text-stone-700 dark:text-text-secondary'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-stone-900 text-xs flex items-center space-x-1.5">
+                      <span className="font-bold text-stone-900 dark:text-text-primary text-xs flex items-center space-x-1.5">
                         <Users className="w-3.5 h-3.5 text-purple-700" />
                         <span>Cari Hesaplar</span>
                       </span>
                       {exportScope === 'cariler' && <CheckCircle className="w-3.5 h-3.5 text-[#2E5438]" />}
                     </div>
-                    <div className="text-[10px] text-stone-500 mt-0.5">
+                    <div className="text-[10px] text-stone-500 dark:text-text-muted mt-0.5">
                       Cari & Bakiye Defteri
                     </div>
                   </button>
@@ -1272,24 +1272,24 @@ export default function SystemDiagnosticsDashboard({
 
             {/* Quick CSV Export Shortcuts */}
             <div className="pt-4 border-t border-[#E0D7C9] space-y-2">
-              <div className="text-[11px] font-bold text-stone-700 flex items-center space-x-1.5">
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-800" />
+              <div className="text-[11px] font-bold text-stone-700 dark:text-text-secondary flex items-center space-x-1.5">
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-800 dark:text-emerald-300" />
                 <span>Excel & Google E-Tablolar (CSV Formatı) İndir:</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => handleExportCsv('products')}
-                  className="py-2 px-2 bg-white hover:bg-emerald-50 text-emerald-950 border border-[#DDD5C7] rounded-xl text-[11px] font-bold transition-colors flex items-center justify-center space-x-1 cursor-pointer shadow-2xs"
+                  className="py-2 px-2 bg-white dark:bg-base-surface hover:bg-emerald-50 text-emerald-950 dark:text-emerald-300 border border-[#DDD5C7] rounded-xl text-[11px] font-bold transition-colors flex items-center justify-center space-x-1 cursor-pointer shadow-2xs"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400 shrink-0" />
                   <span>Stok (.csv)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleExportCsv('orders')}
-                  className="py-2 px-2 bg-white hover:bg-blue-50 text-blue-950 border border-[#DDD5C7] rounded-xl text-[11px] font-bold transition-colors flex items-center justify-center space-x-1 cursor-pointer shadow-2xs"
+                  className="py-2 px-2 bg-white dark:bg-base-surface hover:bg-blue-50 text-blue-950 border border-[#DDD5C7] rounded-xl text-[11px] font-bold transition-colors flex items-center justify-center space-x-1 cursor-pointer shadow-2xs"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5 text-blue-700 shrink-0" />
                   <span>Sipariş (.csv)</span>
@@ -1298,7 +1298,7 @@ export default function SystemDiagnosticsDashboard({
                 <button
                   type="button"
                   onClick={() => handleExportCsv('cariler')}
-                  className="py-2 px-2 bg-white hover:bg-purple-50 text-purple-950 border border-[#DDD5C7] rounded-xl text-[11px] font-bold transition-colors flex items-center justify-center space-x-1 cursor-pointer shadow-2xs"
+                  className="py-2 px-2 bg-white dark:bg-base-surface hover:bg-purple-50 text-purple-950 border border-[#DDD5C7] rounded-xl text-[11px] font-bold transition-colors flex items-center justify-center space-x-1 cursor-pointer shadow-2xs"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5 text-purple-700 shrink-0" />
                   <span>Cari (.csv)</span>
@@ -1313,11 +1313,11 @@ export default function SystemDiagnosticsDashboard({
             <div className="space-y-4">
               
               <div className="flex items-center justify-between">
-                <span className="text-xs font-black text-stone-900 flex items-center space-x-2">
+                <span className="text-xs font-black text-stone-900 dark:text-text-primary flex items-center space-x-2">
                   <Upload className="w-4 h-4 text-[#8C4A32]" />
                   <span>2. Yedeği Geri Yükle (Import / Restore)</span>
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold">
+                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-900 dark:text-amber-300 font-bold">
                   JSON Yükleme
                 </span>
               </div>
@@ -1337,29 +1337,29 @@ export default function SystemDiagnosticsDashboard({
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={handleFileDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-6 border-2 border-dashed border-[#C5BBAA] hover:border-[#8C4A32] bg-white/70 hover:bg-white rounded-2xl text-center cursor-pointer transition-all space-y-2 group"
+                  className="p-6 border-2 border-dashed border-[#C5BBAA] hover:border-[#8C4A32] bg-white/70 dark:bg-base-surface hover:bg-white rounded-2xl text-center cursor-pointer transition-all space-y-2 group"
                 >
                   <div className="w-10 h-10 mx-auto rounded-full bg-[#8C4A32]/10 group-hover:bg-[#8C4A32]/20 text-[#8C4A32] flex items-center justify-center transition-colors">
                     <FileUp className="w-5 h-5" />
                   </div>
-                  <div className="text-xs font-bold text-stone-800">
+                  <div className="text-xs font-bold text-stone-800 dark:text-text-primary">
                     Yedek JSON Dosyasını Buraya Sürükleyin veya Tıklayın
                   </div>
-                  <div className="text-[11px] text-stone-500">
+                  <div className="text-[11px] text-stone-500 dark:text-text-muted">
                     Daha önce dışa aktarılmış <strong>.json</strong> formatındaki yedekleri destekler.
                   </div>
                 </div>
               ) : (
-                <div className="p-4 bg-white rounded-2xl border border-[#DDD5C7] space-y-3 shadow-2xs">
+                <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#DDD5C7] space-y-3 shadow-2xs">
                   
                   <div className="flex items-center justify-between border-b border-stone-100 pb-2">
                     <div className="flex items-center space-x-2 min-w-0">
                       <FileJson className="w-5 h-5 text-[#8C4A32] shrink-0" />
                       <div className="min-w-0">
-                        <div className="text-xs font-bold text-stone-900 truncate">
+                        <div className="text-xs font-bold text-stone-900 dark:text-text-primary truncate">
                           {uploadedBackupFile.name}
                         </div>
-                        <div className="text-[10px] text-stone-500 font-mono">
+                        <div className="text-[10px] text-stone-500 dark:text-text-muted font-mono">
                           {(uploadedBackupFile.size / 1024).toFixed(1)} KB
                         </div>
                       </div>
@@ -1368,7 +1368,7 @@ export default function SystemDiagnosticsDashboard({
                     <button
                       type="button"
                       onClick={handleClearSelectedBackup}
-                      className="p-1 text-stone-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                      className="p-1 text-stone-400 dark:text-text-muted hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                       title="Dosyayı İptal Et"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1377,33 +1377,33 @@ export default function SystemDiagnosticsDashboard({
 
                   {parsedBackupData && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                      <div className="p-2 bg-emerald-50 rounded-xl border border-emerald-200">
-                        <div className="text-[10px] text-emerald-700 font-bold">Ürünler</div>
-                        <div className="font-mono font-bold text-stone-900 text-sm">{parsedBackupData.productsCount}</div>
+                      <div className="p-2 bg-emerald-50 dark:bg-emerald-500/15 rounded-xl border border-emerald-200">
+                        <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">Ürünler</div>
+                        <div className="font-mono font-bold text-stone-900 dark:text-text-primary text-sm">{parsedBackupData.productsCount}</div>
                       </div>
                       <div className="p-2 bg-blue-50 rounded-xl border border-blue-200">
                         <div className="text-[10px] text-blue-700 font-bold">Siparişler</div>
-                        <div className="font-mono font-bold text-stone-900 text-sm">{parsedBackupData.ordersCount}</div>
+                        <div className="font-mono font-bold text-stone-900 dark:text-text-primary text-sm">{parsedBackupData.ordersCount}</div>
                       </div>
-                      <div className="p-2 bg-amber-50 rounded-xl border border-amber-200">
-                        <div className="text-[10px] text-amber-700 font-bold">Teklifler</div>
-                        <div className="font-mono font-bold text-stone-900 text-sm">{parsedBackupData.quotesCount}</div>
+                      <div className="p-2 bg-amber-50 dark:bg-amber-500/15 rounded-xl border border-amber-200">
+                        <div className="text-[10px] text-amber-700 dark:text-amber-400 font-bold">Teklifler</div>
+                        <div className="font-mono font-bold text-stone-900 dark:text-text-primary text-sm">{parsedBackupData.quotesCount}</div>
                       </div>
                       <div className="p-2 bg-purple-50 rounded-xl border border-purple-200">
                         <div className="text-[10px] text-purple-700 font-bold">Cari Hesap</div>
-                        <div className="font-mono font-bold text-stone-900 text-sm">{parsedBackupData.cariCount || 0}</div>
+                        <div className="font-mono font-bold text-stone-900 dark:text-text-primary text-sm">{parsedBackupData.cariCount || 0}</div>
                       </div>
                     </div>
                   )}
 
                   {/* Mode Selector */}
                   <div className="space-y-1.5 pt-1">
-                    <label className="text-[11px] font-bold text-stone-800 block">
+                    <label className="text-[11px] font-bold text-stone-800 dark:text-text-primary block">
                       Geri Yükleme Yöntemi:
                     </label>
                     <div className="grid grid-cols-2 gap-2 text-[11px]">
                       <label className={`p-2.5 rounded-xl border flex items-start space-x-2 cursor-pointer transition-colors ${
-                        restoreMode === 'merge' ? 'bg-emerald-50/70 border-emerald-400 font-bold text-emerald-950' : 'bg-stone-50 border-stone-200 text-stone-700'
+                        restoreMode === 'merge' ? 'bg-emerald-50/70 dark:bg-emerald-500/15 border-emerald-400 font-bold text-emerald-950 dark:text-emerald-300' : 'bg-stone-50 dark:bg-base-surface-2 border-stone-200 dark:border-border text-stone-700 dark:text-text-secondary'
                       }`}>
                         <input
                           type="radio"
@@ -1415,12 +1415,12 @@ export default function SystemDiagnosticsDashboard({
                         />
                         <div>
                           <div>Akıllı Birleştir</div>
-                          <div className="text-[10px] font-normal text-stone-500">Mevcutları korur, eşleşenleri günceller</div>
+                          <div className="text-[10px] font-normal text-stone-500 dark:text-text-muted">Mevcutları korur, eşleşenleri günceller</div>
                         </div>
                       </label>
 
                       <label className={`p-2.5 rounded-xl border flex items-start space-x-2 cursor-pointer transition-colors ${
-                        restoreMode === 'replace' ? 'bg-rose-50/70 border-rose-400 font-bold text-rose-950' : 'bg-stone-50 border-stone-200 text-stone-700'
+                        restoreMode === 'replace' ? 'bg-rose-50/70 border-rose-400 font-bold text-rose-950' : 'bg-stone-50 dark:bg-base-surface-2 border-stone-200 dark:border-border text-stone-700 dark:text-text-secondary'
                       }`}>
                         <input
                           type="radio"
@@ -1432,7 +1432,7 @@ export default function SystemDiagnosticsDashboard({
                         />
                         <div>
                           <div>Tam Değiştir</div>
-                          <div className="text-[10px] font-normal text-stone-500">Mevcut veriyi silip yedeği baştan kurar</div>
+                          <div className="text-[10px] font-normal text-stone-500 dark:text-text-muted">Mevcut veriyi silip yedeği baştan kurar</div>
                         </div>
                       </label>
                     </div>
@@ -1468,7 +1468,7 @@ export default function SystemDiagnosticsDashboard({
               {/* Restore Result feedback */}
               {restoreResult && (
                 <div className={`p-3.5 border rounded-2xl text-xs space-y-1.5 animate-in fade-in ${
-                  restoreResult.success ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-rose-50 border-rose-300 text-rose-950'
+                  restoreResult.success ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-300 text-emerald-950 dark:text-emerald-300' : 'bg-rose-50 border-rose-300 text-rose-950'
                 }`}>
                   <div className="flex items-center justify-between font-bold">
                     <span className="flex items-center space-x-1.5">
@@ -1479,12 +1479,12 @@ export default function SystemDiagnosticsDashboard({
                       )}
                       <span>{restoreResult.message}</span>
                     </span>
-                    <button onClick={() => setRestoreResult(null)} className="text-stone-500 hover:text-stone-900 font-bold">
+                    <button onClick={() => setRestoreResult(null)} className="text-stone-500 dark:text-text-muted hover:text-stone-900 font-bold">
                       Kapat
                     </button>
                   </div>
                   {restoreResult.stats && (
-                    <div className="text-[11px] text-stone-600 pt-1 flex flex-wrap gap-x-4 gap-y-1">
+                    <div className="text-[11px] text-stone-600 dark:text-text-secondary pt-1 flex flex-wrap gap-x-4 gap-y-1">
                       <span>İşlenen Ürün: <strong>{restoreResult.stats.restoredProductsCount}</strong></span>
                       <span>İşlenen Sipariş: <strong>{restoreResult.stats.restoredOrdersCount}</strong></span>
                       <span>İşlenen Teklif: <strong>{restoreResult.stats.restoredQuotesCount}</strong></span>
@@ -1500,14 +1500,14 @@ export default function SystemDiagnosticsDashboard({
 
             {/* Factory Stock Reset Tool */}
             <div className="pt-4 border-t border-[#E0D7C9] flex items-center justify-between text-xs">
-              <span className="text-[11px] text-stone-600">
+              <span className="text-[11px] text-stone-600 dark:text-text-secondary">
                 Kataloğu fabrika <strong>stok.pdf</strong> haline geri döndür:
               </span>
               <button
                 type="button"
                 onClick={handleResetFactoryStock}
                 disabled={isResettingStock}
-                className="px-3 py-1.5 bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-[11px] font-bold transition-colors cursor-pointer flex items-center space-x-1 disabled:opacity-50"
+                className="px-3 py-1.5 bg-white dark:bg-base-surface hover:bg-rose-50 text-rose-700 border border-rose-200 rounded-xl text-[11px] font-bold transition-colors cursor-pointer flex items-center space-x-1 disabled:opacity-50"
               >
                 <RefreshCw className={`w-3 h-3 ${isResettingStock ? 'animate-spin' : ''}`} />
                 <span>{isResettingStock ? 'Sıfırlanıyor...' : 'Fabrika Kataloğuna Sıfırla'}</span>
@@ -1540,25 +1540,25 @@ export default function SystemDiagnosticsDashboard({
             <div className="flex items-center space-x-1 bg-stone-950 p-1 rounded-lg border border-stone-800 text-[10px]">
               <button
                 onClick={() => setLogFilter('all')}
-                className={`px-2 py-0.5 rounded cursor-pointer ${logFilter === 'all' ? 'bg-stone-800 text-white font-bold' : 'text-stone-400 hover:text-stone-200'}`}
+                className={`px-2 py-0.5 rounded cursor-pointer ${logFilter === 'all' ? 'bg-stone-800 text-white font-bold' : 'text-stone-400 dark:text-text-muted hover:text-stone-200'}`}
               >
                 Tümü
               </button>
               <button
                 onClick={() => setLogFilter('broadcast')}
-                className={`px-2 py-0.5 rounded cursor-pointer ${logFilter === 'broadcast' ? 'bg-[#8C4A32] text-white font-bold' : 'text-stone-400 hover:text-stone-200'}`}
+                className={`px-2 py-0.5 rounded cursor-pointer ${logFilter === 'broadcast' ? 'bg-[#8C4A32] text-white font-bold' : 'text-stone-400 dark:text-text-muted hover:text-stone-200'}`}
               >
                 Yayınlar
               </button>
               <button
                 onClick={() => setLogFilter('client')}
-                className={`px-2 py-0.5 rounded cursor-pointer ${logFilter === 'client' ? 'bg-emerald-900 text-emerald-200 font-bold' : 'text-stone-400 hover:text-stone-200'}`}
+                className={`px-2 py-0.5 rounded cursor-pointer ${logFilter === 'client' ? 'bg-emerald-900 text-emerald-200 font-bold' : 'text-stone-400 dark:text-text-muted hover:text-stone-200'}`}
               >
                 Bağlantılar
               </button>
               <button
                 onClick={() => setLogFilter('security')}
-                className={`px-2 py-0.5 rounded cursor-pointer ${logFilter === 'security' ? 'bg-teal-900 text-teal-200 font-bold' : 'text-stone-400 hover:text-stone-200'}`}
+                className={`px-2 py-0.5 rounded cursor-pointer ${logFilter === 'security' ? 'bg-teal-900 text-teal-200 font-bold' : 'text-stone-400 dark:text-text-muted hover:text-stone-200'}`}
               >
                 Denetim
               </button>
@@ -1566,7 +1566,7 @@ export default function SystemDiagnosticsDashboard({
 
             {/* Search input */}
             <div className="relative">
-              <Search className="w-3 h-3 absolute left-2 top-2 text-stone-500" />
+              <Search className="w-3 h-3 absolute left-2 top-2 text-stone-500 dark:text-text-muted" />
               <input
                 type="text"
                 placeholder="Log ara..."
@@ -1581,7 +1581,7 @@ export default function SystemDiagnosticsDashboard({
         {/* Terminal Body */}
         <div className="p-4 max-h-80 overflow-y-auto custom-scrollbar space-y-1.5 text-[11px]">
           {filteredLogs.length === 0 ? (
-            <div className="py-8 text-center text-stone-500 text-xs">
+            <div className="py-8 text-center text-stone-500 dark:text-text-muted text-xs">
               Eşleşen olay kaydı bulunamadı.
             </div>
           ) : (
@@ -1597,7 +1597,7 @@ export default function SystemDiagnosticsDashboard({
               if (log.type === 'client_connect') badgeColor = 'bg-emerald-950 text-emerald-300 border border-emerald-800/60';
               if (log.type === 'client_disconnect') badgeColor = 'bg-rose-950 text-rose-300 border border-rose-800/60';
               if (log.type === 'security_audit') badgeColor = 'bg-teal-950 text-teal-300 border border-teal-800/60';
-              if (log.type === 'heartbeat') badgeColor = 'bg-stone-800 text-stone-400';
+              if (log.type === 'heartbeat') badgeColor = 'bg-stone-800 text-stone-400 dark:text-text-muted';
 
               return (
                 <div
@@ -1605,7 +1605,7 @@ export default function SystemDiagnosticsDashboard({
                   className="flex items-start justify-between p-2 rounded-lg hover:bg-stone-900/90 transition-colors group"
                 >
                   <div className="flex items-start space-x-2.5 flex-1 min-w-0">
-                    <span className="text-stone-500 text-[10px] shrink-0 pt-0.5">
+                    <span className="text-stone-500 dark:text-text-muted text-[10px] shrink-0 pt-0.5">
                       [{formattedTime}]
                     </span>
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${badgeColor}`}>
@@ -1618,13 +1618,13 @@ export default function SystemDiagnosticsDashboard({
 
                   <div className="flex items-center space-x-2 shrink-0 pl-2">
                     {log.latencyMs !== undefined && (
-                      <span className="text-stone-500 text-[10px]">
+                      <span className="text-stone-500 dark:text-text-muted text-[10px]">
                         {log.latencyMs.toFixed(1)}ms
                       </span>
                     )}
                     <button
                       onClick={() => handleCopyLog(`[${formattedTime}] ${log.event}: ${log.details}`, log.id)}
-                      className="opacity-0 group-hover:opacity-100 text-stone-500 hover:text-stone-200 transition-opacity p-0.5 cursor-pointer"
+                      className="opacity-0 group-hover:opacity-100 text-stone-500 dark:text-text-muted hover:text-stone-200 transition-opacity p-0.5 cursor-pointer"
                       title="Kopyala"
                     >
                       {copiedLogId === log.id ? (
@@ -1641,15 +1641,15 @@ export default function SystemDiagnosticsDashboard({
         </div>
 
         {/* Terminal Footer */}
-        <div className="p-3 bg-stone-900/90 border-t border-stone-800 text-[10px] text-stone-500 flex items-center justify-between">
+        <div className="p-3 bg-stone-900/90 border-t border-stone-800 text-[10px] text-stone-500 dark:text-text-muted flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <span className="flex items-center space-x-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-stone-400">SSE Canlı Kanal: /api/events</span>
+              <span className="text-stone-400 dark:text-text-muted">SSE Canlı Kanal: /api/events</span>
             </span>
             <span>Tampon: Son 35 Olay Kayıtlı</span>
           </div>
-          <div className="text-stone-400">
+          <div className="text-stone-400 dark:text-text-muted">
             Node.js EventEmitter + Express SSE Transport
           </div>
         </div>
