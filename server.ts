@@ -16,6 +16,26 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json());
 
+// CORS — Firebase Hosting (siatek.web.app) → Render API
+const ALLOWED_ORIGINS = [
+  'https://siatek.web.app',
+  'https://siatek.firebaseapp.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+app.use((req, res, next) => {
+  const origin = req.headers.origin ?? '';
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Idempotency-Key');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
+
 // Initialize Gemini SDK with User-Agent header
 const geminiApiKey = process.env.GEMINI_API_KEY;
 let ai: GoogleGenAI | null = null;

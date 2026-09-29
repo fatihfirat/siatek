@@ -23,9 +23,10 @@ import {
   X,
   Keyboard,
   Barcode,
-  Tag
+  Tag,
+  ClipboardList,
 } from 'lucide-react';
-import { Product, UserRole } from '../types';
+import { Product, Order, Quote, UserRole } from '../types';
 import { useModalBehavior } from '../hooks/useModalBehavior';
 import { Haptics } from '../utils/haptics';
 
@@ -33,6 +34,8 @@ interface CommandPaletteModalProps {
   isOpen: boolean;
   onClose: () => void;
   products: Product[];
+  orders?: Order[];
+  quotes?: Quote[];
   currentRole: UserRole;
   onRoleChange: (role: UserRole) => void;
   onNavigateTab: (role: UserRole, tab: string) => void;
@@ -48,19 +51,22 @@ interface CommandPaletteModalProps {
 
 interface PaletteAction {
   id: string;
-  category: 'Navigasyon' | 'İşlemler' | 'Görünüm & Sistem' | 'Ürünler';
+  category: 'Navigasyon' | 'İşlemler' | 'Görünüm & Sistem' | 'Ürünler' | 'Siparişler' | 'Teklifler';
   title: string;
   subtitle?: string;
   icon: React.ReactNode;
   shortcut?: string;
   handler: () => void;
   badge?: string;
+  badgeColor?: 'green' | 'yellow' | 'blue' | 'red';
 }
 
 export default function CommandPaletteModal({
   isOpen,
   onClose,
   products,
+  orders = [],
+  quotes = [],
   currentRole,
   onRoleChange,
   onNavigateTab,
@@ -88,6 +94,7 @@ export default function CommandPaletteModal({
       }, 50);
     }
   }, [isOpen, initialQuery]);
+
 
   // Built-in Global Action List
   const baseActions: PaletteAction[] = [
@@ -278,20 +285,83 @@ export default function CommandPaletteModal({
             (p.subCategory && p.subCategory.toLowerCase().includes(q))
           );
         })
-        .slice(0, 8)
+        .slice(0, 6)
         .map(p => ({
           id: `product_${p.id}`,
-          category: 'Ürünler',
+          category: 'Ürünler' as const,
           title: p.name,
-          subtitle: `${p.sku} | Barkod: ${p.barcode || 'Yok'} | Stok: ${p.stock} ${p.unit} | Liste: ₺${p.price.toFixed(2)}`,
+          subtitle: `${p.sku} | Stok: ${p.stock} ${p.unit} | ₺${p.price.toFixed(2)}`,
           icon: <Package className="w-4 h-4 text-success-text" />,
-          badge: `₺${p.price.toFixed(2)}`,
+          badge: `${p.stock} ${p.unit}`,
+          badgeColor: p.stock <= 0 ? 'red' : p.stock <= (p.minStockAlert ?? 5) ? 'yellow' : 'green',
           handler: () => {
-            if (currentRole === 'admin') {
-              onNavigateTab('admin', 'products');
-            } else {
-              onNavigateTab('customer', 'catalog');
-            }
+            onNavigateTab('admin', 'products');
+            onClose();
+          }
+        }))
+    : [];
+
+  // Dynamic Order Search Results
+  const ORDER_STATUS_LABEL: Record<string, string> = {
+    pending: 'Beklemede', approved: 'Onaylandı', preparing: 'Hazırlanıyor',
+    shipped: 'Sevk Edildi', ready: 'Hazır', out_for_delivery: 'Teslimatta',
+    delivered: 'Teslim Edildi', cancelled: 'İptal',
+  };
+  const orderActions: PaletteAction[] = (query.trim().length > 1)
+    ? orders
+        .filter(o => {
+          const q = query.toLowerCase().trim();
+          return (
+            o.orderNumber?.toLowerCase().includes(q) ||
+            o.customerName?.toLowerCase().includes(q) ||
+            o.customerEmail?.toLowerCase().includes(q) ||
+            ORDER_STATUS_LABEL[o.status]?.toLowerCase().includes(q)
+          );
+        })
+        .slice(0, 5)
+        .map(o => ({
+          id: `order_${o.id}`,
+          category: 'Siparişler' as const,
+          title: `${o.orderNumber} — ${o.customerName}`,
+          subtitle: `${ORDER_STATUS_LABEL[o.status] ?? o.status} | ₺${o.total?.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} | ${new Date(o.createdAt).toLocaleDateString('tr-TR')}`,
+          icon: <ShoppingBag className="w-4 h-4 text-info-text" />,
+          badge: ORDER_STATUS_LABEL[o.status] ?? o.status,
+          badgeColor: o.status === 'delivered' ? 'green' : o.status === 'cancelled' ? 'red' : o.status === 'pending' ? 'yellow' : 'blue',
+          handler: () => {
+            onNavigateTab('admin', 'orders');
+            onClose();
+          }
+        }))
+    : [];
+
+  // Dynamic Quote Search Results
+  const QUOTE_STATUS_LABEL: Record<string, string> = {
+    pending: 'Beklemede', pending_review: 'İncelemede', offer_sent: 'Teklif Gönderildi',
+    accepted: 'Kabul Edildi', rejected: 'Reddedildi', expired: 'Süresi Doldu',
+  };
+  const quoteActions: PaletteAction[] = (query.trim().length > 1)
+    ? quotes
+        .filter(q => {
+          const s = query.toLowerCase().trim();
+          return (
+            q.quoteNumber?.toLowerCase().includes(s) ||
+            q.customerName?.toLowerCase().includes(s) ||
+            q.customerEmail?.toLowerCase().includes(s) ||
+            q.projectTitle?.toLowerCase().includes(s) ||
+            QUOTE_STATUS_LABEL[q.status]?.toLowerCase().includes(s)
+          );
+        })
+        .slice(0, 5)
+        .map(q => ({
+          id: `quote_${q.id}`,
+          category: 'Teklifler' as const,
+          title: `${q.quoteNumber} — ${q.customerName}`,
+          subtitle: `${QUOTE_STATUS_LABEL[q.status] ?? q.status}${q.projectTitle ? ' | ' + q.projectTitle : ''} | ${new Date(q.createdAt).toLocaleDateString('tr-TR')}`,
+          icon: <FileText className="w-4 h-4 text-warning-text" />,
+          badge: QUOTE_STATUS_LABEL[q.status] ?? q.status,
+          badgeColor: q.status === 'accepted' ? 'green' : q.status === 'rejected' || q.status === 'expired' ? 'red' : 'yellow',
+          handler: () => {
+            onNavigateTab('admin', 'quotes');
             onClose();
           }
         }))
@@ -309,7 +379,9 @@ export default function CommandPaletteModal({
         a.category.toLowerCase().includes(q)
       );
     }),
-    ...productActions
+    ...productActions,
+    ...orderActions,
+    ...quoteActions,
   ];
 
   // Keyboard navigation inside list
@@ -446,11 +518,20 @@ export default function CommandPaletteModal({
                           <div className="min-w-0 flex-1">
                             <div className="font-semibold text-xs sm:text-sm text-text-primary truncate flex items-center space-x-2">
                               <span>{action.title}</span>
-                              {action.badge && (
-                                <span className="px-1.5 py-0.5 rounded bg-success-fill/15 text-success-text border border-success-border font-mono text-[11px] font-bold">
-                                  {action.badge}
-                                </span>
-                              )}
+                              {action.badge && (() => {
+                                const colorMap: Record<string, string> = {
+                                  green: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+                                  yellow: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+                                  blue: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+                                  red: 'bg-red-500/15 text-red-400 border-red-500/30',
+                                };
+                                const cls = colorMap[action.badgeColor ?? 'green'] ?? colorMap.green;
+                                return (
+                                  <span className={`px-1.5 py-0.5 rounded border font-mono text-[10px] font-bold ${cls}`}>
+                                    {action.badge}
+                                  </span>
+                                );
+                              })()}
                             </div>
                             {action.subtitle && (
                               <div className="text-[11px] text-text-muted truncate">

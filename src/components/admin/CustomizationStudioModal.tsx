@@ -229,7 +229,7 @@ export default function CustomizationStudioModal({
         </div>
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-8 space-y-6 custom-scrollbar">
           {statusMessage && (
             <div className={`p-4 rounded-2xl text-xs sm:text-sm flex items-center gap-3 border ${
               statusMessage.type === 'success' 

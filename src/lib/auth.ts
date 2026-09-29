@@ -1,9 +1,13 @@
 import { User, LoginCredentials, RegisterCredentials, UserRole } from '../types';
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { 
   auth, 
   googleProvider, 
+  GoogleAuthProvider,
   signInWithPopup, 
   signInWithRedirect,
+  signInWithCredential,
   getRedirectResult,
   signOut,
   onAuthStateChanged,
@@ -150,6 +154,27 @@ export async function syncFirebaseUserToFirestore(fbUser: FirebaseUser, extraDat
  */
 export async function signInWithGoogle(): Promise<{ user: User; token: string }> {
   try {
+    if (Capacitor.isNativePlatform()) {
+      // Firebase web popup/redirect Android WebView icinde guvenilir degildir.
+      // Sistem Google hesap secicisini ac, sonra credential'i mevcut JS Auth
+      // oturumuna aktar. Uygulamanin tek auth state dinleyicisi korunur.
+      const nativeResult = await FirebaseAuthentication.signInWithGoogle();
+      const idToken = nativeResult.credential?.idToken;
+      const accessToken = nativeResult.credential?.accessToken;
+      if (!idToken && !accessToken) {
+        throw Object.assign(new Error('Google kimlik bilgisi alınamadı.'), {
+          code: 'auth/missing-google-credential',
+        });
+      }
+
+      const credential = GoogleAuthProvider.credential(idToken || null, accessToken || null);
+      const result = await signInWithCredential(auth, credential);
+      const token = await result.user.getIdToken(true);
+      const user = await syncFirebaseUserToFirestore(result.user);
+      setStoredSession(token, user);
+      return { user, token };
+    }
+
     const result = await signInWithPopup(auth, googleProvider);
     const fbUser = result.user;
     const token = await fbUser.getIdToken();
@@ -176,7 +201,16 @@ export async function signInWithGoogle(): Promise<{ user: User; token: string }>
     // Popup akisi apis.google.com/js/api.js script'ine ve bir araci iframe'e
     // muhtactir. Reklam/izleme engelleyiciler (Brave Shields, uBlock vb.) bu
     // script'i bloklayinca Firebase bunu auth/internal-error olarak bildirir.
-    // Bu durumda POPUP yerine YONLENDIRME akisina gec.
+    if (Capacitor.isNativePlatform()) {
+      if (kod.includes('12501') || kod.includes('cancel') || kod.includes('canceled')) {
+        throw new Error('Giriş işlemi kullanıcı tarafından iptal edildi.');
+      }
+      if (kod.includes('10') || String(err?.message || '').includes('DEVELOPER_ERROR')) {
+        throw new Error('Android Google giriş yapılandırması eksik. SHA-1/SHA-256 parmak izlerini Firebase’e ekleyip google-services.json dosyasını yenileyin.');
+      }
+      throw new Error(firebaseAuthHatasiniCevir(err));
+    }
+
     const yonlendirmeyeGec = [
       'auth/popup-blocked',
       'auth/internal-error',

@@ -16,6 +16,14 @@ const config: CapacitorConfig = {
   android: {
     backgroundColor: '#111827',
     allowMixedContent: true
+  },
+  plugins: {
+    FirebaseAuthentication: {
+      // Native hesap seciciyi kullan, kimlik bilgisini Firebase Web SDK'ya
+      // aktar. Boylece uygulamanin mevcut onAuthStateChanged akisi tek kaynak kalir.
+      skipNativeAuth: true,
+      providers: ['google.com']
+    }
   }
 };
 

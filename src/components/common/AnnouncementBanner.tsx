@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, AlertTriangle, CheckCircle2, Info, ArrowRight, X } from 'lucide-react';
+import { Megaphone, AlertTriangle, CheckCircle2, Info, ArrowRight, X } from 'lucide-react';
 
 interface AnnouncementBannerProps {
   banner?: {
@@ -20,14 +20,14 @@ export default function AnnouncementBanner({ banner }: AnnouncementBannerProps) 
   const tone = banner.tone || 'brand';
 
   const toneClasses = {
-    brand: 'bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 text-white',
+    brand: 'bg-emerald-700 text-white border-b border-emerald-600',
     info: 'bg-info-fill text-white',
     warning: 'bg-amber-600 text-white',
     success: 'bg-emerald-700 text-white',
   }[tone];
 
   const Icon = {
-    brand: Sparkles,
+    brand: Megaphone,
     info: Info,
     warning: AlertTriangle,
     success: CheckCircle2,
@@ -37,10 +37,10 @@ export default function AnnouncementBanner({ banner }: AnnouncementBannerProps) 
     <div
       role="region"
       aria-label="Şirket Duyurusu"
-      className={`relative z-50 text-xs font-semibold px-3 sm:px-4 py-2 flex items-center justify-between shadow-xs transition-all ${toneClasses}`}
+      className={`relative z-50 min-h-11 text-xs font-semibold px-3 sm:px-4 flex items-center justify-between transition-colors ${toneClasses}`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 flex-1 text-center truncate pr-6">
-        <Icon className="w-3.5 h-3.5 shrink-0 opacity-90 animate-pulse" aria-hidden="true" />
+        <Icon className="w-4 h-4 shrink-0 opacity-90" aria-hidden="true" />
         <span className="truncate tracking-tight">{banner.text}</span>
         {banner.link && (
           <a
@@ -57,7 +57,7 @@ export default function AnnouncementBanner({ banner }: AnnouncementBannerProps) 
         type="button"
         onClick={() => setDismissed(true)}
         aria-label="Duyuruyu kapat"
-        className="shrink-0 p-1 rounded-md hover:bg-white/20 transition-colors cursor-pointer text-white/90 hover:text-white"
+        className="shrink-0 grid place-items-center min-w-11 min-h-11 rounded-lg hover:bg-white/15 active:scale-[0.98] transition-transform cursor-pointer text-white/90 hover:text-white"
       >
         <X className="w-3.5 h-3.5" />
       </button>

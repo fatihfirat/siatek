@@ -66,6 +66,9 @@ export interface LabelStudioConfig {
   calibration: PrintCalibration;
   headerText: string;
   showHeader: boolean;
+  showLogo?: boolean;
+  logoPosition?: 'left' | 'center' | 'watermark';
+  customLogoUrl?: string;
   showProductName: boolean;
   showSku: boolean;
   showPrice: boolean;

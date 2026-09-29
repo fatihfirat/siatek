@@ -20,20 +20,32 @@ import {
 } from 'lucide-react';
 
 interface RulerCanvasProps {
-  product: Product;
+  product?: Product;
+  previewProduct?: Product;
   config: LabelStudioConfig;
-  zoom: number;
-  onZoomChange: (zoom: number) => void;
+  zoom?: number;
+  onZoomChange?: (zoom: number) => void;
   onConfigChange?: (config: LabelStudioConfig) => void;
 }
 
 export const RulerCanvas: React.FC<RulerCanvasProps> = ({
   product,
+  previewProduct,
   config,
-  zoom,
-  onZoomChange,
+  zoom = 100,
+  onZoomChange = () => {},
   onConfigChange,
 }) => {
+  const effectiveProduct: Product = product || previewProduct || ({
+    id: 'demo-1',
+    name: 'Endüstriyel Küresel Vana DN50 PN16 Tam Geçişli',
+    sku: 'ST-KUV-DN50',
+    barcode: '8690123456789',
+    price: 1450.0,
+    category: 'Vanalar',
+    stock: 45,
+    unit: 'ADET'
+  } as Product);
   const barcodeSvgRef = useRef<SVGSVGElement>(null);
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -52,7 +64,7 @@ export const RulerCanvas: React.FC<RulerCanvasProps> = ({
     startOffsetY: 0,
   });
 
-  const barcodeValue = product.barcode || product.sku || product.id;
+  const barcodeValue = effectiveProduct.barcode || effectiveProduct.sku || effectiveProduct.id;
 
   // Render Barcode
   useEffect(() => {
@@ -91,7 +103,7 @@ export const RulerCanvas: React.FC<RulerCanvasProps> = ({
     if (qrCanvasRef.current && (config.barcode.type === 'QR' || config.barcode.type === 'DUAL')) {
       QRCode.toCanvas(
         qrCanvasRef.current,
-        `https://siatek.alphateknikhvac.com/p/${product.id}`,
+        `https://siatek.alphateknikhvac.com/p/${effectiveProduct.id}`,
         {
           width: Math.max(30, config.barcode.qrSizeMm * 3.78),
           margin: 0,
@@ -100,10 +112,10 @@ export const RulerCanvas: React.FC<RulerCanvasProps> = ({
         () => {}
       );
     }
-  }, [product.id, config.barcode.type, config.barcode.qrSizeMm]);
+  }, [effectiveProduct.id, config.barcode.type, config.barcode.qrSizeMm]);
 
   // Conversion: 1mm = 3.78px (at 96 DPI standard screen)
-  const scale = zoom / 100;
+  const scale = (typeof zoom === 'number' && !isNaN(zoom) ? zoom : 100) / 100;
   const mmToPx = (mm: number) => mm * 3.78 * scale;
   const labelWidthPx = mmToPx(config.dimensions.widthMm);
   const labelHeightPx = mmToPx(config.dimensions.heightMm);
@@ -113,8 +125,8 @@ export const RulerCanvas: React.FC<RulerCanvasProps> = ({
   // Left ruler markers (every 10mm)
   const verticalMarkers = Array.from({ length: Math.ceil(config.dimensions.heightMm / 10) + 1 });
 
-  const formattedPrice = product.price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const strikePrice = (product.price * (config.badges.discountListPrice || 1.2)).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+  const formattedPrice = effectiveProduct.price.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const strikePrice = (effectiveProduct.price * (config.badges.discountListPrice || 1.2)).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
 
   // 1. Mouse Handlers for Barcode Dragging on Label (Tut & Kaydır)
   const handleBarcodeMouseDown = (e: React.MouseEvent) => {
@@ -358,18 +370,39 @@ export const RulerCanvas: React.FC<RulerCanvasProps> = ({
                 transform: `translate(${config.calibration.offsetXmm * 3.78 * scale}px, ${config.calibration.offsetYmm * 3.78 * scale}px)`,
               }}
             >
+              {/* Watermark Logo if configured */}
+              {config.showLogo && config.logoPosition === 'watermark' && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06] z-0 overflow-hidden">
+                  <img
+                    src={config.customLogoUrl || "/branding/siatek-logo-horizontal.png"}
+                    alt="Logo Watermark"
+                    className="max-w-[70%] max-h-[70%] object-contain grayscale"
+                  />
+                </div>
+              )}
+
               {/* Top Section: Header Ribbon & Campaign */}
-              <div className="shrink-0">
+              <div className="shrink-0 relative z-10">
                 {config.showHeader && (
                   <div
-                    className={`text-center font-bold uppercase tracking-wider ${
+                    className={`flex items-center justify-center font-bold uppercase tracking-wider relative gap-1.5 ${
                       config.barcode.invertHeader
                         ? 'bg-black text-white px-2 py-0.5 rounded-xs'
                         : 'text-black border-b border-black/20 pb-0.5'
                     }`}
                     style={{ fontSize: `${config.typography.headerFontSizePt * scale}pt` }}
                   >
-                    {config.headerText || 'ALPHA TEKNİK'}
+                    {config.showLogo && config.logoPosition !== 'watermark' && (
+                      <img
+                        src={config.customLogoUrl || "/branding/siatek-logo-horizontal.png"}
+                        alt="Logo"
+                        className={`h-[1.3em] w-auto object-contain shrink-0 ${
+                          config.barcode.invertHeader ? 'brightness-0 invert' : 'brightness-0'
+                        } ${config.logoPosition === 'left' ? 'mr-auto' : ''}`}
+                      />
+                    )}
+                    <span className="truncate">{config.headerText || 'ALPHA TEKNİK'}</span>
+                    {config.showLogo && config.logoPosition === 'left' && <div className="w-[1.3em] shrink-0" />}
                   </div>
                 )}
 
@@ -390,13 +423,13 @@ export const RulerCanvas: React.FC<RulerCanvasProps> = ({
                         fontWeight: config.typography.productNameWeight === 'black' ? 900 : config.typography.productNameWeight === 'bold' ? 700 : 600
                       }}
                     >
-                      {product.name}
+                      {effectiveProduct.name}
                     </div>
                   )}
 
                   <div className="flex items-center justify-between text-black/70 mt-0.5" style={{ fontSize: `${config.typography.detailsFontSizePt * scale}pt` }}>
                     {config.showSku && (
-                      <span className="font-mono font-semibold">KOD: {product.sku || product.id}</span>
+                      <span className="font-mono font-semibold">KOD: {effectiveProduct.sku || effectiveProduct.id}</span>
                     )}
                     {config.badges.showShelfLocation && config.badges.shelfLocationText && (
                       <span className="inline-flex items-center gap-0.5 font-bold text-black border border-black/30 px-1 rounded-xs">
