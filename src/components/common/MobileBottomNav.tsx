@@ -31,8 +31,7 @@ export default function MobileBottomNav({activeNav, onNavChange, currentRole, ca
                 onNavChange(tab.id);
               }} 
               aria-current={activeNav === tab.id ? 'page' : undefined} 
-              className="shell-tab" 
-              data-primary={tab.id === 'cart' || tab.id === 'pos' || undefined}
+              className="shell-tab"
             >
               <span className="shell-tab-icon">
                 <Icon aria-hidden="true"/>

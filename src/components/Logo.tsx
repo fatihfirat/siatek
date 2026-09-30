@@ -17,9 +17,23 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', showText = true, varian
   return (
     <div className={`inline-flex items-center select-none shrink-0 min-w-0 ${className}`}>
       {showText ? (
-        <img src="/branding/siatek-logo-horizontal.png" alt="Siatek by Alpha Teknik" width={current.width} height={current.height} className={`object-contain object-left ${variant === 'light' ? 'brightness-0 invert' : ''}`} />
+        <img
+          src="/branding/siatek-logo-horizontal.png"
+          alt="Siatek by Alpha Teknik"
+          width={current.width}
+          height={current.height}
+          style={{ width: `${current.width}px`, height: `${current.height}px`, display: 'block' }}
+          className={`object-contain object-left ${variant === 'light' ? 'brightness-0 invert' : ''}`}
+        />
       ) : (
-        <img src="/branding/siatek-icon.png" alt="Siatek" width={current.height} height={current.height} className="object-contain" />
+        <img
+          src="/branding/siatek-icon.png"
+          alt="Siatek"
+          width={current.height}
+          height={current.height}
+          style={{ width: `${current.height}px`, height: `${current.height}px`, display: 'block' }}
+          className="object-contain"
+        />
       )}
     </div>
   );

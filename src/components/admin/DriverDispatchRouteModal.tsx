@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
+  ArrowDownToLine, Plus, BarChart2, Zap,
   X, 
   Truck, 
   Printer, 
@@ -19,10 +20,11 @@ import {
   Phone,
   Layers,
   Sparkles,
-  ExternalLink
+  ExternalLink, ChevronDown, Filter
 } from 'lucide-react';
 import { Order, Product } from '../../types';
 import { printDispatchRouteSheet } from '../../utils/printUtils';
+import { useCompanySettings } from '../../lib/companySettings';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import AlphaEnterpriseSuiteModal from './AlphaEnterpriseSuiteModal';
 
@@ -39,11 +41,7 @@ interface DriverDispatchRouteModalProps {
   onOpenPackingDetail?: (order: Order) => void;
 }
 
-const FLEET_DRIVERS = [
-  { id: 'd1', name: 'Ahmet Yılmaz (Kendi Şoförümüz)', plate: '63 AT 941', vehicle: 'Alpha Kamyon (Özmal)', phone: '0544 440 91 80' },
-  { id: 'd2', name: 'Mehmet Kaya (Kendi Şoförümüz)', plate: '63 ALP 102', vehicle: 'Alpha Panelvan Dağıtım', phone: '0542 312 44 55' },
-  { id: 'd3', name: 'Mustafa Demir (Kendi Şoförümüz)', plate: '63 TK 520', vehicle: 'Alpha Kamyonet Hızlı Servis', phone: '0533 987 65 43' }
-];
+
 
 export default function DriverDispatchRouteModal({
   isOpen,
@@ -56,6 +54,14 @@ export default function DriverDispatchRouteModal({
   onOpenPackingDetail
 }: DriverDispatchRouteModalProps) {
   useModalBehavior(isOpen && displayMode === 'modal', onClose);
+  const { fleetVehicles = [], dispatchPersonnel = [] } = useCompanySettings();
+  const FLEET_DRIVERS = dispatchPersonnel.length > 0 ? dispatchPersonnel.map((d, idx) => ({
+    id: d.id,
+    name: d.name,
+    plate: fleetVehicles[idx % fleetVehicles.length]?.plate || 'Plakasız',
+    vehicle: fleetVehicles[idx % fleetVehicles.length]?.name || 'Araç Atanmamış'
+  })) : [{id: 'demo', name: 'Şoför/Araç Bulunamadı', plate: '-', vehicle: '-'}];
+  
   const [activeTab, setActiveTab] = useState<DispatchModalTab>(initialTab);
   const [selectedDriverId, setSelectedDriverId] = useState<string>('d1');
   const [routeRegion, setRouteRegion] = useState('Şanlıurfa Merkez & Karaköprü Şantiye Hattı');
@@ -135,8 +141,6 @@ export default function DriverDispatchRouteModal({
     if (selectedOrdersData.length === 0) return;
     setIsProcessing(true);
     try {
-      handlePrintSheet();
-
       if (onMarkOrdersShipped) {
         await onMarkOrdersShipped(selectedOrderIds, `SEVK-${activeDriver.plate.replace(/\s+/g, '')}`);
       }
@@ -164,6 +168,139 @@ export default function DriverDispatchRouteModal({
       onClick={displayMode === 'modal' ? onClose : undefined}
     >
       <div className={displayMode === 'modal' ? 'min-h-full flex items-center justify-center py-4 sm:py-6' : 'w-full'}>
+        {displayMode === 'page' && (
+          <div className="mb-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => window.location.reload()} className="flex items-center gap-2 px-4 py-2.5 bg-base-surface border border-border rounded-xl text-sm font-bold text-text-primary hover:bg-base-surface-2 transition-colors active:scale-[0.98] shadow-sm cursor-pointer">
+                  <ArrowDownToLine className="w-4 h-4" />
+                  <span>Verileri yenile</span>
+                </button>
+                <button type="button" className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors active:scale-[0.98] shadow-sm cursor-pointer">
+                  <Plus className="w-4 h-4" />
+                  <span>Görev oluştur</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div onClick={() => setActiveTab('preparation')} className="bg-base-surface rounded-3xl p-5 border border-border shadow-sm flex flex-col justify-between h-36 cursor-pointer hover:border-brand-500 hover:shadow-md transition-all">
+                <div className="flex justify-between items-start">
+                  <span className="text-sm font-bold text-text-secondary">Aktif görev</span>
+                  <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                    <BarChart2 className="w-4 h-4" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-3xl font-black text-text-primary tabular-nums tracking-tight">18</div>
+                  <div className="text-[11px] font-bold text-red-500 mt-1">6 yüksek öncelik</div>
+                </div>
+              </div>
+              
+              <div onClick={() => setActiveTab('fleet')} className="bg-base-surface rounded-3xl p-5 border border-border shadow-sm flex flex-col justify-between h-36 cursor-pointer hover:border-brand-500 hover:shadow-md transition-all">
+                <div className="flex justify-between items-start">
+                  <span className="text-sm font-bold text-text-secondary">Sevkiyatta</span>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Package className="w-4 h-4" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-3xl font-black text-text-primary tabular-nums tracking-tight">8</div>
+                  <div className="text-[11px] font-bold text-emerald-600 mt-1">₺384K</div>
+                </div>
+              </div>
+
+              <div className="bg-base-surface rounded-3xl p-5 border border-border shadow-sm flex flex-col justify-between h-36">
+                <div className="flex justify-between items-start">
+                  <span className="text-sm font-bold text-text-secondary">Zamanında teslim</span>
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <Wallet className="w-4 h-4" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-3xl font-black text-text-primary tabular-nums tracking-tight">%96,4</div>
+                  <div className="text-[11px] font-bold text-emerald-600 mt-1">+1,8 puan</div>
+                </div>
+              </div>
+
+              <div className="bg-base-surface rounded-3xl p-5 border border-border shadow-sm flex flex-col justify-between h-36">
+                <div className="flex justify-between items-start">
+                  <span className="text-sm font-bold text-text-secondary">Ort. hazırlama</span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-3xl font-black text-text-primary tabular-nums tracking-tight">42 dk</div>
+                  <div className="text-[11px] font-bold text-amber-600 mt-1">-6 dk</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center p-1.5 bg-base-surface border border-border rounded-full gap-1 overflow-x-auto custom-scrollbar shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('preparation')}
+                  className={`flex items-center space-x-2 py-2.5 px-5 rounded-full font-bold text-sm transition-all whitespace-nowrap cursor-pointer active:scale-[0.98] ${
+                    activeTab === 'preparation'
+                      ? 'bg-brand-500 text-white shadow-md'
+                      : 'text-text-secondary hover:bg-base-surface-2 hover:text-text-primary'
+                  }`}
+                >
+                  <Package className="w-4 h-4" />
+                  <span>Teslimat Hazırlığı</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('dispatch')}
+                  className={`flex items-center space-x-2 py-2.5 px-5 rounded-full font-bold text-sm transition-all whitespace-nowrap cursor-pointer active:scale-[0.98] ${
+                    activeTab === 'dispatch'
+                      ? 'bg-brand-500 text-white shadow-md'
+                      : 'text-text-secondary hover:bg-base-surface-2 hover:text-text-primary'
+                  }`}
+                >
+                  <Truck className="w-4 h-4" />
+                  <span>Şoför Atama & Rota</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('fleet')}
+                  className={`flex items-center space-x-2 py-2.5 px-5 rounded-full font-bold text-sm transition-all whitespace-nowrap cursor-pointer active:scale-[0.98] ${
+                    activeTab === 'fleet'
+                      ? 'bg-brand-500 text-white shadow-md'
+                      : 'text-text-secondary hover:bg-base-surface-2 hover:text-text-primary'
+                  }`}
+                >
+                  <UserCheck className="w-4 h-4" />
+                  <span>Araçlar & Şoförler</span>
+                </button>
+                <div className="w-px h-6 bg-border mx-1 hidden sm:block"></div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('map')}
+                  className={`flex items-center space-x-2 py-2.5 px-5 rounded-full font-bold text-sm transition-all whitespace-nowrap cursor-pointer active:scale-[0.98] ${
+                    activeTab === 'map'
+                      ? 'bg-emerald-50 text-emerald-600 border border-emerald-500/20 shadow-md'
+                      : 'text-emerald-600/70 hover:bg-emerald-50 hover:text-emerald-600'
+                  }`}
+                >
+                  <Navigation className="w-4 h-4" />
+                  <span>Canlı Rota</span>
+                </button>
+              </div>
+
+              <div className="flex items-center">
+                <button type="button" className="flex items-center space-x-2 bg-base-surface border border-border px-4 py-2.5 rounded-full text-sm font-bold text-text-primary hover:bg-base-surface-2 transition-colors">
+                  <Filter className="w-4 h-4 text-text-secondary" />
+                  <span>Tüm Sevkiyatlar</span>
+                  <ChevronDown className="w-4 h-4 text-text-secondary ml-1" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div 
           className={`bg-base-surface border border-border rounded-3xl w-full flex flex-col text-text-primary overflow-hidden ${displayMode === 'modal' ? 'max-w-5xl shadow-2xl max-h-[92vh]' : 'shadow-sm'}`}
           onClick={(e) => e.stopPropagation()}
@@ -198,80 +335,7 @@ export default function DriverDispatchRouteModal({
         </div>
         )}
 
-        {/* 3 Step Navigation Tabs */}
-        <div className="flex items-center border-b border-border bg-base-surface px-4 sm:px-6 gap-2 overflow-x-auto custom-scrollbar shrink-0">
-          <button
-            id="tab-dispatch-prep"
-            type="button"
-            onClick={() => setActiveTab('preparation')}
-            className={`flex items-center space-x-2 py-3 px-3.5 border-b-2 font-bold text-xs transition-colors whitespace-nowrap cursor-pointer ${
-              activeTab === 'preparation'
-                ? 'border-brand-amber text-brand-amber'
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <Package className="w-4 h-4" />
-            <span>1. Teslimat Hazırlığı & Paketleme</span>
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-base-surface-2 text-text-muted">
-              {dispatchableOrders.filter(o => o.status === 'preparing' || o.status === 'approved').length}
-            </span>
-          </button>
-
-          <button
-            id="tab-dispatch-route"
-            type="button"
-            onClick={() => setActiveTab('dispatch')}
-            className={`flex items-center space-x-2 py-3 px-3.5 border-b-2 font-bold text-xs transition-colors whitespace-nowrap cursor-pointer ${
-              activeTab === 'dispatch'
-                ? 'border-brand-amber text-brand-amber'
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <UserCheck className="w-4 h-4" />
-            <span>2. Şoför Atama & Rota Çizelgesi</span>
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-base-surface-2 text-text-muted">
-              {dispatchableOrders.length}
-            </span>
-          </button>
-
-          <button
-            id="tab-dispatch-fleet"
-            type="button"
-            onClick={() => setActiveTab('fleet')}
-            className={`flex items-center space-x-2 py-3 px-3.5 border-b-2 font-bold text-xs transition-colors whitespace-nowrap cursor-pointer min-h-[44px] active:scale-[0.98] ${
-              activeTab === 'fleet'
-                ? 'border-emerald-600 text-emerald-600'
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <Truck className="w-4 h-4" />
-            <span>3. Araçlar & Şoförler</span>
-          </button>
-
-          <button
-            id="tab-dispatch-map"
-            type="button"
-            onClick={() => setActiveTab('map')}
-            className={`flex items-center space-x-2 py-3 px-3.5 border-b-2 font-bold text-xs transition-colors whitespace-nowrap cursor-pointer ${
-              activeTab === 'map'
-                ? 'border-brand-amber text-brand-amber'
-                : 'border-transparent text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <MapPin className="w-4 h-4" />
-            <span>4. Canlı Rota & Teslimatlar</span>
-          </button>
-        </div>
-
-        {/* Feedback Alert */}
-        {feedback && (
-          <div className="bg-bg-success border-b border-success-border px-6 py-2.5 text-xs text-success-text flex items-center gap-2 shrink-0">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{feedback}</span>
-          </div>
-        )}
-
-        {/* Modal Body Container */}
+                {/* Modal Body Container */}
         <div className={`p-4 sm:p-6 flex-1 space-y-5 custom-scrollbar ${displayMode === 'modal' ? 'overflow-y-auto' : ''}`}>
           
           {/* ═══════════════════════════════════════════════════════════════
@@ -281,6 +345,7 @@ export default function DriverDispatchRouteModal({
             <div className="space-y-4 animate-in fade-in">
               <div className="p-4 rounded-2xl bg-base-surface-2 border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
+                  <div className="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-0.5">Teslimat Hazırlığı & Paketleme</div>
                   <h3 className="font-bold text-sm text-text-primary flex items-center space-x-2">
                     <Package className="w-4 h-4 text-warning-text" />
                     <span>Depo Çeki Listesi & Malzeme Hazırlık Kontrolü</span>
@@ -361,6 +426,7 @@ export default function DriverDispatchRouteModal({
           ═══════════════════════════════════════════════════════════════ */}
           {activeTab === 'dispatch' && (
             <div className="space-y-5 animate-in fade-in">
+              <div className="text-[11px] font-bold text-sky-500 uppercase tracking-wider mb-0.5">Şoför Atama & Rota Çizelgesi</div>
               
               {/* Driver & Vehicle Selection Panel */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-base-surface-2 p-4 rounded-2xl border border-border text-xs">
@@ -405,26 +471,6 @@ export default function DriverDispatchRouteModal({
                     placeholder="Örn: Karaköprü & Haliliye Şantiye Hattı"
                     className="w-full px-3 py-2 bg-base-surface border border-border rounded-xl text-text-primary font-medium focus:border-border-strong"
                   />
-                </div>
-              </div>
-
-              {/* KPI Summary Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-base-surface p-3.5 rounded-2xl border border-border shadow-xs">
-                  <span className="text-[10px] text-text-muted font-bold uppercase block">Seçili Sipariş</span>
-                  <span className="text-xl font-black text-text-primary font-mono">{selectedOrdersData.length} Adet</span>
-                </div>
-                <div className="bg-base-surface p-3.5 rounded-2xl border border-border shadow-xs">
-                  <span className="text-[10px] text-text-muted font-bold uppercase block">Toplam Koli / Kap</span>
-                  <span className="text-xl font-black text-info-text font-mono">{selectedOrdersData.length} Koli</span>
-                </div>
-                <div className="bg-base-surface p-3.5 rounded-2xl border border-border shadow-xs">
-                  <span className="text-[10px] text-warning-text font-bold uppercase block">Kapıda Tahsilat (Şoför)</span>
-                  <span className="text-xl font-black text-warning-text font-mono">{totalCashToCollect.toLocaleString('tr-TR')} ₺</span>
-                </div>
-                <div className="bg-base-surface p-3.5 rounded-2xl border border-border shadow-xs">
-                  <span className="text-[10px] text-success-text font-bold uppercase block">Toplam Sevk Tutarı</span>
-                  <span className="text-xl font-black text-success-text font-mono">{totalRevenue.toLocaleString('tr-TR')} ₺</span>
                 </div>
               </div>
 

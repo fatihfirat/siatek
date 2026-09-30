@@ -52,9 +52,16 @@ export default function App() {
   useEffect(() => {
     initGlobalErrorTracking();
     // Yonlendirmeli Google girisinden donusu karsila (popup engellenmisse
-    // bu yola dusuluyor). onAuthStateChanged zaten tetiklenir; bu cagri
-    // hatalarin yakalanmasi icin gerekli.
-    handleGoogleRedirectResult();
+    // bu yola dusuluyor). Donus sonucu varsa kullanici oturumunu derhal bagla.
+    handleGoogleRedirectResult().then(user => {
+      if (user) {
+        setCurrentUser(user);
+        setCurrentRole(user.role === 'admin' ? 'admin' : user.role === 'operasyon' ? 'operasyon' : 'customer');
+        setAuthReady(true);
+      }
+    }).catch(err => {
+      console.warn('Google redirect sonucu islenirken hata:', err);
+    });
   }, []);
 
   // Firebase Auth durumu - kimligin TEK kaynagi.
@@ -496,7 +503,15 @@ export default function App() {
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    
+    // Custom event listener for buttons that trigger command palette
+    const handleCustomOpenPalette = () => setShowCommandPalette(true);
+    document.addEventListener('siatek:open-command-palette', handleCustomOpenPalette);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('siatek:open-command-palette', handleCustomOpenPalette);
+    };
   }, [
     currentRole, 
     currentUser, 
@@ -716,7 +731,7 @@ export default function App() {
       />}
 
       {/* Main Content Area */}
-      <main data-has-cart={currentRole === 'customer' && cartCount > 0} className={`shell-main flex-1 overflow-x-hidden ${currentRole === 'admin' ? 'w-full' : currentRole !== 'operasyon' ? 'max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8' : ''}`}>
+      <main data-has-cart={currentRole === 'customer' && cartCount > 0} className={`shell-main flex-1 overflow-x-hidden ${currentRole === 'admin' ? 'w-full' : currentRole !== 'operasyon' ? 'max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 pb-28 sm:pt-8 sm:pb-32' : ''}`}>
         {mobileNav === 'more' && currentRole === 'customer' ? (
           // Bayi profil sayfasi. Eskiden buradaki CustomerAccount'un
           // "customization" secenegi AlphaEnterpriseSuiteModal'i (kurumsal
@@ -744,7 +759,7 @@ export default function App() {
               if (modKey === 'quotes') {
                 if (currentRole === 'admin') setAdminTab('quotes');
                 else setCustomerTab('quotes');
-              } else if (['cariler', 'invoices', 'analytics', 'diagnostics', 'errors', 'gider', 'cek-senet', 'kasa', 'alis-faturalari', 'tedarikci-ekstresi', 'kar-zarar', 'kdv-ozet', 'urun-kar'].includes(modKey)) {
+              } else if (['cariler', 'invoices', 'analytics', 'diagnostics', 'errors', 'gider', 'cek-senet', 'kasa', 'alis-faturalari', 'tedarikci-ekstresi', 'kar-zarar', 'kdv-ozet', 'urun-kar', 'ortak-arac'].includes(modKey)) {
                 // GUVENLIK: rol yalnizca GERCEKTEN admin olan hesapta degisir.
                 // Eskiden burada kontrolsuz setCurrentRole('admin') vardi;
                 // herhangi bir bayi bu menuden yonetici arayuzune geciyordu.
@@ -912,6 +927,8 @@ export default function App() {
           isOpen={showCommandPalette}
           onClose={() => setShowCommandPalette(false)}
           products={products}
+          orders={orders}
+          quotes={quotes}
           currentRole={currentRole}
           onRoleChange={(target) => {
             if (target === 'admin') {
@@ -1051,8 +1068,8 @@ export default function App() {
         />
       )}
 
-      {/* Floating WhatsApp Support & Quick Order Button */}
-      <FloatingWhatsAppButton />
+      {/* Floating WhatsApp Support & Quick Order Button — YALNIZCA müşteri ve bayi arayüzünde */}
+      {currentRole !== 'admin' && <FloatingWhatsAppButton />}
 
       {/* HUD Toast feedback for shortcuts — YALNIZCA admin rolünde */}
       {currentRole === 'admin' && (

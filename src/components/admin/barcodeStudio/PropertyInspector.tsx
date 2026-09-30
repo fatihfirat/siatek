@@ -15,21 +15,25 @@ import {
   MapPin,
   Tag,
   Move,
-  RotateCcw
+  RotateCcw,
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface PropertyInspectorProps {
   config: LabelStudioConfig;
   onChange: (newConfig: LabelStudioConfig) => void;
-  activePreset: PaperPreset;
-  onSelectPreset: (preset: PaperPreset) => void;
+  activePreset?: PaperPreset;
+  onSelectPreset?: (preset: PaperPreset) => void;
+  products?: any[];
+  selectedProductId?: string | null;
+  onSelectProduct?: (id: string) => void;
 }
 
 export const PropertyInspector: React.FC<PropertyInspectorProps> = ({
   config,
   onChange,
-  activePreset,
-  onSelectPreset,
+  activePreset = 'a4-24',
+  onSelectPreset = () => {},
 }) => {
   const [activeTab, setActiveTab] = React.useState<'layout' | 'typography' | 'barcode' | 'badges' | 'calibration'>('layout');
 
@@ -186,7 +190,7 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({
             {/* Header Text */}
             <div className="pt-3 border-t border-slate-800">
               <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                Şirket Başlığı
+                Şirket Başlığı & Logo
               </label>
               <input
                 type="text"
@@ -203,6 +207,63 @@ export const PropertyInspector: React.FC<PropertyInspectorProps> = ({
                   onChange={(e) => update({ showHeader: e.target.checked })}
                   className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500"
                 />
+              </div>
+
+              {/* Logo Settings */}
+              <div className="mt-3 pt-3 border-t border-slate-800/80">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
+                    <span className="text-slate-300 text-xs font-medium">Şirket / Siatek Logosu</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={config.showLogo ?? true}
+                    onChange={(e) => update({ showLogo: e.target.checked })}
+                    className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500"
+                  />
+                </div>
+
+                {config.showLogo && (
+                  <div className="mt-2.5 space-y-2 bg-slate-900/60 p-2 rounded-lg border border-slate-800">
+                    <div className="text-[10px] text-slate-400">Logo Yerleşimi:</div>
+                    <div className="grid grid-cols-3 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => update({ logoPosition: 'left' })}
+                        className={`py-1 px-1.5 rounded text-[10px] font-semibold border transition ${
+                          (config.logoPosition || 'left') === 'left'
+                            ? 'bg-blue-600/30 border-blue-500 text-blue-200'
+                            : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        Sol Üst
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => update({ logoPosition: 'center' })}
+                        className={`py-1 px-1.5 rounded text-[10px] font-semibold border transition ${
+                          config.logoPosition === 'center'
+                            ? 'bg-blue-600/30 border-blue-500 text-blue-200'
+                            : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        Merkez
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => update({ logoPosition: 'watermark' })}
+                        className={`py-1 px-1.5 rounded text-[10px] font-semibold border transition ${
+                          config.logoPosition === 'watermark'
+                            ? 'bg-blue-600/30 border-blue-500 text-blue-200'
+                            : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        Filigran
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
