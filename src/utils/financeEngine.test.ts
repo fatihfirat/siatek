@@ -155,4 +155,18 @@ describe('Ortak araç hesabı (11 ACH 644, %50)', () => {
     expect(r.partnerAdvances).toBe(0);
     expect(r.partnerBalance).toBe(400);
   });
+
+  it('mal maliyetini ortak ödediyse cariye iade olarak eklenir; nakit dengesi tutar', () => {
+    const r = calculateOrtakAracHesap([
+      fis({ tur: 'satis', tutar: 10000, malMaliyeti: 6000, odeyen: 'ortak' }),
+      fis({ tur: 'satis', tutar: 2000, malMaliyeti: 1000, odeyen: 'biz' }),
+      fis({ tur: 'gider', tutar: 500, giderKategori: 'yakit', odeyen: 'ortak' }),
+    ], '2026-09');
+    // net = 12000 − 7000 − 500 = 4500 → ortak payı 2250; iade 6000 + 500
+    expect(r.period.net).toBe(4500);
+    expect(r.partnerAdvances).toBe(6500);
+    expect(r.partnerBalance).toBe(8750);
+    // elimizdeki nakit = 12000 − 1000 (bizim ödediğimiz maliyet) = 11000 = bizim pay 2250 + ortağa borç 8750
+    expect(11000).toBe(r.allTime.ourShare + r.partnerBalance);
+  });
 });
