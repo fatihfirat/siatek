@@ -51,7 +51,8 @@
 .admin-settings-system-tabs { display:flex; gap:6px; padding:5px; border:1px solid var(--border-color); border-radius:14px; background:var(--bg-surface); width:max-content; max-width:100%; overflow-x:auto; }
 .admin-settings-system-tabs button { min-height:44px; padding:0 16px; border:1px solid transparent; border-radius:10px; background:transparent; color:var(--text-secondary-color); font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
 .admin-settings-system-tabs button[aria-current='page'] { color:#047857; border-color:#a7f3d0; background:#ecfdf5; }
-.admin-operation-page { display:grid; gap:16px; animation:ui-page-in 180ms ease-out; }
+.admin-operation-page { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; animation:ui-page-in 180ms ease-out; }
+.admin-operation-page > * { min-width:0; }
 .admin-operation-hero { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:28px; border:1px solid var(--border-color); border-radius:26px; background:var(--bg-surface); box-shadow:0 14px 35px -30px rgba(15,23,42,.55); }
 .admin-operation-hero > div > span { color:#047857; font-size:10px; font-weight:900; letter-spacing:.16em; }
 .admin-operation-hero h1 { margin:5px 0 3px; color:var(--text-primary-color); font-size:24px; font-weight:900; letter-spacing:-.025em; }
