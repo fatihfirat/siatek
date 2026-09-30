@@ -107,6 +107,9 @@ export default function UserManagementModal({ isOpen, onClose, displayMode = 'mo
     setError(null);
     try {
       const data = await api<{ users: UserRecord[] }>('/api/admin/users');
+      if (!Array.isArray(data?.users)) {
+        throw new Error('Kullanıcı servisi yanıt vermedi. Sunucu güncellemesi (API deploy) henüz yapılmamış olabilir.');
+      }
       setUsers(data.users);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Kullanıcılar yüklenemedi');
