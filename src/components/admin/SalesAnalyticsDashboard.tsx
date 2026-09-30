@@ -726,20 +726,20 @@ export default function SalesAnalyticsDashboard({
     <div className="space-y-6 animate-in fade-in duration-300">
       
       {/* Top Header & Interactive Filter Bar */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E7E0D4] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-base-surface p-4 sm:p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-xl bg-[#2E5438]/10 text-[#2E5438] border border-[#2E5438]/20">
+            <div className="p-2 rounded-xl bg-[#2E5438]/10 text-[#2E5438] dark:text-emerald-400 border border-[#2E5438]/20">
               <TrendingUp className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-stone-900 flex items-center space-x-2">
+              <h2 className="text-lg font-bold text-stone-900 dark:text-text-primary flex items-center space-x-2">
                 <span>Satış Trendi & Kategori Analiz Paneli</span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[11px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 text-[11px] font-bold">
                   Canlı Analiz
                 </span>
               </h2>
-              <p className="text-xs text-stone-500 mt-0.5">
+              <p className="text-xs text-stone-500 dark:text-text-muted mt-0.5">
                 Son 30 günlük ciro trendleri, sipariş hacmi ve en çok satılan ürün kategorilerinin interaktif analizi
               </p>
             </div>
@@ -750,11 +750,11 @@ export default function SalesAnalyticsDashboard({
         <div className="flex flex-wrap items-center gap-2">
           
           {/* Time Range Selector */}
-          <div className="flex items-center bg-[#F2EDE4] p-1 rounded-xl border border-[#DDD5C7] text-xs">
+          <div className="flex items-center bg-[#F2EDE4] dark:bg-base-surface-2 p-1 rounded-xl border border-[#DDD5C7] dark:border-border text-xs">
             <button
               onClick={() => setTimeRange('7d')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                timeRange === '7d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                timeRange === '7d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
               }`}
             >
               Son 7 Gün
@@ -762,7 +762,7 @@ export default function SalesAnalyticsDashboard({
             <button
               onClick={() => setTimeRange('14d')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                timeRange === '14d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                timeRange === '14d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
               }`}
             >
               Son 14 Gün
@@ -770,7 +770,7 @@ export default function SalesAnalyticsDashboard({
             <button
               onClick={() => setTimeRange('30d')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                timeRange === '30d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                timeRange === '30d' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
               }`}
             >
               Son 30 Gün
@@ -778,12 +778,12 @@ export default function SalesAnalyticsDashboard({
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center space-x-1.5 bg-[#FAF8F5] px-3 py-1.5 rounded-xl border border-[#DDD5C7] text-xs">
-            <Filter className="w-3.5 h-3.5 text-stone-500" />
+          <div className="flex items-center space-x-1.5 bg-[#FAF8F5] dark:bg-base-surface-2 px-3 py-1.5 rounded-xl border border-[#DDD5C7] dark:border-border text-xs">
+            <Filter className="w-3.5 h-3.5 text-stone-500 dark:text-text-muted" />
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as any)}
-              className="bg-transparent font-semibold text-stone-800 cursor-pointer text-xs"
+              className="bg-transparent dark:bg-base-surface font-semibold text-stone-800 dark:text-text-primary cursor-pointer text-xs"
             >
               <option value="all">Tüm Siparişler</option>
               <option value="valid_only">Yalnızca Geçerli (İptaller Hariç)</option>
@@ -793,10 +793,10 @@ export default function SalesAnalyticsDashboard({
           {/* Export CSV */}
           <button
             onClick={handleExportCSV}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-white hover:bg-stone-50 text-stone-700 border border-stone-300 rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-white dark:bg-base-surface hover:bg-stone-50 text-stone-700 dark:text-text-secondary border border-stone-300 dark:border-border rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
             title="Trend verilerini CSV formatında indir"
           >
-            <Download className="w-3.5 h-3.5 text-stone-600" />
+            <Download className="w-3.5 h-3.5 text-stone-600 dark:text-text-secondary" />
             <span>CSV Dışa Aktar</span>
           </button>
 
@@ -804,7 +804,7 @@ export default function SalesAnalyticsDashboard({
           {onRefresh && (
             <button
               onClick={onRefresh}
-              className="p-2 bg-white hover:bg-stone-50 text-stone-600 border border-stone-300 rounded-xl transition-colors cursor-pointer"
+              className="p-2 bg-white dark:bg-base-surface hover:bg-stone-50 text-stone-600 dark:text-text-secondary border border-stone-300 dark:border-border rounded-xl transition-colors cursor-pointer"
               title="Grafikleri Yenile"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -818,65 +818,65 @@ export default function SalesAnalyticsDashboard({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Total Revenue */}
-        <div className="p-4 bg-white rounded-2xl border border-[#E7E0D4] shadow-xs">
+        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-stone-500 font-medium">
+            <span className="text-xs text-stone-500 dark:text-text-muted font-medium">
               {timeRange === '7d' ? 'Son 7 Günlük' : timeRange === '14d' ? 'Son 14 Günlük' : 'Son 30 Günlük'} Toplam Ciro
             </span>
-            <div className="p-2 rounded-xl bg-[#2E5438]/10 text-[#2E5438] border border-[#2E5438]/20">
+            <div className="p-2 rounded-xl bg-[#2E5438]/10 text-[#2E5438] dark:text-emerald-400 border border-[#2E5438]/20">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-stone-900 mt-2 font-mono">
+          <div className="text-2xl font-black text-stone-900 dark:text-text-primary mt-2 font-mono">
             {totalRevenue.toLocaleString('tr-TR')} ₺
           </div>
-          <div className="flex items-center space-x-1 mt-1 text-[11px] text-[#2E5438] font-semibold">
+          <div className="flex items-center space-x-1 mt-1 text-[11px] text-[#2E5438] dark:text-emerald-400 font-semibold">
             <ArrowUpRight className="w-3.5 h-3.5" />
             <span>Günlük ortalama: {Math.round(totalRevenue / (timeRange === '7d' ? 7 : timeRange === '14d' ? 14 : 30)).toLocaleString('tr-TR')} ₺</span>
           </div>
         </div>
 
         {/* Total Orders & AOV */}
-        <div className="p-4 bg-white rounded-2xl border border-[#E7E0D4] shadow-xs">
+        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-stone-500 font-medium">Toplam Sipariş & Hacim</span>
-            <div className="p-2 rounded-xl bg-[#8C4A32]/10 text-[#8C4A32] border border-[#8C4A32]/20">
+            <span className="text-xs text-stone-500 dark:text-text-muted font-medium">Toplam Sipariş & Hacim</span>
+            <div className="p-2 rounded-xl bg-[#8C4A32]/10 text-[#8C4A32] dark:text-orange-300 border border-[#8C4A32]/20">
               <ShoppingBag className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-stone-900 mt-2 font-mono">
+          <div className="text-2xl font-black text-stone-900 dark:text-text-primary mt-2 font-mono">
             {totalOrdersCount} Sipariş
           </div>
-          <div className="text-[11px] text-stone-500 mt-1">
-            Ortalama Sepet Tutarı (AOV): <strong className="text-stone-800 font-mono">{avgOrderValue.toLocaleString('tr-TR')} ₺</strong>
+          <div className="text-[11px] text-stone-500 dark:text-text-muted mt-1">
+            Ortalama Sepet Tutarı (AOV): <strong className="text-stone-800 dark:text-text-primary font-mono">{avgOrderValue.toLocaleString('tr-TR')} ₺</strong>
           </div>
         </div>
 
         {/* Top Category */}
-        <div className="p-4 bg-white rounded-2xl border border-[#E7E0D4] shadow-xs">
+        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-stone-500 font-medium">Lider Ürün Kategorisi</span>
-            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-700 border border-amber-500/20">
+            <span className="text-xs text-stone-500 dark:text-text-muted font-medium">Lider Ürün Kategorisi</span>
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
               <Award className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-base font-extrabold text-stone-900 mt-2 truncate" title={topCategory?.category}>
+          <div className="text-base font-extrabold text-stone-900 dark:text-text-primary mt-2 truncate" title={topCategory?.category}>
             {topCategory?.category || 'Kategori Yok'}
           </div>
-          <div className="text-[11px] text-amber-700 font-semibold mt-1">
+          <div className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold mt-1">
             {topCategory ? `${topCategory.revenue.toLocaleString('tr-TR')} ₺ ciro (%${topCategory.percent.toFixed(1)} pay)` : '-'}
           </div>
         </div>
 
         {/* Peak Sales Day */}
-        <div className="p-4 bg-white rounded-2xl border border-[#E7E0D4] shadow-xs">
+        <div className="p-4 bg-white dark:bg-base-surface rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-stone-500 font-medium">En Yüksek Satış Yapılan Gün</span>
+            <span className="text-xs text-stone-500 dark:text-text-muted font-medium">En Yüksek Satış Yapılan Gün</span>
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-700 border border-blue-500/20">
               <Calendar className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-xl font-black text-stone-900 mt-2 font-mono">
+          <div className="text-xl font-black text-stone-900 dark:text-text-primary mt-2 font-mono">
             {peakDay ? peakDay.formattedDate : '-'}
           </div>
           <div className="text-[11px] text-blue-700 font-semibold mt-1 font-mono">
@@ -887,16 +887,16 @@ export default function SalesAnalyticsDashboard({
       </div>
 
       {/* D3 SALES TREND AREA & LINE CHART */}
-      <div className="bg-white p-5 rounded-2xl border border-[#E7E0D4] shadow-xs space-y-4">
+      <div className="bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs space-y-4">
         
         {/* Chart Header & Metric Toggles */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F0EBE1] pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F0EBE1] dark:border-border pb-3">
           <div>
-            <h3 className="font-bold text-stone-900 text-sm flex items-center space-x-2">
+            <h3 className="font-bold text-stone-900 dark:text-text-primary text-sm flex items-center space-x-2">
               <span>Günlük Satış & Gelir Trend Grafiği (D3)</span>
-              <span className="text-[11px] text-stone-400 font-normal">| İnteraktif Alan Eğrisi</span>
+              <span className="text-[11px] text-stone-400 dark:text-text-muted font-normal">| İnteraktif Alan Eğrisi</span>
             </h3>
-            <p className="text-xs text-stone-500 mt-0.5">
+            <p className="text-xs text-stone-500 dark:text-text-muted mt-0.5">
               İmleci grafiğin üzerine getirerek gün bazında detaylı ciro, sipariş ve sepet verilerini inceleyin.
             </p>
           </div>
@@ -904,11 +904,11 @@ export default function SalesAnalyticsDashboard({
           <div className="flex flex-wrap items-center gap-2">
             
             {/* Metric Switcher */}
-            <div className="flex items-center bg-[#F2EDE4] p-1 rounded-xl border border-[#DDD5C7] text-xs">
+            <div className="flex items-center bg-[#F2EDE4] dark:bg-base-surface-2 p-1 rounded-xl border border-[#DDD5C7] dark:border-border text-xs">
               <button
                 onClick={() => setActiveMetric('revenue')}
                 className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  activeMetric === 'revenue' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                  activeMetric === 'revenue' ? 'bg-[#2E5438] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
                 }`}
               >
                 Ciro (₺)
@@ -916,7 +916,7 @@ export default function SalesAnalyticsDashboard({
               <button
                 onClick={() => setActiveMetric('orders')}
                 className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  activeMetric === 'orders' ? 'bg-[#8C4A32] text-white shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                  activeMetric === 'orders' ? 'bg-[#8C4A32] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
                 }`}
               >
                 Sipariş Sayısı
@@ -924,7 +924,7 @@ export default function SalesAnalyticsDashboard({
               <button
                 onClick={() => setActiveMetric('items')}
                 className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  activeMetric === 'items' ? 'bg-[#2563EB] text-white shadow-xs' : 'text-stone-600 hover:text-stone-900'
+                  activeMetric === 'items' ? 'bg-[#2563EB] text-white shadow-xs' : 'text-stone-600 dark:text-text-secondary hover:text-stone-900 dark:hover:text-text-primary'
                 }`}
               >
                 Ürün Miktarı
@@ -933,12 +933,12 @@ export default function SalesAnalyticsDashboard({
 
             {/* 7-Day Moving Average Toggle */}
             {activeMetric === 'revenue' && (
-              <label className="flex items-center space-x-1.5 text-xs text-stone-600 font-medium cursor-pointer ml-1">
+              <label className="flex items-center space-x-1.5 text-xs text-stone-600 dark:text-text-secondary font-medium cursor-pointer ml-1">
                 <input
                   type="checkbox"
                   checked={showMovingAverage}
                   onChange={e => setShowMovingAverage(e.target.checked)}
-                  className="rounded border-[#DDD5C7] text-[#2E5438] focus:ring-[#2E5438]"
+                  className="rounded border-[#DDD5C7] dark:border-border text-[#2E5438] dark:text-emerald-400 focus:ring-[#2E5438]"
                 />
                 <span className="flex items-center space-x-1">
                   <span className="w-3 h-0.5 bg-amber-500 inline-block border-b border-dashed" />
@@ -972,19 +972,19 @@ export default function SalesAnalyticsDashboard({
               </div>
               <div className="mt-1.5 space-y-1 font-mono text-[11px]">
                 <div className="flex justify-between gap-4">
-                  <span className="text-stone-400">Toplam Ciro:</span>
+                  <span className="text-stone-400 dark:text-text-muted">Toplam Ciro:</span>
                   <span className="font-bold text-emerald-400">{trendTooltip.revenue.toLocaleString('tr-TR')} ₺</span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-stone-400">Sipariş Sayısı:</span>
+                  <span className="text-stone-400 dark:text-text-muted">Sipariş Sayısı:</span>
                   <span className="font-bold text-stone-200">{trendTooltip.orderCount} Sipariş</span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-stone-400">Satılan Ürün:</span>
+                  <span className="text-stone-400 dark:text-text-muted">Satılan Ürün:</span>
                   <span className="font-bold text-stone-200">{trendTooltip.itemCount} Adet/Mt</span>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-stone-400">Ortalama Sepet:</span>
+                  <span className="text-stone-400 dark:text-text-muted">Ortalama Sepet:</span>
                   <span className="font-bold text-amber-300">{trendTooltip.avgOrderValue.toLocaleString('tr-TR')} ₺</span>
                 </div>
               </div>
@@ -993,25 +993,25 @@ export default function SalesAnalyticsDashboard({
         </div>
 
         {/* Trend Legend / Footnote */}
-        <div className="flex flex-wrap items-center justify-between text-xs text-stone-500 pt-2 border-t border-[#F0EBE1]">
+        <div className="flex flex-wrap items-center justify-between text-xs text-stone-500 dark:text-text-muted pt-2 border-t border-[#F0EBE1] dark:border-border">
           <div className="flex items-center space-x-4">
             <span className="flex items-center space-x-1.5">
               <span className={`w-3 h-3 rounded-full ${
                 activeMetric === 'revenue' ? 'bg-[#2E5438]' : activeMetric === 'orders' ? 'bg-[#8C4A32]' : 'bg-[#2563EB]'
               }`} />
-              <span className="font-semibold text-stone-700">
+              <span className="font-semibold text-stone-700 dark:text-text-secondary">
                 {activeMetric === 'revenue' ? 'Günlük Net Ciro' : activeMetric === 'orders' ? 'Günlük Sipariş Adedi' : 'Satılan Ürün Miktarı'}
               </span>
             </span>
             {showMovingAverage && activeMetric === 'revenue' && (
               <span className="flex items-center space-x-1.5">
                 <span className="w-3 h-0.5 bg-amber-500 border-b border-dashed" />
-                <span className="text-stone-600">7 Günlük Hareketli Ortalama</span>
+                <span className="text-stone-600 dark:text-text-secondary">7 Günlük Hareketli Ortalama</span>
               </span>
             )}
           </div>
 
-          <span className="text-[11px] text-stone-400">
+          <span className="text-[11px] text-stone-400 dark:text-text-muted">
             * Siparişler ve kabul edilen teklifler otomatik dahil edilir
           </span>
         </div>
@@ -1022,15 +1022,15 @@ export default function SalesAnalyticsDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left (5 cols): D3 Donut Chart with Hover Arc Interaction */}
-        <div className="lg:col-span-5 bg-white p-5 rounded-2xl border border-[#E7E0D4] shadow-xs flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-5 bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between border-b border-[#F0EBE1] pb-3">
+            <div className="flex items-center justify-between border-b border-[#F0EBE1] dark:border-border pb-3">
               <div>
-                <h3 className="font-bold text-stone-900 text-sm flex items-center space-x-2">
-                  <PieChartIcon className="w-4 h-4 text-[#8C4A32]" />
+                <h3 className="font-bold text-stone-900 dark:text-text-primary text-sm flex items-center space-x-2">
+                  <PieChartIcon className="w-4 h-4 text-[#8C4A32] dark:text-orange-300" />
                   <span>Kategori Satış Dağılımı (D3 Donut)</span>
                 </h3>
-                <p className="text-xs text-stone-500 mt-0.5">
+                <p className="text-xs text-stone-500 dark:text-text-muted mt-0.5">
                   Ciro paylarına göre kategori oranları
                 </p>
               </div>
@@ -1052,25 +1052,25 @@ export default function SalesAnalyticsDashboard({
               <div className="absolute pointer-events-none flex flex-col items-center justify-center text-center px-4 max-w-[140px]">
                 {donutHovered ? (
                   <>
-                    <span className="text-[10px] uppercase font-bold text-stone-500 truncate w-full">
+                    <span className="text-[10px] uppercase font-bold text-stone-500 dark:text-text-muted truncate w-full">
                       {donutHovered.category}
                     </span>
-                    <span className="text-sm font-black text-stone-900 font-mono mt-0.5">
+                    <span className="text-sm font-black text-stone-900 dark:text-text-primary font-mono mt-0.5">
                       {donutHovered.revenue.toLocaleString('tr-TR')} ₺
                     </span>
-                    <span className="text-[11px] font-bold text-[#2E5438]">
+                    <span className="text-[11px] font-bold text-[#2E5438] dark:text-emerald-400">
                       %{donutHovered.percent.toFixed(1)}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-[10px] uppercase font-bold text-stone-400">
+                    <span className="text-[10px] uppercase font-bold text-stone-400 dark:text-text-muted">
                       Toplam Ciro
                     </span>
-                    <span className="text-sm font-black text-stone-900 font-mono mt-0.5">
+                    <span className="text-sm font-black text-stone-900 dark:text-text-primary font-mono mt-0.5">
                       {totalRevenue.toLocaleString('tr-TR')} ₺
                     </span>
-                    <span className="text-[10px] text-stone-500">
+                    <span className="text-[10px] text-stone-500 dark:text-text-muted">
                       {categoryAnalyticsData.categories.length} Kategori
                     </span>
                   </>
@@ -1080,7 +1080,7 @@ export default function SalesAnalyticsDashboard({
           </div>
 
           {/* Interactive Legend List */}
-          <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pt-2 border-t border-[#F0EBE1]">
+          <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pt-2 border-t border-[#F0EBE1] dark:border-border">
             {categoryAnalyticsData.categories.map(cat => {
               const isSelected = selectedCategory === cat.category;
               return (
@@ -1093,11 +1093,11 @@ export default function SalesAnalyticsDashboard({
                 >
                   <div className="flex items-center space-x-2 truncate">
                     <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                    <span className="font-semibold text-stone-800 truncate">{cat.category}</span>
+                    <span className="font-semibold text-stone-800 dark:text-text-primary truncate">{cat.category}</span>
                   </div>
                   <div className="flex items-center space-x-2 shrink-0 font-mono text-[11px]">
-                    <span className="text-stone-500">%{cat.percent.toFixed(1)}</span>
-                    <strong className="text-stone-900">{cat.revenue.toLocaleString('tr-TR')} ₺</strong>
+                    <span className="text-stone-500 dark:text-text-muted">%{cat.percent.toFixed(1)}</span>
+                    <strong className="text-stone-900 dark:text-text-primary">{cat.revenue.toLocaleString('tr-TR')} ₺</strong>
                   </div>
                 </div>
               );
@@ -1109,18 +1109,18 @@ export default function SalesAnalyticsDashboard({
         <div className="lg:col-span-7 space-y-6">
           
           {/* Ranked Horizontal Bar Chart (D3) */}
-          <div className="bg-white p-5 rounded-2xl border border-[#E7E0D4] shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-[#F0EBE1] pb-3">
+          <div className="bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-[#F0EBE1] dark:border-border pb-3">
               <div>
-                <h3 className="font-bold text-stone-900 text-sm flex items-center space-x-2">
-                  <BarChart3 className="w-4 h-4 text-[#2E5438]" />
+                <h3 className="font-bold text-stone-900 dark:text-text-primary text-sm flex items-center space-x-2">
+                  <BarChart3 className="w-4 h-4 text-[#2E5438] dark:text-emerald-400" />
                   <span>En Çok Ciro Getiren Kategoriler (D3 Sıralı Bar)</span>
                 </h3>
-                <p className="text-xs text-stone-500 mt-0.5">
+                <p className="text-xs text-stone-500 dark:text-text-muted mt-0.5">
                   Kategori bazında toplam ciro karşılaştırması
                 </p>
               </div>
-              <span className="text-xs text-stone-400 font-mono">
+              <span className="text-xs text-stone-400 dark:text-text-muted font-mono">
                 {timeRange.toUpperCase()}
               </span>
             </div>
@@ -1132,17 +1132,17 @@ export default function SalesAnalyticsDashboard({
           </div>
 
           {/* Top 5 Best Selling Products Leaderboard */}
-          <div className="bg-white p-5 rounded-2xl border border-[#E7E0D4] shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-[#F0EBE1] pb-3">
+          <div className="bg-white dark:bg-base-surface p-5 rounded-2xl border border-[#E7E0D4] dark:border-border shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-[#F0EBE1] dark:border-border pb-3">
               <div className="flex items-center space-x-2">
-                <div className="p-1.5 rounded-lg bg-amber-100 text-amber-800">
+                <div className="p-1.5 rounded-lg bg-amber-100 text-amber-800 dark:text-amber-300">
                   <Award className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-stone-900 text-sm">
+                  <h3 className="font-bold text-stone-900 dark:text-text-primary text-sm">
                     En Çok Satılan Ürünler Liderlik Tablosu
                   </h3>
-                  <p className="text-xs text-stone-500 mt-0.5">
+                  <p className="text-xs text-stone-500 dark:text-text-muted mt-0.5">
                     Bu periyotta en yüksek adet ve ciroya ulaşan ilk 5 ürün
                   </p>
                 </div>
@@ -1154,27 +1154,27 @@ export default function SalesAnalyticsDashboard({
                 <div key={prod.productId} className="py-2.5 flex items-center justify-between gap-3 text-xs hover:bg-[#FAF8F5] px-2 rounded-lg transition-colors">
                   <div className="flex items-center space-x-3 min-w-0">
                     <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 ${
-                      idx === 0 ? 'bg-amber-400 text-amber-950 font-black' :
-                      idx === 1 ? 'bg-stone-300 text-stone-800' :
-                      idx === 2 ? 'bg-amber-700 text-white' : 'bg-stone-100 text-stone-600'
+                      idx === 0 ? 'bg-amber-400 text-amber-950 dark:text-amber-300 font-black' :
+                      idx === 1 ? 'bg-stone-300 text-stone-800 dark:text-text-primary' :
+                      idx === 2 ? 'bg-amber-700 text-white' : 'bg-stone-100 dark:bg-base-surface-2 text-stone-600 dark:text-text-secondary'
                     }`}>
                       {idx + 1}
                     </span>
                     <div className="min-w-0">
-                      <h4 className="font-bold text-stone-900 truncate max-w-[280px]">
+                      <h4 className="font-bold text-stone-900 dark:text-text-primary truncate max-w-[280px]">
                         {prod.name}
                       </h4>
-                      <span className="text-[10px] text-stone-500">
+                      <span className="text-[10px] text-stone-500 dark:text-text-muted">
                         {prod.category} • {prod.productId}
                       </span>
                     </div>
                   </div>
 
                   <div className="text-right shrink-0">
-                    <div className="font-mono font-bold text-stone-900">
+                    <div className="font-mono font-bold text-stone-900 dark:text-text-primary">
                       {prod.revenue.toLocaleString('tr-TR')} ₺
                     </div>
-                    <div className="text-[10px] text-stone-500">
+                    <div className="text-[10px] text-stone-500 dark:text-text-muted">
                       {prod.quantity} Adet Satıldı
                     </div>
                   </div>

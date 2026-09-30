@@ -459,7 +459,7 @@ export interface ServerUser {
   city: string;
   taxNumber?: string;
   taxOffice?: string;
-  role: 'customer' | 'admin';
+  role: 'customer' | 'admin' | 'operasyon';
   isDealer: boolean;
   discountTier: string;
   passwordHash: string;
@@ -533,32 +533,18 @@ function verifySessionToken(token: string): ServerUser | null {
       }
     } catch {}
 
-    // 2. Demo / Fallback Session Token: alpha_session_<userId>_<timestamp>
-    if (cleanToken.startsWith('alpha_session_')) {
-      const parts = cleanToken.split('_');
-      const userId = parts[2];
-      const user = users.find(u => u.id === userId || (userId && u.id.includes(userId)));
-      if (user) return user;
-      if (userId && (userId.includes('admin') || cleanToken.includes('admin'))) {
-        const adminUser = users.find(u => u.role === 'admin');
-        if (adminUser) return adminUser;
-      }
-      const customerUser = users.find(u => u.role === 'customer');
-      if (customerUser) return customerUser;
-    }
-
     // 3. Firebase JWT (Google Sign-In, Firebase Auth)
     if (cleanToken.includes('.')) {
       const parts = cleanToken.split('.');
       if (parts.length === 3) {
         try {
-          const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf-8');
-          const fb = JSON.parse(payloadJson);
+          const fb = verifyFirebaseIdToken(cleanToken);
+          if (!fb) return null;
           const email = (fb.email || '').trim().toLowerCase();
           const adminEmails = ['fatihfirat1010@gmail.com', 'muslimfirat@yahoo.com', 'admin@alphadogalgaz.com'];
-          const isAdmin = fb.admin === true || (email && adminEmails.includes(email));
+          const isAdmin = fb.email_verified === true && (fb.admin === true || (email && adminEmails.includes(email)));
           
-          let user = users.find(u => (email && u.email?.toLowerCase() === email) || (fb.user_id && u.id === fb.user_id) || (fb.sub && u.id === fb.sub));
+          let user = users.find(u => (email && fb.email_verified === true && u.email?.toLowerCase() === email) || (fb.user_id && u.id === fb.user_id) || (fb.sub && u.id === fb.sub));
           if (!user && (email || fb.user_id || fb.sub)) {
             user = {
               id: fb.user_id || fb.sub || `fb-${Date.now()}`,
@@ -588,6 +574,60 @@ function verifySessionToken(token: string): ServerUser | null {
     return null;
   }
 }
+
+// Firebase ID token'lari Google'in acik sertifikalariyla (RS256) dogrulanir; imzasiz/sahte JWT kabul edilmez.
+const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'siatek';
+const FIREBASE_CERTS_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
+let firebaseCerts: Record<string, string> = {};
+let firebaseCertsFetchedAt = 0;
+let firebaseCertsPending: Promise<void> | null = null;
+
+function refreshFirebaseCerts(): Promise<void> {
+  if (firebaseCertsPending) return firebaseCertsPending;
+  if (Date.now() - firebaseCertsFetchedAt < 60_000) return Promise.resolve();
+  firebaseCertsPending = fetch(FIREBASE_CERTS_URL)
+    .then(r => r.json())
+    .then(certs => { firebaseCerts = certs as Record<string, string>; firebaseCertsFetchedAt = Date.now(); })
+    .catch(err => { console.error('Firebase sertifikalari alinamadi:', err); })
+    .finally(() => { firebaseCertsPending = null; });
+  return firebaseCertsPending;
+}
+
+function jwtKid(token: string): string | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    return JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf-8')).kid || null;
+  } catch { return null; }
+}
+
+function verifyFirebaseIdToken(token: string): any | null {
+  try {
+    const [h, p, sig] = token.split('.');
+    const header = JSON.parse(Buffer.from(h, 'base64url').toString('utf-8'));
+    if (header.alg !== 'RS256' || !header.kid) return null;
+    const cert = firebaseCerts[header.kid];
+    if (!cert) return null;
+    const ok = crypto.createVerify('RSA-SHA256').update(`${h}.${p}`).verify(cert, Buffer.from(sig, 'base64url'));
+    if (!ok) return null;
+    const claims = JSON.parse(Buffer.from(p, 'base64url').toString('utf-8'));
+    const now = Math.floor(Date.now() / 1000);
+    if (claims.aud !== FIREBASE_PROJECT_ID) return null;
+    if (claims.iss !== `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`) return null;
+    if (typeof claims.exp !== 'number' || claims.exp < now) return null;
+    if (typeof claims.iat !== 'number' || claims.iat > now + 300) return null;
+    if (!claims.sub || typeof claims.sub !== 'string') return null;
+    return claims;
+  } catch { return null; }
+}
+
+// verifySessionToken senkron; bilinmeyen kid gelirse sertifikalar istekten once yenilenir.
+app.use('/api', async (req, _res, next) => {
+  const raw = String(req.headers.authorization || req.query.token || '').replace(/^Bearer\s+/i, '').trim();
+  const kid = raw.includes('.') ? jwtKid(raw) : null;
+  if (kid && !firebaseCerts[kid]) await refreshFirebaseCerts();
+  next();
+});
 
 // All privileged API routes share one server-side gate. Client role is never trusted.
 app.use('/api', (req, res, next) => {
@@ -965,6 +1005,131 @@ app.get('/api/auth/seed-accounts', (req, res) => {
     productionMode: true,
     accounts: [],
   });
+});
+
+// ==========================================
+// Admin User Management (global /api gate: yalnızca yönetici)
+// ==========================================
+const ASSIGNABLE_ROLES = ['admin', 'operasyon', 'customer'] as const;
+type AssignableRole = typeof ASSIGNABLE_ROLES[number];
+const USERNAME_RE = /^[a-z0-9._-]{3,32}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function newSalt() {
+  return `salt_${Date.now()}_${crypto.randomBytes(6).toString('hex')}`;
+}
+
+function conflictingUser(email: string, username: string | undefined, exceptId?: string) {
+  return users.find(u => u.id !== exceptId && (
+    u.email.toLowerCase() === email ||
+    (!!username && !!u.username && u.username.toLowerCase() === username)
+  ));
+}
+
+app.get('/api/admin/users', (_req, res) => {
+  const list = users
+    .map(sanitizeUser)
+    .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'));
+  res.json({ success: true, users: list });
+});
+
+app.post('/api/admin/users', (req, res) => {
+  const body = req.body || {};
+  const name = String(body.name || '').trim();
+  const email = String(body.email || '').trim().toLowerCase();
+  const username = String(body.username || '').trim().toLowerCase();
+  const password = String(body.password || '');
+  const role = body.role as AssignableRole;
+
+  if (!name) return res.status(400).json({ error: 'Ad soyad zorunludur.' });
+  if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Geçerli bir e-posta giriniz.' });
+  if (username && !USERNAME_RE.test(username)) {
+    return res.status(400).json({ error: 'Kullanıcı adı 3-32 karakter olmalı; yalnızca harf, rakam, nokta, tire ve alt çizgi içerebilir.' });
+  }
+  if (password.length < 8) return res.status(400).json({ error: 'Şifre en az 8 karakter olmalıdır.' });
+  if (!ASSIGNABLE_ROLES.includes(role)) return res.status(400).json({ error: 'Geçersiz rol.' });
+  if (conflictingUser(email, username || undefined)) {
+    return res.status(409).json({ error: 'Bu e-posta veya kullanıcı adı zaten kullanılıyor.' });
+  }
+
+  const salt = newSalt();
+  const isCustomer = role === 'customer';
+  const created: ServerUser = {
+    id: `usr-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`,
+    email,
+    username: username || undefined,
+    name,
+    companyName: String(body.companyName || '').trim(),
+    phone: String(body.phone || '').trim(),
+    address: '',
+    city: 'Şanlıurfa',
+    role,
+    isDealer: isCustomer,
+    discountTier: role === 'admin' ? 'ALPHA_ADMIN' : isCustomer ? 'STANDARD_DEALER' : 'STAFF',
+    passwordHash: hashPassword(password, salt),
+    salt,
+    createdAt: new Date().toISOString(),
+  };
+  users.push(created);
+  res.status(201).json({ success: true, user: sanitizeUser(created) });
+});
+
+app.patch('/api/admin/users/:id', (req, res) => {
+  const target = users.find(u => u.id === req.params.id);
+  if (!target) return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
+  const actor = verifySessionToken(req.headers.authorization || '');
+  const body = req.body || {};
+
+  if (body.role !== undefined) {
+    if (!ASSIGNABLE_ROLES.includes(body.role)) return res.status(400).json({ error: 'Geçersiz rol.' });
+    if (target.role === 'admin' && body.role !== 'admin') {
+      if (actor?.id === target.id) return res.status(400).json({ error: 'Kendi yönetici yetkinizi kaldıramazsınız.' });
+      if (users.filter(u => u.role === 'admin').length <= 1) {
+        return res.status(400).json({ error: 'Son yönetici düşürülemez.' });
+      }
+    }
+  }
+  if (body.email !== undefined) {
+    const email = String(body.email).trim().toLowerCase();
+    if (!EMAIL_RE.test(email)) return res.status(400).json({ error: 'Geçerli bir e-posta giriniz.' });
+    if (conflictingUser(email, undefined, target.id)) return res.status(409).json({ error: 'Bu e-posta zaten kullanılıyor.' });
+  }
+  if (body.username !== undefined && String(body.username).trim()) {
+    const username = String(body.username).trim().toLowerCase();
+    if (!USERNAME_RE.test(username)) return res.status(400).json({ error: 'Geçersiz kullanıcı adı.' });
+    if (conflictingUser('', username, target.id)) return res.status(409).json({ error: 'Bu kullanıcı adı zaten kullanılıyor.' });
+  }
+  if (body.password !== undefined && body.password !== '') {
+    if (String(body.password).length < 8) return res.status(400).json({ error: 'Şifre en az 8 karakter olmalıdır.' });
+  }
+
+  if (body.role !== undefined) {
+    target.role = body.role;
+    target.isDealer = body.role === 'customer';
+  }
+  if (body.name !== undefined && String(body.name).trim()) target.name = String(body.name).trim();
+  if (body.email !== undefined) target.email = String(body.email).trim().toLowerCase();
+  if (body.username !== undefined) target.username = String(body.username).trim().toLowerCase() || undefined;
+  if (body.companyName !== undefined) target.companyName = String(body.companyName).trim();
+  if (body.phone !== undefined) target.phone = String(body.phone).trim();
+  if (body.password) {
+    target.salt = newSalt();
+    target.passwordHash = hashPassword(String(body.password), target.salt);
+  }
+  res.json({ success: true, user: sanitizeUser(target) });
+});
+
+app.delete('/api/admin/users/:id', (req, res) => {
+  const idx = users.findIndex(u => u.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Kullanıcı bulunamadı.' });
+  const target = users[idx];
+  const actor = verifySessionToken(req.headers.authorization || '');
+  if (actor?.id === target.id) return res.status(400).json({ error: 'Kendi hesabınızı silemezsiniz.' });
+  if (target.role === 'admin' && users.filter(u => u.role === 'admin').length <= 1) {
+    return res.status(400).json({ error: 'Son yönetici silinemez.' });
+  }
+  users.splice(idx, 1);
+  res.json({ success: true, id: target.id });
 });
 
 // Company Settings API

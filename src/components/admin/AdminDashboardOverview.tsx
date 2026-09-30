@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, BarChart3, Bell, BellRing, Check, CheckCircle2, ChevronDown, Clock3, FileText, Package, Plus, Receipt, Search, Send, Settings2, ShoppingBag, Store, Target, Trash2, TrendingDown, TrendingUp, Truck, Users, Wallet, X } from 'lucide-react';
+import { AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, BarChart3, BellRing, Check, CheckCircle2, ChevronDown, Clock3, FileText, Package, Plus, Receipt, Send, Settings2, ShoppingBag, Store, Target, Trash2, TrendingDown, TrendingUp, Truck, Users, Wallet, X } from 'lucide-react';
 import type { KasaHareketi, Order, Product, Quote } from '../../types';
 import type { CariAccount } from '../../types';
 import { MobileOverview } from '../mobile/MobileERP';
@@ -116,12 +116,8 @@ export default function AdminDashboardOverview({ userName, orders, quotes: _quot
   const [reminderTitle, setReminderTitle] = useState('');
   const [reminderTime, setReminderTime] = useState('09:00');
   const [newMenuOpen, setNewMenuOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
   const quickActionsDialogRef = useRef<HTMLDivElement>(null);
   const newMenuRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const quickActions = quickActionIds.flatMap((id) => {
     const action = QUICK_ACTIONS.find((item) => item.id === id);
     return action ? [action] : [];
@@ -180,18 +176,9 @@ export default function AdminDashboardOverview({ userName, orders, quotes: _quot
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
       if (newMenuRef.current && !newMenuRef.current.contains(event.target as Node)) setNewMenuOpen(false);
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) setSearchOpen(false);
-    };
-    const onShortcut = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-        event.preventDefault();
-        searchInputRef.current?.focus();
-        setSearchOpen(true);
-      }
     };
     document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onShortcut);
-    return () => { document.removeEventListener('mousedown', onPointerDown); document.removeEventListener('keydown', onShortcut); };
+    return () => document.removeEventListener('mousedown', onPointerDown);
   }, []);
 
   useEffect(() => {
@@ -280,26 +267,13 @@ export default function AdminDashboardOverview({ userName, orders, quotes: _quot
   const visibleCreateGroups = CREATE_GROUPS
     .map((group) => ({ ...group, items: group.items.filter((item) => !item.tab || !quickActionIds.includes(item.tab)) }))
     .filter((group) => group.items.length > 0);
-  const searchResults = useMemo(() => {
-    const term = searchTerm.trim().toLocaleLowerCase('tr-TR');
-    if (term.length < 2) return [];
-    const has = (...values: Array<string | undefined>) => values.some((value) => value?.toLocaleLowerCase('tr-TR').includes(term));
-    return [
-      ...orders.filter((order) => has(order.orderNumber, order.customerName)).slice(0, 3).map((order) => ({ key: `o-${order.id}`, tab: 'orders' as Tab, icon: ShoppingBag, title: order.orderNumber, meta: `Sipariş · ${order.customerName}` })),
-      ...products.filter((product) => has(product.name, product.sku)).slice(0, 3).map((product) => ({ key: `p-${product.id}`, tab: 'products' as Tab, icon: Package, title: product.name, meta: `Ürün · ${product.stock} ${product.unit}` })),
-      ...cariAccounts.filter((account) => has(account.name, account.companyName, account.code)).slice(0, 3).map((account) => ({ key: `c-${account.id}`, tab: 'cariler' as Tab, icon: Users, title: account.companyName || account.name, meta: `Cari · ${account.code}` })),
-    ];
-  }, [searchTerm, orders, products, cariAccounts]);
   const openStock = onOpenLowStock ?? (() => onNavigate('products'));
 
   return <><div className="admin-dashboard-mobile-only"><MobileOverview userName={userName} products={products} cariAccounts={cariAccounts} cashMovements={cashMovements} loading={loading} error={error} onRetry={onRetry} onOpenNotifications={onOpenNotifications} onToggleTheme={onToggleTheme} onOpenAI={onOpenAI} setActive={onNavigate} onCreate={() => document.dispatchEvent(new CustomEvent('siatek:open-mobile-quick-actions'))} /></div><section className="admin-dashboard-overview" aria-labelledby="admin-dashboard-title">
     <header className="admin-dashboard-overview__intro admin-dashboard-topbar"><div className="admin-dashboard-topbar__title"><p className="admin-dashboard-overview__eyebrow">{formatDay()}</p><h2 id="admin-dashboard-title">{greeting()}, Alpha Teknik</h2><p className="admin-dashboard-overview__motivation">{intro}</p></div>
       <div className="admin-dashboard-topbar__tools">
-        <div className="admin-dashboard-search" ref={searchRef} role="search"><Search size={16} aria-hidden="true" /><input ref={searchInputRef} value={searchTerm} onChange={(event) => { setSearchTerm(event.target.value); setSearchOpen(true); }} onFocus={() => setSearchOpen(true)} onKeyDown={(event) => { if (event.key === 'Escape') { setSearchOpen(false); event.currentTarget.blur(); } }} placeholder="Sipariş, ürün, cari ara…" aria-label="Sipariş, ürün veya cari ara" autoComplete="off" /><kbd aria-hidden="true">⌘K</kbd>
-          {searchOpen && searchTerm.trim().length >= 2 && <div className="admin-dashboard-search__results" role="listbox" aria-label="Arama sonuçları">{searchResults.length === 0 ? <p>Sonuç bulunamadı. Başka bir arama dene.</p> : searchResults.map(({ key, tab, icon: Icon, title, meta }) => <button type="button" role="option" aria-selected={false} key={key} onClick={() => { setSearchOpen(false); setSearchTerm(''); onNavigate(tab); }}><span><Icon /></span><span><b>{title}</b><small>{meta}</small></span><ArrowRight size={14} /></button>)}</div>}
-        </div>
         {error ? <button type="button" className="admin-dashboard-status-pill is-warn" onClick={onRetry}><i />Bağlantı sorunu · Tekrar dene</button> : <span className="admin-dashboard-status-pill"><i />Sistem çalışıyor</span>}
-        <button type="button" className="admin-dashboard-topbar__bell" onClick={onOpenNotifications} aria-label={pendingOrders > 0 ? `Bildirimler, ${pendingOrders} bekleyen sipariş` : 'Bildirimler'}><Bell size={18} />{pendingOrders > 0 && <span className="w-2 h-2 rounded-full bg-warning-fill animate-pulse motion-reduce:animate-none" aria-hidden="true" />}</button>
+        {pendingOrders > 0 && <button type="button" className="admin-dashboard-topbar__pending" onClick={onOpenPendingOrders ?? (() => onNavigate('orders'))}><span className="w-2 h-2 rounded-full bg-warning-fill animate-pulse motion-reduce:animate-none" aria-hidden="true" />{pendingOrders} bekleyen sipariş</button>}
         <div className="admin-dashboard-newmenu" ref={newMenuRef}><button type="button" className="admin-dashboard-overview__new" onClick={() => setNewMenuOpen((open) => !open)} aria-haspopup="menu" aria-expanded={newMenuOpen}><Plus size={18} /> Yeni <ChevronDown size={14} /></button>
           {newMenuOpen && <div className="admin-dashboard-newmenu__list" role="menu" aria-label="Yeni oluştur" onKeyDown={onMenuKeyDown}>{visibleCreateGroups.map((group) => <div key={group.title} role="group" aria-label={group.title}><p>{group.title}</p>{group.items.map((item) => <button type="button" role="menuitem" key={item.id} onClick={() => runCreateItem(item)}><item.icon />{item.label}</button>)}</div>)}</div>}
         </div>

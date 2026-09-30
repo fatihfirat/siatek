@@ -97,6 +97,7 @@ import GiderTakipDashboard from './GiderTakipDashboard';
 import CekSenetDashboard from './CekSenetDashboard';
 import KasaDefteri from './KasaDefteri';
 import KarZararRaporu from './KarZararRaporu';
+import OrtakAracHesabi from './OrtakAracHesabi';
 import KdvOzetRaporu from './KdvOzetRaporu';
 import UrunKarMarjiRaporu from './UrunKarMarjiRaporu';
 import EInvoiceDashboard from './EInvoiceDashboard';
@@ -2713,6 +2714,11 @@ export default function AdminPortal({
         <div className="finance-surface">
           <KasaDefteri />
         </div>
+      )}
+
+      {/* ORTAK ARAÇ HESABI */}
+      {(activeTab as string) === 'ortak-arac' && (
+        <OrtakAracHesabi />
       )}
 
       {/* RAPOR: KÂR / ZARAR */}
