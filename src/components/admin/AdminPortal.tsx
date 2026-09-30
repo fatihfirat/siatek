@@ -677,10 +677,10 @@ export default function AdminPortal({
   };
 
   // Şoför Sevkiyat Rota Toplu Sipariş Durum Güncelleme
-  const handleMarkOrdersShipped = async (orderIds: string[], trackingPrefix?: string) => {
+  const handleMarkOrdersShipped = async (orderIds: string[], trackingPrefix?: string, options?: { deliveryDate?: string }) => {
     try {
       for (const id of orderIds) {
-        await handleUpdateOrderStatus(id, 'shipped', `${trackingPrefix || 'SEVK'}-${Date.now().toString().slice(-4)}`);
+        await handleUpdateOrderStatus(id, 'shipped', `${trackingPrefix || 'SEVK'}-${Date.now().toString().slice(-4)}`, options?.deliveryDate ? { deliveryDate: options.deliveryDate } : undefined);
       }
       playNotificationSound('success');
       confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });

@@ -177,6 +177,8 @@ export async function updateTransactionalOrderStatus(orderId: string, status: Or
       transaction.update(orderRef, {
         items: prepared.items, subtotal: prepared.subtotal, discount: prepared.discount, tax: prepared.tax,
         total: prepared.total, status, pricingVerified: true, stockState: 'reserved', updatedAt: now,
+        ...(status === 'delivered' ? { deliveredAt: now } : {}),
+        ...(typeof details.deliveryDate === 'string' ? { deliveryDate: details.deliveryDate } : {}),
         statusHistory: [...(order.statusHistory || []), { status, timestamp: now, note: 'Fiyat ve stok doğrulandı; stok rezerve edildi.', updatedBy: user.email || user.uid }],
       });
       return;
@@ -201,11 +203,12 @@ export async function updateTransactionalOrderStatus(orderId: string, status: Or
 
     const safeDetails = Object.fromEntries(Object.entries(details).filter(([key]) => [
       'trackingNumber', 'shippingCompany', 'deliveryVehicle', 'deliveryPersonnel', 'packageCount',
-      'pickingStatus', 'deliveryStatus', 'notes',
+      'pickingStatus', 'deliveryStatus', 'notes', 'deliveryDate',
     ].includes(key)));
     transaction.update(orderRef, {
       status, ...(status === 'cancelled' ? { stockState: order.stockState === 'reserved' ? 'released' : 'unreserved' } : {}),
       ...safeDetails, updatedAt: now,
+      ...(status === 'delivered' ? { deliveredAt: now } : {}),
       statusHistory: [...(order.statusHistory || []), {
         status, timestamp: now, note: text(safeDetails.notes || 'Durum güncellendi.', 500), updatedBy: user.email || user.uid,
         ...(safeDetails.trackingNumber ? { trackingNumber: safeDetails.trackingNumber } : {}),
