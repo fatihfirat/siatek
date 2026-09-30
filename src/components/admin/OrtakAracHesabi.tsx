@@ -12,7 +12,7 @@ import type {
   OrtakAracOdemeYonu,
   OrtakAracOdeyen,
 } from '../../types';
-import { Truck, Plus, X, CheckCircle2, AlertCircle, Receipt, ChevronDown, Handshake, Ban, Printer } from 'lucide-react';
+import { Truck, Plus, X, CheckCircle2, AlertCircle, Receipt, ChevronDown, Handshake, Ban, Printer, FileDown } from 'lucide-react';
 
 const PLAKA = '11 ACH 644';
 const ORTAK_YUZDE = 50;
@@ -91,6 +91,7 @@ export default function OrtakAracHesabi() {
   const [iptalOnayId, setIptalOnayId] = useState<string | null>(null);
   const [islemHatasi, setIslemHatasi] = useState<string | null>(null);
   const [gorunum, setGorunum] = useState<Gorunum>('ozet');
+  const [pdfHazirlaniyor, setPdfHazirlaniyor] = useState(false);
 
   useEffect(() => {
     setYukleniyor(true);
@@ -150,6 +151,22 @@ export default function OrtakAracHesabi() {
   const setF = <K extends keyof ReturnType<typeof bosForm>>(k: K, v: ReturnType<typeof bosForm>[K]) => {
     setFormHata(null);
     setForm((prev) => ({ ...prev, [k]: v }));
+  };
+
+  const pdfIndir = async () => {
+    if (pdfHazirlaniyor) return;
+    setPdfHazirlaniyor(true);
+    setIslemHatasi(null);
+    try {
+      const { generateOrtakAracPDF } = await import('../../utils/ortakAracPdf');
+      generateOrtakAracPDF(fisler, seciliAy);
+      setBasari(`${ayEtiketi(seciliAy)} özeti PDF olarak hazırlandı.`);
+    } catch (err) {
+      console.error('[SIATEK] ortak arac PDF:', err);
+      setIslemHatasi('PDF hazırlanamadı. Tekrar deneyin.');
+    } finally {
+      setPdfHazirlaniyor(false);
+    }
   };
 
   const yeniAc = () => {
@@ -239,6 +256,14 @@ export default function OrtakAracHesabi() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={pdfIndir}
+              disabled={pdfHazirlaniyor || yukleniyor || okumaHatasi}
+              className="min-h-[44px] px-3 rounded-xl bg-base-surface-2 border border-border text-xs font-bold text-text-secondary hover:text-text-primary cursor-pointer active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50 print:hidden"
+            >
+              <FileDown className="w-4 h-4" />
+              <span className="hidden sm:inline">{pdfHazirlaniyor ? 'Hazırlanıyor…' : 'PDF'}</span>
+            </button>
             <button
               onClick={() => window.print()}
               className="min-h-[44px] px-3 rounded-xl bg-base-surface-2 border border-border text-xs font-bold text-text-secondary hover:text-text-primary cursor-pointer active:scale-[0.98] transition-all flex items-center gap-2 print:hidden"
