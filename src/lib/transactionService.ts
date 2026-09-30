@@ -1,4 +1,4 @@
-import type { Order, OrderStatus } from '../types';
+import type { Order, OrderItem, OrderStatus, Quote } from '../types';
 import { STOCK_PDF_PRODUCTS } from '../data/stockProducts';
 import { prepareOrder, type CanonicalProduct } from '../utils/orderCore';
 import { auth, db, collection, doc, getDoc, runTransaction, setDoc } from './firebase';
@@ -214,5 +214,115 @@ export async function updateTransactionalOrderStatus(orderId: string, status: Or
         ...(safeDetails.trackingNumber ? { trackingNumber: safeDetails.trackingNumber } : {}),
       }],
     });
+  });
+}
+
+/**
+ * Kabul edilen (veya yönetici tarafından müşteri adına onaylanan) teklifi siparişe çevirir.
+ * Teklifteki onaylı fiyatlar korunur (katalog fiyatına dönülmez). Stok rezerve edilir.
+ * Sipariş ID'si tekliften türetildiği için tekrar çalıştırmak ikinci sipariş üretmez.
+ */
+export async function convertQuoteToOrder(
+  quoteId: string,
+  options: { onBehalfOfCustomer?: boolean } = {}
+): Promise<{ order: Order; alreadyConverted: boolean }> {
+  const user = activeUser();
+  const quoteRef = doc(db, 'quotes', quoteId);
+  const orderId = `order-quote-${quoteId}`;
+  const orderRef = doc(db, 'orders', orderId);
+
+  return runTransaction(db, async (transaction) => {
+    const quoteSnap = await transaction.get(quoteRef);
+    if (!quoteSnap.exists()) throw new Error('Teklif bulunamadı.');
+    const quote = { id: quoteSnap.id, ...quoteSnap.data() } as Quote;
+
+    const existing = await transaction.get(orderRef);
+    if (existing.exists()) {
+      return { order: { id: existing.id, ...existing.data() } as Order, alreadyConverted: true };
+    }
+
+    const canConvert = quote.status === 'accepted' || (options.onBehalfOfCustomer && quote.status === 'offer_sent');
+    if (!canConvert) throw new Error('Teklif henüz müşteri tarafından onaylanmadı.');
+    const offered = quote.offeredItems || [];
+    if (offered.length === 0) throw new Error('Teklifte fiyatlandırılmış kalem yok. Önce teklifi hazırlayıp gönderin.');
+
+    // Stok: yalnızca katalog ürünü olan kalemler (işçilik/hizmet/özel kalem stok düşmez).
+    const needed = new Map<string, number>();
+    for (const item of offered) {
+      if (!(Number(item.quantity) > 0) || !(Number(item.offeredUnitPrice) >= 0)) throw new Error('Teklif kalemi geçersiz.');
+      if (item.productId && (item.itemType ?? 'product') === 'product') {
+        needed.set(item.productId, money((needed.get(item.productId) || 0) + Number(item.quantity)));
+      }
+    }
+    const products = await readCanonicalProducts(transaction, [...needed.keys()]);
+    const now = new Date().toISOString();
+    const stockPlan: { productId: string; name: string; before: number; after: number; quantity: number }[] = [];
+    for (const [productId, quantity] of needed) {
+      const product = products.get(productId)!;
+      const before = Number((product as any).stock ?? 0);
+      if (before < quantity) throw new Error(`${(product as any).name || productId} için stok yetersiz (mevcut: ${before}).`);
+      stockPlan.push({ productId, name: String((product as any).name || productId), before, after: money(before - quantity), quantity });
+    }
+
+    const items: OrderItem[] = offered.map((item, index) => ({
+      productId: item.productId || `quote-item-${index + 1}`,
+      productName: text(item.productName, 200),
+      quantity: Number(item.quantity),
+      unit: text(item.unit || 'ADET', 30),
+      unitPrice: Number(item.offeredUnitPrice),
+      totalPrice: money(Number(item.quantity) * Number(item.offeredUnitPrice)),
+      note: `Teklif Kalemi (${quote.quoteNumber})`,
+    }));
+    const shipping = Number(quote.shippingFee || 0);
+    const key = `quote-${quoteId}`.padEnd(8, '0').slice(0, 128);
+    const order: Order = {
+      id: orderId,
+      orderNumber: `SIP-${new Date().getFullYear()}-${quote.quoteNumber.replace(/[^0-9]/g, '').slice(-5) || key.slice(-5).toUpperCase()}`,
+      customerUid: quote.customerUid || '',
+      customerName: quote.customerName,
+      customerEmail: String(quote.customerEmail || '').trim().toLowerCase(),
+      customerPhone: quote.customerPhone || '',
+      customerAddress: `${quote.deliveryCity || ''} (Teklif Kaydı)`.trim(),
+      items,
+      subtotal: Number(quote.subtotal || 0),
+      discount: Number(quote.discountAmount || 0),
+      tax: Number(quote.taxAmount || 0),
+      total: Number(quote.grandTotal || 0),
+      status: 'approved',
+      paymentMethod: quote.paymentTerms || 'Havale/EFT',
+      notes: `${quote.quoteNumber} numaralı ${options.onBehalfOfCustomer ? 'müşteri adına yönetici tarafından onaylanan' : 'müşterinin onayladığı'} tekliften oluşturuldu.${shipping > 0 ? ` Nakliye: ${shipping} ₺ (toplama dahil).` : ''}`,
+      createdAt: now,
+      updatedAt: now,
+      sourceQuoteId: quoteId,
+      pricingVerified: true,
+      stockState: needed.size > 0 ? 'reserved' : 'unreserved',
+      idempotencyKey: key,
+      statusHistory: [{
+        status: 'approved', timestamp: now, updatedBy: user.email || user.uid,
+        note: options.onBehalfOfCustomer ? 'Teklif müşteri adına onaylandı ve siparişe dönüştürüldü.' : 'Onaylanan teklif siparişe dönüştürüldü.',
+      }],
+    };
+
+    transaction.set(orderRef, order);
+    for (const s of stockPlan) {
+      transaction.set(doc(db, 'products', s.productId), { stock: s.after, updatedAt: now }, { merge: true });
+      transaction.set(doc(collection(db, 'stock_movements')), {
+        productId: s.productId, productName: s.name, type: 'quote_accept_reservation', quantityDelta: -s.quantity,
+        quantityBefore: s.before, quantityAfter: s.after, referenceType: 'quote', referenceId: quoteId,
+        createdAt: now, createdByUid: user.uid,
+      });
+    }
+    transaction.update(quoteRef, {
+      status: 'accepted', convertedOrderId: orderId, updatedAt: now,
+      acceptedBy: options.onBehalfOfCustomer ? 'admin' : quote.acceptedBy || 'customer',
+    });
+    if (quote.customerUid) {
+      transaction.set(doc(collection(db, 'notifications')), {
+        title: 'Teklifiniz Siparişe Dönüştü', type: 'order_updated', targetRole: 'customer', targetUid: quote.customerUid,
+        message: `${quote.quoteNumber} teklifiniz ${order.orderNumber} numaralı sipariş olarak işleme alındı.`,
+        referenceId: orderId, referenceType: 'order', read: false, timestamp: now,
+      });
+    }
+    return { order, alreadyConverted: false };
   });
 }

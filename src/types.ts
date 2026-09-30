@@ -296,6 +296,10 @@ export interface Quote {
   aiNotes?: string;
   encryptedConfidentialNote?: string;
   securityHash?: string;
+  /** Kabul edilen tekliften üretilen sipariş (idempotent dönüşüm işareti). */
+  convertedOrderId?: string;
+  /** 'admin': müşteri adına yönetici onayladı. */
+  acceptedBy?: 'customer' | 'admin';
   createdAt: string;
   updatedAt: string;
 }
