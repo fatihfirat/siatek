@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Order, Product } from '../../types';
 import { printDispatchRouteSheet } from '../../utils/printUtils';
+import { averagePreparationMinutes, onTimeDeliveryRate } from '../../utils/dispatchKpis';
 import { useCompanySettings } from '../../lib/companySettings';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import AlphaEnterpriseSuiteModal from './AlphaEnterpriseSuiteModal';
@@ -167,11 +168,28 @@ export default function DriverDispatchRouteModal({
   const shippedTotal = shippedOrders.reduce((sum, o) => sum + o.total, 0);
   const formatTry = (n: number) => n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
 
+  const onTime = onTimeDeliveryRate(orders);
+  const prep = averagePreparationMinutes(orders);
+  const formatDuration = (min: number) => {
+    const m = Math.round(min);
+    return m >= 60 ? `${Math.floor(m / 60)} sa ${m % 60} dk` : `${m} dk`;
+  };
+
   const kpis: { key: string; label: string; value: string; hint: string; tone: string; tab: DispatchModalTab }[] = [
     { key: 'active', label: 'Aktif görev', value: String(dispatchableOrders.length), hint: 'Dağıtıma uygun sipariş', tone: 'text-text-muted', tab: 'dispatch' },
     { key: 'shipped', label: 'Sevkiyatta', value: String(shippedOrders.length), hint: formatTry(shippedTotal), tone: 'text-emerald-600', tab: 'map' },
-    { key: 'ontime', label: 'Zamanında teslim', value: '%96,4', hint: '+1,8 puan', tone: 'text-emerald-600', tab: 'map' },
-    { key: 'prep', label: 'Ort. hazırlama', value: '42 dk', hint: '−6 dk', tone: 'text-emerald-600', tab: 'preparation' },
+    {
+      key: 'ontime', label: 'Zamanında teslim', tab: 'map',
+      value: onTime.value === null ? '—' : `%${onTime.value.toLocaleString('tr-TR', { maximumFractionDigits: 1 })}`,
+      hint: onTime.sample > 0 ? `${onTime.onTime}/${onTime.sample} teslimat` : 'Veri yok',
+      tone: onTime.value === null ? 'text-text-muted' : onTime.value >= 90 ? 'text-emerald-600' : 'text-amber-600',
+    },
+    {
+      key: 'prep', label: 'Ort. hazırlama', tab: 'preparation',
+      value: prep.value === null ? '—' : formatDuration(prep.value),
+      hint: prep.sample > 0 ? `${prep.sample} sipariş` : 'Veri yok',
+      tone: 'text-text-muted',
+    },
   ];
 
   const tabs: { id: DispatchModalTab; label: string; Icon: typeof Truck }[] = [
