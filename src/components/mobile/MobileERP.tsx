@@ -11,7 +11,10 @@ import {
   Eye,
   EyeOff,
   Menu,
+  Handshake,
+  LogOut,
   Search,
+  UserRound,
   Sun,
   BarChart3,
   Home,
@@ -83,7 +86,7 @@ export function MobileOverview({ userName, products, cariAccounts, cashMovements
       <MobileAdminHeader activeTab="home" userName={userName} pendingOrders={0} lowStock={lowStock.length} setActive={setActive} onOpenNotifications={onOpenNotifications} onToggleTheme={onToggleTheme} onOpenAI={onOpenAI} />
       <header className="mobile-erp-welcome">
         <div><small>{day()}</small><h1>Günaydın, {firstName(userName)}</h1><p>Alpha Teknik yönetim özeti</p></div>
-        <button type="button" aria-label="Profil ve hesap ayarları" onClick={() => setActive('settings')}><span>{initials(userName)}</span><i /></button>
+        <button type="button" aria-label="Profil ve hesap ayarları" onClick={() => openMobileAdminMenu(true)}><span>{initials(userName)}</span><i /></button>
       </header>
 
       <article className="mobile-erp-balance">
@@ -124,39 +127,60 @@ export function MobileOverview({ userName, products, cariAccounts, cashMovements
   );
 }
 
-type HeaderProps = Pick<Props, 'userName' | 'setActive' | 'onOpenNotifications' | 'onToggleTheme'> & { activeTab?: AdminTab; pendingOrders: number; lowStock: number };
-export function MobileAdminHeader({ activeTab = 'home', userName, pendingOrders, lowStock, setActive, onOpenNotifications, onToggleTheme }: HeaderProps) {
+type HeaderProps = Pick<Props, 'userName' | 'setActive' | 'onOpenNotifications' | 'onToggleTheme'> & { activeTab?: AdminTab; pendingOrders?: number; lowStock?: number };
+export const openMobileAdminMenu = (profile = false) => document.dispatchEvent(new CustomEvent('siatek:open-mobile-admin-menu', { detail: { profile } }));
+
+/* Çekmece (drawer) AdminWorkspaceShell içinde tek kez bağlanır: alt menüdeki "Daha Fazla" ve
+   üst çubuktaki profil düğmesi her sekmede aynı olayla açar. */
+type MenuProps = { activeTab: AdminTab; user: { name: string; email?: string }; pendingOrders?: number; lowStock?: number; setActive: (tab: AdminTab) => void; onOpenNotifications?: () => void; onToggleTheme?: () => void; onLogout?: () => void };
+export function MobileAdminMenu({ activeTab, user, pendingOrders = 0, lowStock = 0, setActive, onOpenNotifications, onToggleTheme, onLogout }: MenuProps) {
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   useModalBehavior(open, () => setOpen(false));
-  useEffect(() => { const show = () => setOpen(true); document.addEventListener('siatek:open-mobile-admin-menu', show); return () => document.removeEventListener('siatek:open-mobile-admin-menu', show); }, []);
-  const go = (tab: AdminTab) => { setOpen(false); setActive(tab); };
-  const items: Array<[AdminTab, string, typeof Home, number?]> = [['home','Genel Bakış',Home],['orders','Satış',ReceiptText,pendingOrders],['cariler','Cari Hesaplar',Users],['kasa','Kasa / Banka',WalletCards],['products','Stok Yönetimi',Box,lowStock],['alis-faturalari','Satın Alma',ShoppingCart],['invoices','Faturalama',FileText],['analytics','Raporlar',BarChart3],['ops-dispatch','Operasyon',Truck],['settings','Ayarlar',Settings]];
-  return <>
-    <header className="mobile-erp-appbar">
-      <button type="button" aria-label="Menüyü aç" onClick={() => setOpen(true)}><Menu /></button>
-      <img className="mobile-erp-appbar__logo" src="/branding/siatek-icon.png" alt="Siatek" />
-      <span className="mobile-erp-appbar__company"><small>Çalışma alanı</small><strong>Alpha Teknik</strong></span>
-      <button type="button" aria-label="Ara" onClick={() => document.dispatchEvent(new CustomEvent('siatek:open-command-palette'))}><Search /></button>
-      <button type="button" aria-label="Temayı değiştir" onClick={onToggleTheme}><Sun /></button>
-      <button type="button" aria-label="Bildirimleri aç" onClick={onOpenNotifications}><Bell /><i /></button>
-    </header>
-    {open && <div className="mobile-admin-drawer-backdrop" role="presentation" onClick={() => setOpen(false)}>
-      <aside className="mobile-admin-drawer" role="dialog" aria-modal="true" aria-label="Yönetim menüsü" onClick={(event) => event.stopPropagation()}>
-        <header>
-          <img className="mobile-admin-drawer__logo" src="/branding/siatek-icon.png" alt="Siatek" />
-          <div><strong>SIATEK</strong><small>İş Yönetim Platformu</small></div>
-          <button type="button" aria-label="Menüyü kapat" onClick={() => setOpen(false)}><X /></button>
-        </header>
-        <div className="mobile-admin-workspace">
-          <img src="/branding/siatek-icon.png" alt="Alpha Teknik" />
-          <div><small>Çalışma alanı</small><strong>Alpha Teknik</strong></div>
-        </div>
-        <small className="mobile-admin-drawer__label">YÖNETİM</small>
-        <nav>{items.map(([id, label, Icon, count]) => <button type="button" key={id} className={id === activeTab ? 'is-active' : ''} aria-current={id === activeTab ? 'page' : undefined} onClick={() => go(id)}><Icon /><span>{label}</span>{count ? <b>{count}</b> : null}</button>)}</nav>
-        <footer><span>{initials(userName)}</span><div><strong>{userName}</strong><small>Yönetici</small></div></footer>
-      </aside>
-    </div>}
-  </>;
+  useEffect(() => {
+    const show = (event: Event) => { setProfileOpen(Boolean((event as CustomEvent<{ profile?: boolean }>).detail?.profile)); setOpen(true); };
+    document.addEventListener('siatek:open-mobile-admin-menu', show);
+    return () => document.removeEventListener('siatek:open-mobile-admin-menu', show);
+  }, []);
+  if (!open) return null;
+  const close = () => setOpen(false);
+  const go = (tab: AdminTab) => { close(); setActive(tab); };
+  const items: Array<[AdminTab, string, typeof Home, number?]> = [['home','Genel Bakış',Home],['orders','Satış',ReceiptText,pendingOrders],['cariler','Cari Hesaplar',Users],['kasa','Kasa / Banka',WalletCards],['products','Stok Yönetimi',Box,lowStock],['alis-faturalari','Satın Alma',ShoppingCart],['invoices','Faturalama',FileText],['analytics','Raporlar',BarChart3],['ortak-arac','Ortak Araç',Handshake],['ops-dispatch','Operasyon',Truck],['settings','Ayarlar',Settings]];
+  return <div className="mobile-admin-drawer-backdrop" role="presentation" onClick={close}>
+    <aside className="mobile-admin-drawer" role="dialog" aria-modal="true" aria-label="Yönetim menüsü" onClick={(event) => event.stopPropagation()}>
+      <header>
+        <img className="mobile-admin-drawer__logo" src="/branding/siatek-icon.png" alt="Siatek" />
+        <div><strong>SIATEK</strong><small>İş Yönetim Platformu</small></div>
+        <button type="button" aria-label="Menüyü kapat" onClick={close}><X /></button>
+      </header>
+      <div className="mobile-admin-workspace">
+        <img src="/branding/siatek-icon.png" alt="Alpha Teknik" />
+        <div><small>Çalışma alanı</small><strong>Alpha Teknik</strong></div>
+      </div>
+      <small className="mobile-admin-drawer__label">YÖNETİM</small>
+      <nav>{items.map(([id, label, Icon, count]) => <button type="button" key={id} className={id === activeTab ? 'is-active' : ''} aria-current={id === activeTab ? 'page' : undefined} onClick={() => go(id)}><Icon /><span>{label}</span>{count ? <b>{count}</b> : null}</button>)}</nav>
+      <footer className={profileOpen ? 'is-profile-open' : ''}>
+        {profileOpen && <div className="mobile-admin-profile" role="group" aria-label="Profil işlemleri">
+          <button type="button" onClick={() => go('settings')}><UserRound /><span>Profilim</span></button>
+          {onOpenNotifications && <button type="button" onClick={() => { close(); onOpenNotifications(); }}><Bell /><span>Bildirimler</span></button>}
+          {onToggleTheme && <button type="button" onClick={() => { close(); onToggleTheme(); }}><Sun /><span>Temayı değiştir</span></button>}
+          {onLogout && <button type="button" className="is-danger" onClick={() => { close(); onLogout(); }}><LogOut /><span>Oturumu kapat</span></button>}
+        </div>}
+        <button type="button" className="mobile-admin-user" aria-expanded={profileOpen} onClick={() => setProfileOpen((value) => !value)}><span>{initials(user.name)}</span><div><strong>{user.name}</strong><small>{user.email || 'Yönetici'}</small></div><ChevronDown /></button>
+      </footer>
+    </aside>
+  </div>;
+}
+
+export function MobileAdminHeader({ userName, onOpenNotifications }: HeaderProps) {
+  return <header className="mobile-erp-appbar">
+    <button type="button" aria-label="Menüyü aç" onClick={() => openMobileAdminMenu()}><Menu /></button>
+    <img className="mobile-erp-appbar__logo" src="/branding/siatek-icon.png" alt="Siatek" />
+    <span className="mobile-erp-appbar__company"><small>Çalışma alanı</small><strong>Alpha Teknik</strong></span>
+    <button type="button" aria-label="Ara" onClick={() => document.dispatchEvent(new CustomEvent('siatek:open-command-palette'))}><Search /></button>
+    <button type="button" aria-label="Bildirimleri aç" onClick={onOpenNotifications}><Bell /><i /></button>
+    <button type="button" className="mobile-erp-appbar__profile" aria-label="Profil ve hesap menüsü" onClick={() => openMobileAdminMenu(true)}>{initials(userName)}</button>
+  </header>;
 }
 
 export function MobileCariOverview({ userName, accounts, loading, setActive, onAdd, ...header }: { userName:string; accounts:CariAccount[]; loading?:boolean; setActive:(tab:AdminTab)=>void; onAdd?:()=>void } & Partial<HeaderProps>) {

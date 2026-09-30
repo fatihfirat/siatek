@@ -5,6 +5,7 @@ import {
   UserRound, LogOut, Handshake,
 } from 'lucide-react';
 import type { AdminTab, User } from '../../types';
+import { MobileAdminMenu } from '../mobile/MobileERP';
 
 interface Props {
   activeTab: AdminTab;
@@ -163,5 +164,6 @@ export default function AdminWorkspaceShell({ activeTab, onTabChange, onOpenNoti
         {children}
       </main>
     </div>
+    <MobileAdminMenu activeTab={activeTab} user={currentUser} pendingOrders={pendingSalesCount} lowStock={criticalStockCount} setActive={onTabChange} onOpenNotifications={onOpenNotifications} onToggleTheme={onToggleTheme} onLogout={onLogout} />
   </div>;
 }
