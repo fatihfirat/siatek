@@ -43,13 +43,6 @@ const contextualTabs: Array<{ title: string; ids: AdminTab[]; tabs: Array<{ id: 
     { id: 'products', label: 'Ürün & Stok Masası' },
     { id: 'barcodes', label: 'Barkod' },
   ] },
-<<<<<<< HEAD
-  { title: 'Stok Yönetimi', ids: ['products', 'barcodes'], tabs: [
-    { id: 'products', label: 'Ürün & Stok Masası' },
-    { id: 'barcodes', label: 'Barkod' },
-  ] },
-=======
->>>>>>> origin/main
   { title: 'Satın Alma', ids: ['alis-faturalari', 'tedarikci-ekstresi'], tabs: [
     { id: 'alis-faturalari', label: 'Alış Faturaları' }, { id: 'tedarikci-ekstresi', label: 'Tedarikçi Ekstreleri' },
   ] },
