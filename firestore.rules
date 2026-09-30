@@ -180,6 +180,7 @@ service cloud.firestore {
                       benimKaydimMi(resource.data)
                       && request.resource.data.diff(resource.data).affectedKeys()
                            .hasOnly(['status', 'updatedAt'])
+                      && resource.data.status == 'offer_sent'
                       && request.resource.data.status in ['accepted', 'rejected']
                     );
 
