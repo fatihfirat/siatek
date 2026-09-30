@@ -141,7 +141,7 @@ export const ORTAK_ARAC_ORTAK_PAY_ORANI = 0.5;
 /**
  * Ortak araç hesabı: net = satışlar − mal maliyeti − tüm araç giderleri.
  * Kâr da zarar da eşit paylaşılır. Dönem özeti `period` (YYYY-MM) içindir;
- * cari bakiye ise tüm zamanların net payı ile ortak ödemelerinin farkıdır.
+ * cari bakiye ise tüm zamanların ortak payı + ortağın cebinden ödediği giderler − ortağa net ödemelerdir.
  */
 export function calculateOrtakAracHesap(fisler: OrtakAracFis[], period: string) {
   const active = activeAccountingRows(fisler);
@@ -171,8 +171,12 @@ export function calculateOrtakAracHesap(fisler: OrtakAracFis[], period: string) 
       0,
     ),
   );
+  /** Ortağın kendi cebinden ödediği giderler: net'ten düşülmüştür ama parası ona iade edilmelidir. */
+  const partnerAdvances = roundMoney(
+    active.filter((f) => f.tur === 'gider' && f.odeyen === 'ortak').reduce((s, f) => s + Number(f.tutar || 0), 0),
+  );
   /** Pozitif: ortağa borcumuz var · negatif: ortak bize borçlu. */
-  const partnerBalance = roundMoney(allTime.partnerShare - paidToPartner);
+  const partnerBalance = roundMoney(allTime.partnerShare + partnerAdvances - paidToPartner);
 
   return {
     period: summarize(inPeriod),
@@ -180,6 +184,7 @@ export function calculateOrtakAracHesap(fisler: OrtakAracFis[], period: string) 
     receiptCount: inPeriod.length,
     allTime,
     paidToPartner,
+    partnerAdvances,
     partnerBalance,
   };
 }

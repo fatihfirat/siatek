@@ -807,6 +807,9 @@ export type OrtakAracGiderKategori =
 /** ortaga_odedik: ortağa para verdik / ortaktan_aldik: ortaktan avans aldık. */
 export type OrtakAracOdemeYonu = 'ortaga_odedik' | 'ortaktan_aldik';
 
+/** Gideri kimin cebinden ödediği. */
+export type OrtakAracOdeyen = 'biz' | 'ortak';
+
 export interface OrtakAracFis {
   id: string;
   tur: OrtakAracFisTur;
@@ -816,6 +819,8 @@ export interface OrtakAracFis {
   malMaliyeti?: number;
   giderKategori?: OrtakAracGiderKategori;
   odemeYonu?: OrtakAracOdemeYonu;
+  /** Yalnızca gider fişi: gideri kim ödedi. Boşsa 'biz' sayılır. */
+  odeyen?: OrtakAracOdeyen;
   aciklama: string;
   fisNo?: string;
   tarih: string;
