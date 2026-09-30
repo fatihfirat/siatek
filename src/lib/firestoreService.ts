@@ -1,3 +1,4 @@
+import { withStatusTrail } from '../utils/orderStatusTrail';
 import {
   db,
   collection,
@@ -240,13 +241,13 @@ export async function updateOrderStatusInFirestore(
   const snap = await getDoc(docRef);
   if (snap.exists()) {
     const data = snap.data();
-    const existingHistory = data.statusHistory || [];
-    const newHistory = historyItem ? [...existingHistory, historyItem] : existingHistory;
-    
+    const now = new Date().toISOString();
+    const trail = withStatusTrail(data.statusHistory, status, now, { historyItem });
+
     await updateDoc(docRef, sanitizeForFirestore({
       status,
-      statusHistory: newHistory,
-      updatedAt: new Date().toISOString(),
+      ...trail,
+      updatedAt: now,
       ...(additionalFields || {})
     }));
   }
@@ -537,10 +538,15 @@ export async function settleOrderPaymentInFirestore(
   orderId: string,
   settlement: Record<string, any>
 ): Promise<void> {
-  await updateDoc(doc(db, 'orders', orderId), sanitizeForFirestore({
+  const orderRef = doc(db, 'orders', orderId);
+  const snap = await getDoc(orderRef);
+  const now = new Date().toISOString();
+  const trail = withStatusTrail(snap.exists() ? snap.data().statusHistory : undefined, 'delivered', now, { note: 'Teslim edildi ve tahsilat kapatıldı.' });
+  await updateDoc(orderRef, sanitizeForFirestore({
     settlement,
     status: 'delivered',
-    updatedAt: new Date().toISOString(),
+    ...trail,
+    updatedAt: now,
   }));
 }
 
