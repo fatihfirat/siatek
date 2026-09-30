@@ -138,24 +138,61 @@ export function calculateProfitLoss(input: {
 /** Ortak araç hesabında ortağın sabit pay oranı (yarı yarıya). */
 export const ORTAK_ARAC_ORTAK_PAY_ORANI = 0.5;
 
+function summarizeOrtakArac(rows: OrtakAracFis[]) {
+  const sales = rows.filter((f) => f.tur === 'satis');
+  const revenue = roundMoney(sales.reduce((s, f) => s + Number(f.tutar || 0), 0));
+  const goodsCost = roundMoney(sales.reduce((s, f) => s + Number(f.malMaliyeti || 0), 0));
+  const expenses = roundMoney(rows.filter((f) => f.tur === 'gider').reduce((s, f) => s + Number(f.tutar || 0), 0));
+  const grossProfit = roundMoney(revenue - goodsCost);
+  const net = roundMoney(grossProfit - expenses);
+  const partnerShare = roundMoney(net * ORTAK_ARAC_ORTAK_PAY_ORANI);
+  const ourShare = roundMoney(net - partnerShare);
+  return {
+    revenue,
+    goodsCost,
+    grossProfit,
+    grossMarginPercent: revenue > 0 ? (grossProfit / revenue) * 100 : 0,
+    expenses,
+    net,
+    partnerShare,
+    ourShare,
+  };
+}
+
+/** Ortağın cebinden ödenen gider ve mal maliyetleri: net'ten düşülmüştür ama parası ona iade edilmelidir. */
+function partnerAdvancesOf(rows: OrtakAracFis[]): number {
+  return roundMoney(
+    rows.reduce((s, f) => {
+      if (f.odeyen !== 'ortak') return s;
+      if (f.tur === 'gider') return s + Number(f.tutar || 0);
+      if (f.tur === 'satis') return s + Number(f.malMaliyeti || 0);
+      return s;
+    }, 0),
+  );
+}
+
+/** Ortağa net ödeme: ortağa ödediklerimiz − ortaktan aldığımız avanslar. */
+function paidToPartnerOf(rows: OrtakAracFis[]): number {
+  return roundMoney(
+    rows.filter((f) => f.tur === 'ortak_odeme').reduce(
+      (s, f) => s + (f.odemeYonu === 'ortaktan_aldik' ? -1 : 1) * Number(f.tutar || 0),
+      0,
+    ),
+  );
+}
+
 /**
  * Ortak araç hesabı: net = satışlar − mal maliyeti − tüm araç giderleri.
- * Kâr da zarar da eşit paylaşılır. Dönem özeti `period` (YYYY-MM) içindir;
- * cari bakiye ise tüm zamanların ortak payı + ortağın cebinden ödediği giderler − ortağa net ödemelerdir.
+ * Kâr da zarar da eşit paylaşılır; pay her ay ayrı yuvarlanarak kesinleşir (aylık kapanış).
+ *
+ * - `period`: `period` (YYYY-MM) içindeki özet.
+ * - `cari`: dönem ekstresi — devir + dönem payı + ortağın ödedikleri − ortağa ödenen = dönem sonu bakiye.
+ * - `partnerBalance`: tüm zamanların güncel bakiyesi. Pozitif: ortağa borcumuz var · negatif: ortak bize borçlu.
  */
 export function calculateOrtakAracHesap(fisler: OrtakAracFis[], period: string) {
   const active = activeAccountingRows(fisler);
-  const inPeriod = active.filter((f) => (f.tarih || '').startsWith(period));
-
-  const summarize = (rows: OrtakAracFis[]) => {
-    const revenue = roundMoney(rows.filter((f) => f.tur === 'satis').reduce((s, f) => s + Number(f.tutar || 0), 0));
-    const goodsCost = roundMoney(rows.filter((f) => f.tur === 'satis').reduce((s, f) => s + Number(f.malMaliyeti || 0), 0));
-    const expenses = roundMoney(rows.filter((f) => f.tur === 'gider').reduce((s, f) => s + Number(f.tutar || 0), 0));
-    const net = roundMoney(revenue - goodsCost - expenses);
-    const partnerShare = roundMoney(net * ORTAK_ARAC_ORTAK_PAY_ORANI);
-    const ourShare = roundMoney(net - partnerShare);
-    return { revenue, goodsCost, expenses, net, partnerShare, ourShare };
-  };
+  const monthOf = (f: OrtakAracFis) => periodOf(f.tarih);
+  const inPeriod = active.filter((f) => monthOf(f) === period);
 
   const expenseByCategory: Record<string, number> = {};
   for (const f of inPeriod) {
@@ -164,32 +201,42 @@ export function calculateOrtakAracHesap(fisler: OrtakAracFis[], period: string) 
     expenseByCategory[key] = roundMoney((expenseByCategory[key] || 0) + Number(f.tutar || 0));
   }
 
-  const allTime = summarize(active);
-  const paidToPartner = roundMoney(
-    active.filter((f) => f.tur === 'ortak_odeme').reduce(
-      (s, f) => s + (f.odemeYonu === 'ortaktan_aldik' ? -1 : 1) * Number(f.tutar || 0),
-      0,
-    ),
-  );
-  /** Ortağın kendi cebinden ödediği giderler ve mal maliyetleri: net'ten düşülmüştür ama parası ona iade edilmelidir. */
-  const partnerAdvances = roundMoney(
-    active.reduce((s, f) => {
-      if (f.odeyen !== 'ortak') return s;
-      if (f.tur === 'gider') return s + Number(f.tutar || 0);
-      if (f.tur === 'satis') return s + Number(f.malMaliyeti || 0);
-      return s;
-    }, 0),
-  );
-  /** Pozitif: ortağa borcumuz var · negatif: ortak bize borçlu. */
-  const partnerBalance = roundMoney(allTime.partnerShare + partnerAdvances - paidToPartner);
+  const months = Array.from(new Set(active.map(monthOf))).sort();
+  let opening = 0;
+  let running = 0;
+  let allShare = 0;
+  let allOurShare = 0;
+  let allNet = 0;
+  for (const m of months) {
+    const rows = active.filter((f) => monthOf(f) === m);
+    const sum = summarizeOrtakArac(rows);
+    const movement = roundMoney(sum.partnerShare + partnerAdvancesOf(rows) - paidToPartnerOf(rows));
+    if (m < period) opening = roundMoney(opening + movement);
+    running = roundMoney(running + movement);
+    allShare = roundMoney(allShare + sum.partnerShare);
+    allOurShare = roundMoney(allOurShare + sum.ourShare);
+    allNet = roundMoney(allNet + sum.net);
+  }
+
+  const periodSummary = summarizeOrtakArac(inPeriod);
+  const periodAdvances = partnerAdvancesOf(inPeriod);
+  const periodPaid = paidToPartnerOf(inPeriod);
+  const cari = {
+    opening,
+    share: periodSummary.partnerShare,
+    advances: periodAdvances,
+    paid: periodPaid,
+    closing: roundMoney(opening + periodSummary.partnerShare + periodAdvances - periodPaid),
+  };
 
   return {
-    period: summarize(inPeriod),
+    period: periodSummary,
     expenseByCategory,
     receiptCount: inPeriod.length,
-    allTime,
-    paidToPartner,
-    partnerAdvances,
-    partnerBalance,
+    cari,
+    allTime: { ...summarizeOrtakArac(active), net: allNet, partnerShare: allShare, ourShare: allOurShare },
+    paidToPartner: paidToPartnerOf(active),
+    partnerAdvances: partnerAdvancesOf(active),
+    partnerBalance: running,
   };
 }
