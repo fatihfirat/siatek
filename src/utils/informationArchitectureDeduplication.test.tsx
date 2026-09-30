@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import AdminPortal from '../components/admin/AdminPortal';
+import AdminDashboardOverview from '../components/admin/AdminDashboardOverview';
 import OverviewMetricsBar from '../components/common/OverviewMetricsBar';
 import { Product, Order, Quote } from '../types';
 
@@ -97,12 +98,35 @@ describe('GÖREV 4 — Bilgi Mimarisi & Tekrar Giderilme Doğrulama Testleri', (
     );
 
     expect(html).toContain('ALPHA HIZLI OPERASYON MASASI');
-    expect(html).toContain('Bekleyen Aksiyonlar');
-    expect(html).toContain('Toplam Sipariş &amp; Ciro');
-    expect(html).toContain('Aktif Ürün Kataloğu &amp; Fiyatlar');
+    // Aynı bilgi tek yerde: eski tekrar eden bloklar kalkmış olmalı
+    expect(html).not.toContain('Bekleyen Aksiyonlar');
+    expect(html).not.toContain('Toplam Sipariş &amp; Ciro');
+    expect(html).not.toContain('Aktif Ürün Kataloğu &amp; Fiyatlar');
+    expect(html).not.toContain('STOK UYARISI');
     expect(html).toContain('Hızlı Satış &amp; Barkod');
     expect(html).toContain('WMS Toplama');
     expect(html).not.toContain('Gelen Siparişler &amp; Sevkiyat Yönetimi');
+  });
+
+  it('2b. Dashboard: stok uyarısı yalnızca "Bugünün odağı" içinde tek kez görünür, KPI 3 adettir', () => {
+    const base = {
+      userName: 'Alpha Teknik', orders: mockOrders, quotes: mockQuotes, products: mockProducts,
+      cariAccounts: [], cashMovements: [], pendingOrders: 1, pendingQuotes: 0, onNavigate: () => {},
+    };
+    const healthy = renderToString(<AdminDashboardOverview {...base} lowStock={0} />);
+    expect(healthy).toContain('Bugünün odağı');
+    expect(healthy).toContain('Stok sağlıklı');
+    expect(healthy).not.toContain('kritik seviyede');
+    expect(healthy).toContain('Aylık hedef belirle');
+    expect(healthy).toContain('Toplam satış');
+    expect(healthy).toContain('Tamamlanan satış');
+    expect(healthy).toContain('Bekleyen sipariş');
+    expect(healthy).not.toContain('Kritik stok');
+
+    const critical = renderToString(<AdminDashboardOverview {...base} lowStock={1} lowStockItems={[mockProducts[1]]} />);
+    expect(critical.match(/1 ürün kritik seviyede/g)).toHaveLength(1);
+    expect(critical).toContain('İncele ve ikmal et');
+    expect(critical).not.toContain('Stok sağlıklı');
   });
 
   it('3. activeTab === "products" (Ürünler) sekmesinde Hızlı Operasyon Masası ve Overview blokları ASLA render EDİLMEZ', () => {
