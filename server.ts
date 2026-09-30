@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import { getPool } from './src/db/connection';
 import type { OrderStatus } from './src/types';
 import { localStatePath, readLocalState, writeLocalState } from './src/db/localState';
+import { ensureStateTable, readPgState, writePgState, createSerializedWriter } from './src/db/pgState';
 
 dotenv.config();
 getPool();
@@ -741,8 +742,8 @@ type LocalState = {
   submissionKeys: Array<[string, { fingerprint: string; result: unknown }]>;
 };
 const stateFile = localStatePath();
-const savedState = readLocalState<LocalState>(stateFile);
-if (savedState) {
+const statePool = getPool();
+function applySavedState(savedState: LocalState) {
   if (!Array.isArray(savedState.users) || !Array.isArray(savedState.products) || !Array.isArray(savedState.orders)
     || !Array.isArray(savedState.quotes) || !Array.isArray(savedState.submissionKeys)) {
     throw new Error('Yerel durum dosyası eksik veya bozuk.');
@@ -754,15 +755,40 @@ if (savedState) {
   submissionKeys.clear();
   for (const entry of savedState.submissionKeys) submissionKeys.set(entry[0], entry[1]);
 }
+const snapshotState = (): LocalState => ({ version: 1, users, products, orders, quotes, submissionKeys: [...submissionKeys] });
+const fileState = readLocalState<LocalState>(stateFile);
+if (fileState) applySavedState(fileState);
+
+// DATABASE_URL varsa Postgres kalıcı kaynaktır; dosya yalnızca yedek/yerel geliştirme içindir.
+async function loadPgState() {
+  if (!statePool) return;
+  await ensureStateTable(statePool);
+  const saved = await readPgState<LocalState>(statePool);
+  if (saved) {
+    applySavedState(saved);
+    console.log('💾 Durum PostgreSQL\'den yüklendi.');
+  } else {
+    await writePgState(statePool, snapshotState());
+    console.log('💾 PostgreSQL durum tablosu ilk kez dolduruldu.');
+  }
+}
+const persistPgState = statePool
+  ? createSerializedWriter(
+      () => writePgState(statePool, snapshotState()),
+      (error) => console.error('PostgreSQL durum kaydedilemedi:', error)
+    )
+  : null;
+
 app.use('/api', (req, res, next) => {
-  if (!stateFile || !['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+  if ((!stateFile && !persistPgState) || !['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
   res.on('finish', () => {
     if (res.statusCode < 200 || res.statusCode >= 300) return;
     try {
-      writeLocalState(stateFile, { version: 1, users, products, orders, quotes, submissionKeys: [...submissionKeys] });
+      writeLocalState(stateFile, snapshotState());
     } catch (error) {
       console.error('Yerel durum kaydedilemedi:', error);
     }
+    void persistPgState?.();
   });
   next();
 });
@@ -5930,6 +5956,8 @@ app.post('/api/orders/:id/picking', (req, res) => {
 
 // Vite Middleware for SPA dev & prod
 async function startServer() {
+  await loadPgState();
+
   // Render.com health check: SPA catch-all'dan ÖNCE kaydedilmeli
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', ts: Date.now() });

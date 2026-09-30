@@ -10,6 +10,8 @@ services:
         value: production
       - key: USE_IN_MEMORY_FALLBACK
         value: "true"
+      - key: DATABASE_URL
+        sync: false
       - key: AUTH_SECRET
         sync: false
       - key: ADMIN_BOOTSTRAP_PASSWORD
