@@ -341,3 +341,30 @@
   .admin-workspace-shell .admin-workspace-main{padding-inline:12px}
 }
 @media(prefers-reduced-motion:reduce) { .shell-tab, .shell-header-btn { transition:none; } }
+
+/* Admin çalışma alanı karanlık mod: kabuk sabit açık renkliydi, içerik ise
+   tema token'larını kullandığı için karanlıkta açık zemin üstünde koyu kartlar çıkıyordu. */
+.dark .admin-workspace-shell { background: var(--bg-base); color: var(--text-primary-color); }
+.dark .admin-workspace-header { background: color-mix(in srgb, var(--bg-surface) 94%, transparent); border-bottom-color: var(--border-color); }
+.dark .admin-workspace-search { background: var(--bg-surface-2); border-color: var(--border-color); color: var(--text-muted-color); }
+.dark .admin-workspace-search kbd { background: var(--bg-surface); border-color: var(--border-color); color: var(--text-muted-color); }
+.dark .admin-workspace-actions > button { background: var(--bg-surface-2); border-color: var(--border-color); color: var(--text-primary-color); }
+.dark .admin-workspace-actions .admin-workspace-quick { background: #059669; border: 0; color: #fff; }
+
+/* Karanlık mod: modül özet başlığı, KPI kartları ve ayar sekmeleri. */
+.dark .admin-module-overview{color:var(--text-primary-color)}
+.dark .admin-module-titlebar p,.dark .admin-module-kpi-head,.dark .admin-module-alert small{color:var(--text-muted-color)}
+.dark .admin-module-actions button{background:var(--bg-surface);border-color:var(--border-color);color:var(--text-primary-color)}
+.dark .admin-module-actions button.is-primary{background:#059669;border-color:#059669;color:#fff}
+.dark .admin-module-kpis article{background:var(--bg-surface);border-color:var(--border-color);box-shadow:none}
+.dark .admin-module-kpi-head i{background:rgba(16,185,129,.16);color:#34d399}
+.dark .admin-module-kpis article:nth-child(3) .admin-module-kpi-head i{background:rgba(225,29,72,.16);color:#fb7185}
+.dark .admin-module-kpis article:nth-child(4) .admin-module-kpi-head i{background:rgba(217,119,6,.16);color:#fbbf24}
+.dark .admin-module-kpis small{color:#34d399}
+.dark .admin-module-spark b{background:var(--border-strong-color)}
+.dark .admin-module-alert{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3);color:#6ee7b7}
+.dark .admin-module-alert.has-alert{background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.35);color:#fda4af}
+.dark .admin-module-alert > span{background:var(--bg-surface-2)}
+.dark .admin-quote-empty{background:var(--bg-surface);border-color:var(--border-strong-color);color:var(--text-muted-color)}
+.dark .admin-settings-primary-tabs button[aria-current='page'],
+.dark .admin-settings-system-tabs button[aria-current='page']{color:#34d399;border-color:#065f46;background:rgba(6,78,59,.35);box-shadow:none}
