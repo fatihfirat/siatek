@@ -171,9 +171,14 @@ export function calculateOrtakAracHesap(fisler: OrtakAracFis[], period: string) 
       0,
     ),
   );
-  /** Ortağın kendi cebinden ödediği giderler: net'ten düşülmüştür ama parası ona iade edilmelidir. */
+  /** Ortağın kendi cebinden ödediği giderler ve mal maliyetleri: net'ten düşülmüştür ama parası ona iade edilmelidir. */
   const partnerAdvances = roundMoney(
-    active.filter((f) => f.tur === 'gider' && f.odeyen === 'ortak').reduce((s, f) => s + Number(f.tutar || 0), 0),
+    active.reduce((s, f) => {
+      if (f.odeyen !== 'ortak') return s;
+      if (f.tur === 'gider') return s + Number(f.tutar || 0);
+      if (f.tur === 'satis') return s + Number(f.malMaliyeti || 0);
+      return s;
+    }, 0),
   );
   /** Pozitif: ortağa borcumuz var · negatif: ortak bize borçlu. */
   const partnerBalance = roundMoney(allTime.partnerShare + partnerAdvances - paidToPartner);
