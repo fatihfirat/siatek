@@ -2,7 +2,12 @@ import { getStoredToken } from './auth';
 
 // Render'daki API sunucusunun adresi (build zamanında belirlenir).
 // Geliştirmede boş → göreceli yol (/api/...) → aynı sunucu.
-const API_BASE = import.meta.env.VITE_API_URL ?? '';
+// Firebase Hosting her yolu index.html'e yönlendirir; orada /api istekleri HTML döner.
+// VITE_API_URL verilmemişse Hosting alan adlarında Render API'sine düşülür.
+const RENDER_API_URL = 'https://siatek-api.onrender.com';
+const isFirebaseHosting = typeof window !== 'undefined' &&
+  /\.(web\.app|firebaseapp\.com)$/.test(window.location.hostname);
+const API_BASE = (import.meta.env.VITE_API_URL ?? (isFirebaseHosting ? RENDER_API_URL : '')).replace(/\/$/, '');
 
 // Apply session token to existing REST callers without changing their request bodies.
 if (typeof window !== 'undefined' && window.fetch) {
