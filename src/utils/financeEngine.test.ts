@@ -169,4 +169,29 @@ describe('Ortak araç hesabı (11 ACH 644, %50)', () => {
     // elimizdeki nakit = 12000 − 1000 (bizim ödediğimiz maliyet) = 11000 = bizim pay 2250 + ortağa borç 8750
     expect(11000).toBe(r.allTime.ourShare + r.partnerBalance);
   });
+
+  it('dönem ekstresi: devir + pay + ortağın ödedikleri − ödenen = dönem sonu; gelecek fişler geçmiş dönemi etkilemez', () => {
+    const fisler = [
+      fis({ tur: 'satis', tutar: 4000, malMaliyeti: 2000, tarih: '2026-08-10' }),          // ağustos net 2000 → pay 1000
+      fis({ tur: 'ortak_odeme', tutar: 300, odemeYonu: 'ortaga_odedik', tarih: '2026-08-25' }),
+      fis({ tur: 'satis', tutar: 6000, malMaliyeti: 3000, odeyen: 'ortak', tarih: '2026-09-05' }), // eylül net 3000 → pay 1500, iade 3000
+      fis({ tur: 'ortak_odeme', tutar: 1000, odemeYonu: 'ortaga_odedik', tarih: '2026-09-20' }),
+    ];
+    const agu = calculateOrtakAracHesap(fisler, '2026-08');
+    expect(agu.cari).toEqual({ opening: 0, share: 1000, advances: 0, paid: 300, closing: 700 });
+
+    const eyl = calculateOrtakAracHesap(fisler, '2026-09');
+    expect(eyl.cari).toEqual({ opening: 700, share: 1500, advances: 3000, paid: 1000, closing: 4200 });
+    expect(eyl.partnerBalance).toBe(eyl.cari.closing);
+  });
+
+  it('brüt kâr ve marj hesaplanır', () => {
+    const r = calculateOrtakAracHesap([
+      fis({ tur: 'satis', tutar: 1000, malMaliyeti: 750 }),
+      fis({ tur: 'gider', tutar: 100, giderKategori: 'yakit' }),
+    ], '2026-09');
+    expect(r.period.grossProfit).toBe(250);
+    expect(r.period.grossMarginPercent).toBe(25);
+    expect(r.period.net).toBe(150);
+  });
 });
