@@ -5930,6 +5930,11 @@ app.post('/api/orders/:id/picking', (req, res) => {
 
 // Vite Middleware for SPA dev & prod
 async function startServer() {
+  // Render.com health check: SPA catch-all'dan ÖNCE kaydedilmeli
+  app.get('/api/health', (_req, res) => {
+    res.json({ status: 'ok', ts: Date.now() });
+  });
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -5939,15 +5944,14 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
+    // Bilinmeyen /api yolları HTML değil JSON 404 döner (istemci "yanıt vermedi" yerine net hata görür)
+    app.use('/api', (_req, res) => {
+      res.status(404).json({ error: 'API ucu bulunamadı.' });
+    });
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
-
-  // Render.com health check
-  app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', ts: Date.now() });
-  });
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Sunucu http://localhost:${PORT} üzerinde çalışıyor`);
