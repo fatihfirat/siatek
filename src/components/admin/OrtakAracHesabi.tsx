@@ -130,7 +130,7 @@ export default function OrtakAracHesabi() {
     [fisler, seciliAy],
   );
   const ortakOdemeleri = useMemo(
-    () => activeAccountingRows(fisler).filter((f) => f.tur === 'ortak_odeme' || (f.tur === 'gider' && f.odeyen === 'ortak')),
+    () => activeAccountingRows(fisler).filter((f) => f.tur === 'ortak_odeme' || ((f.tur === 'gider' || (f.tur === 'satis' && Number(f.malMaliyeti || 0) > 0)) && f.odeyen === 'ortak')),
     [fisler],
   );
   const giderDagilimi = useMemo(
@@ -176,7 +176,7 @@ export default function OrtakAracHesabi() {
       tarih: form.tarih,
       createdAt: ts,
       updatedAt: ts,
-      ...(form.tur === 'satis' ? { malMaliyeti: roundMoney(maliyet) } : {}),
+      ...(form.tur === 'satis' ? { malMaliyeti: roundMoney(maliyet), ...(maliyet > 0 ? { odeyen: form.odeyen } : {}) } : {}),
       ...(form.tur === 'gider' ? { giderKategori: form.giderKategori, odeyen: form.odeyen } : {}),
       ...(form.tur === 'ortak_odeme' ? { odemeYonu: form.odemeYonu } : {}),
     };
@@ -409,7 +409,7 @@ export default function OrtakAracHesabi() {
                 {bakiye > 0 ? 'Ortağa borcumuz var' : bakiye < 0 ? 'Ortak bize borçlu' : 'Hesap kapalı, borç yok'}
               </p>
               <p className="text-[10px] text-text-muted">
-                Satış tahsilatı ve mal maliyeti bizde varsayılır. Ortağın ödediği giderleri gider fişinde “Ortak ödedi” seçin; ortağa yaptığınız ödemeleri “Ortak Ödemesi” fişiyle girin.
+                Satış tahsilatı bizde, ödemeler bizden varsayılır. Ortağın ödediği gider ya da mal maliyetini fişte “Ortak ödedi” seçin; ortağa yaptığınız ödemeleri “Ortak Ödemesi” fişiyle girin.
               </p>
             </div>
             <div className="p-4 rounded-2xl border border-border bg-base-surface space-y-2">
@@ -419,7 +419,7 @@ export default function OrtakAracHesabi() {
               </h3>
               {[
                 ['Ortağın toplam payı', hesap.allTime.partnerShare],
-                ['Ortağın cebinden ödediği giderler (iade)', hesap.partnerAdvances],
+                ['Ortağın cebinden ödedikleri: gider + mal maliyeti (iade)', hesap.partnerAdvances],
                 ['Ortağa net ödenen (−)', hesap.paidToPartner],
               ].map(([l, v]) => (
                 <div key={l as string} className="flex items-center justify-between text-xs">
@@ -464,7 +464,7 @@ export default function OrtakAracHesabi() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-semibold text-text-primary truncate">
-                          {fisBaslik(f)}{f.tur === 'gider' && f.odeyen === 'ortak' ? ' · ortak ödedi' : ''}{f.aciklama ? ` · ${f.aciklama}` : ''}
+                          {fisBaslik(f)}{(f.tur === 'gider' || f.tur === 'satis') && f.odeyen === 'ortak' ? (f.tur === 'satis' ? ' · maliyeti ortak ödedi' : ' · ortak ödedi') : ''}{f.aciklama ? ` · ${f.aciklama}` : ''}
                         </p>
                         <p className={`text-[10px] text-text-muted ${num}`}>
                           {f.tarih}{f.fisNo ? ` · #${f.fisNo}` : ''}
@@ -595,9 +595,9 @@ export default function OrtakAracHesabi() {
                 </div>
               )}
 
-              {form.tur === 'gider' && (
+              {(form.tur === 'gider' || (form.tur === 'satis' && (parseFloat(String(form.malMaliyeti).replace(',', '.')) || 0) > 0)) && (
                 <div className="space-y-1 sm:col-span-2">
-                  <label className="text-[11px] font-bold text-text-muted uppercase">Kim ödedi?</label>
+                  <label className="text-[11px] font-bold text-text-muted uppercase">{form.tur === 'satis' ? 'Mal maliyetini kim ödedi?' : 'Kim ödedi?'}</label>
                   <div className="grid grid-cols-2 gap-1.5">
                     {([
                       ['biz', 'Biz ödedik'],

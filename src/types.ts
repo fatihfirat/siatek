@@ -823,7 +823,7 @@ export interface OrtakAracFis {
   malMaliyeti?: number;
   giderKategori?: OrtakAracGiderKategori;
   odemeYonu?: OrtakAracOdemeYonu;
-  /** Yalnızca gider fişi: gideri kim ödedi. Boşsa 'biz' sayılır. */
+  /** Gider fişinde gideri, satış fişinde mal maliyetini kim ödedi. Boşsa 'biz' sayılır. */
   odeyen?: OrtakAracOdeyen;
   aciklama: string;
   fisNo?: string;
