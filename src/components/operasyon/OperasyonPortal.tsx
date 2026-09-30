@@ -58,7 +58,7 @@ export default function OperasyonPortal({
     [safeOrders]
   );
 
-  const handleMarkOrdersShipped = async (orderIds: string[], trackingPrefix?: string) => {
+  const handleMarkOrdersShipped = async (orderIds: string[], trackingPrefix?: string, options?: { deliveryDate?: string }) => {
     await Promise.all(orderIds.map((orderId, index) => updateOrderStatusInFirestore(
       orderId,
       'shipped',
@@ -67,6 +67,7 @@ export default function OperasyonPortal({
         trackingNumber: `${trackingPrefix || 'SEVK'}-${String(index + 1).padStart(2, '0')}`,
         deliveryPersonnel: currentUser?.name || 'Operasyon',
         deliveryStatus: 'out_for_delivery',
+        ...(options?.deliveryDate ? { deliveryDate: options.deliveryDate } : {}),
       },
     )));
     onRefresh();

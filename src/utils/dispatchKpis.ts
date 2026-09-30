@@ -22,6 +22,8 @@ const firstStatusTime = (order: Order, statuses: Array<Order['status']>): number
 
 /** Planlanan teslim gününün sonu (yerel saat). Saat bilgisi yoksa gün sonuna kadar zamanında sayılır. */
 const endOfPlannedDay = (deliveryDate?: string): number | null => {
+  const dateOnly = deliveryDate?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnly) return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]), 23, 59, 59, 999).getTime();
   const t = toMs(deliveryDate);
   if (t === null) return null;
   const d = new Date(t);

@@ -409,6 +409,15 @@ export default function CustomerPortal({
 
   const handleAcceptQuote = async (quoteId: string) => {
     if (acceptingQuote.current) return;
+    const target = (quotes || []).find(q => q.id === quoteId);
+    if (target && target.status !== 'offer_sent') {
+      setQuoteActionError('Bu teklif artık onaylanamaz. Sayfayı yenileyin.');
+      return;
+    }
+    if (target?.validUntil && Date.parse(`${target.validUntil}T23:59:59`) < Date.now()) {
+      setQuoteActionError('Teklifin geçerlilik süresi dolmuş. Lütfen yeni teklif isteyin.');
+      return;
+    }
     acceptingQuote.current = true;
     setQuoteActionError('');
     try {
@@ -450,7 +459,7 @@ export default function CustomerPortal({
       case 'offer_sent':
         return <span className="px-2.5 py-1 rounded-full bg-bg-success text-success-text border border-success-border text-xs font-bold flex items-center space-x-1 animate-pulse"><Sparkles className="w-3 h-3 text-success-text" /><span>Teklif Geldi (Onay Bekliyor)</span></span>;
       case 'accepted':
-        return <span className="px-2.5 py-1 rounded-full bg-bg-info text-info-text border border-info-border text-xs font-semibold flex items-center space-x-1"><CheckCircle2 className="w-3 h-3" /><span>Siparişe Dönüştü</span></span>;
+        return <span className="px-2.5 py-1 rounded-full bg-bg-info text-info-text border border-info-border text-xs font-semibold flex items-center space-x-1"><CheckCircle2 className="w-3 h-3" /><span>Onaylandı · Sipariş Hazırlanıyor</span></span>;
       case 'rejected':
         return <span className="px-2.5 py-1 rounded-full bg-bg-danger text-danger-text border border-danger-border text-xs font-semibold">Reddedildi</span>;
       default:

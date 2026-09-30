@@ -45,6 +45,14 @@ describe('onTimeDeliveryRate', () => {
     expect(r.onTime).toBe(2);
     expect(r.value).toBeCloseTo(66.67, 1);
   });
+  it('YYYY-MM-DD biçimli planlanan günü yerel gün sonu olarak yorumlar', () => {
+    const r = onTimeDeliveryRate([
+      mk({ status: 'delivered', deliveryDate: '2026-09-10', deliveredAt: new Date(2026, 8, 10, 22, 0).toISOString() }),
+      mk({ status: 'delivered', deliveryDate: '2026-09-10', deliveredAt: new Date(2026, 8, 11, 0, 30).toISOString() }),
+    ]);
+    expect(r.onTime).toBe(1);
+    expect(r.sample).toBe(2);
+  });
   it('ölçülebilir teslimat yoksa null döner', () => {
     expect(onTimeDeliveryRate([]).value).toBeNull();
   });

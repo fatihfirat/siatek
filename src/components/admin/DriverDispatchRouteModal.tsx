@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Order, Product } from '../../types';
 import { printDispatchRouteSheet } from '../../utils/printUtils';
+import { todayLocalIsoDate } from '../../utils/orderStatusTrail';
 import { averagePreparationMinutes, onTimeDeliveryRate } from '../../utils/dispatchKpis';
 import { useCompanySettings } from '../../lib/companySettings';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
@@ -38,7 +39,7 @@ interface DriverDispatchRouteModalProps {
   orders: Order[];
   products?: Product[];
   initialTab?: DispatchModalTab;
-  onMarkOrdersShipped?: (orderIds: string[], trackingPrefix?: string) => Promise<void>;
+  onMarkOrdersShipped?: (orderIds: string[], trackingPrefix?: string, options?: { deliveryDate?: string }) => Promise<void>;
   onOpenPackingDetail?: (order: Order) => void;
 }
 
@@ -63,6 +64,7 @@ export default function DriverDispatchRouteModal({
   const [selectedDriverId, setSelectedDriverId] = useState<string>('');
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
   const [routeRegion, setRouteRegion] = useState('Şanlıurfa Merkez & Karaköprü Şantiye Hattı');
+  const [plannedDeliveryDate, setPlannedDeliveryDate] = useState<string>(() => todayLocalIsoDate());
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -148,7 +150,7 @@ export default function DriverDispatchRouteModal({
     try {
       const shippedIds = selectedOrdersData.map(o => o.id);
       if (onMarkOrdersShipped) {
-        await onMarkOrdersShipped(shippedIds, `SEVK-${activeVehicle.plate.replace(/\s+/g, '')}`);
+        await onMarkOrdersShipped(shippedIds, `SEVK-${activeVehicle.plate.replace(/\s+/g, '')}`, { deliveryDate: plannedDeliveryDate || undefined });
       }
 
       setFeedback(`${shippedIds.length} adet sipariş ${activeDriver.name} zimmetine (${activeVehicle.plate}) verildi ve sevkiyata çıkarıldı!`);
@@ -532,6 +534,17 @@ export default function DriverDispatchRouteModal({
                       onChange={e => setRouteRegion(e.target.value)}
                       placeholder="Örn: Karaköprü & Haliliye Şantiye Hattı"
                       className="w-full min-h-11 px-3 bg-base-surface border border-border rounded-xl text-sm text-text-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="dispatch-date" className="block text-xs font-medium text-text-muted mb-1.5">Planlanan teslim günü</label>
+                    <input
+                      id="dispatch-date"
+                      type="date"
+                      value={plannedDeliveryDate}
+                      onChange={e => setPlannedDeliveryDate(e.target.value)}
+                      className="w-full min-h-11 px-3 bg-base-surface border border-border rounded-xl text-sm text-text-primary tabular-nums"
                     />
                   </div>
 

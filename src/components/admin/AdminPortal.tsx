@@ -19,7 +19,7 @@ import { MobileCariOverview, MobileStockOverview } from '../mobile/MobileERP';
 import AdminModuleOverview from './AdminModuleOverview';
 import { Product, Order, Quote, OrderStatus, CariAccount, KasaHareketi } from '../../types';
 import type { AdminSystemTool, AdminTab } from '../../types';
-import { createTransactionalOrder, updateTransactionalOrderStatus } from '../../lib/transactionService';
+import { createTransactionalOrder, updateTransactionalOrderStatus, convertQuoteToOrder } from '../../lib/transactionService';
 import DeliverySettlementModal, { DeliverySettlementData } from './DeliverySettlementModal';
 import { 
   LayoutDashboard, 
@@ -520,6 +520,32 @@ export default function AdminPortal({
     }
   };
 
+  const [quoteActionBusyId, setQuoteActionBusyId] = useState<string | null>(null);
+  const [quoteActionMessage, setQuoteActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Onaylanan teklifi siparişe çevirir (fiyat + stok tek işlemde). onBehalf: müşteri adına onay.
+  const handleConvertQuote = async (quote: Quote, onBehalf: boolean) => {
+    if (quoteActionBusyId) return;
+    setQuoteActionBusyId(quote.id);
+    setQuoteActionMessage(null);
+    try {
+      const { order, alreadyConverted } = await convertQuoteToOrder(quote.id, { onBehalfOfCustomer: onBehalf });
+      setQuoteActionMessage({
+        type: 'success',
+        text: alreadyConverted
+          ? `${quote.quoteNumber} zaten ${order.orderNumber} siparişine dönüştürülmüş.`
+          : `${quote.quoteNumber} → ${order.orderNumber} siparişi oluşturuldu, stok rezerve edildi.`,
+      });
+      if (!alreadyConverted) { confetti({ particleCount: 50, spread: 50, origin: { y: 0.6 } }); playNotificationSound('status'); }
+      onRefresh();
+    } catch (err: any) {
+      console.error('Teklif siparişe dönüştürme hatası:', err);
+      setQuoteActionMessage({ type: 'error', text: err?.message || 'Teklif siparişe dönüştürülemedi.' });
+    } finally {
+      setQuoteActionBusyId(null);
+    }
+  };
+
   const handleDecryptNote = async (orderId: string, encryptedPayload: string) => {
     const dec = await decryptPayload(encryptedPayload);
     setDecryptedNotes(prev => ({ ...prev, [orderId]: dec }));
@@ -677,10 +703,10 @@ export default function AdminPortal({
   };
 
   // Şoför Sevkiyat Rota Toplu Sipariş Durum Güncelleme
-  const handleMarkOrdersShipped = async (orderIds: string[], trackingPrefix?: string) => {
+  const handleMarkOrdersShipped = async (orderIds: string[], trackingPrefix?: string, options?: { deliveryDate?: string }) => {
     try {
       for (const id of orderIds) {
-        await handleUpdateOrderStatus(id, 'shipped', `${trackingPrefix || 'SEVK'}-${Date.now().toString().slice(-4)}`);
+        await handleUpdateOrderStatus(id, 'shipped', `${trackingPrefix || 'SEVK'}-${Date.now().toString().slice(-4)}`, options?.deliveryDate ? { deliveryDate: options.deliveryDate } : undefined);
       }
       playNotificationSound('success');
       confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });
@@ -2360,6 +2386,11 @@ export default function AdminPortal({
 
             return (
               <div className="space-y-4">
+                {quoteActionMessage && (
+                  <div role="status" className={`p-3 rounded-xl border text-xs font-semibold ${quoteActionMessage.type === 'success' ? 'bg-bg-success text-success-text border-success-border' : 'bg-bg-danger text-danger-text border-danger-border'}`}>
+                    {quoteActionMessage.text}
+                  </div>
+                )}
                 {filteredQuotes.map(quote => (
                   <div
                   key={quote.id}
@@ -2385,7 +2416,7 @@ export default function AdminPortal({
                           }`}>
                             {quote.status === 'pending_review' ? 'Fiyatlandırma Bekliyor' :
                              quote.status === 'offer_sent' ? 'Teklif İletildi' :
-                             quote.status === 'accepted' ? 'Müşteri Onayladı' : quote.status}
+                             quote.status === 'accepted' ? (quote.convertedOrderId ? 'Siparişe Dönüştü' : 'Müşteri Onayladı — Siparişe Dönüştür') : quote.status}
                           </span>
                         </div>
                         <span className="text-[11px] text-text-muted">
@@ -2462,21 +2493,49 @@ export default function AdminPortal({
                         <span>WhatsApp</span>
                       </button>
 
-                      <button
-                        onClick={() => {
-                          setActiveTab('invoices');
-                        }}
-                        className="px-3.5 py-1.5 bg-danger-fill/15 hover:bg-danger-fill/25 text-danger-text border border-danger-border rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer"
-                        title="GİB UBL-TR 2.1 E-Fatura veya E-Arşiv Oluştur"
-                      >
-                        <Receipt className="w-3.5 h-3.5" />
-                        <span>Faturaya Dönüştür</span>
-                      </button>
+                      {quote.status === 'accepted' && quote.convertedOrderId && (
+                        <button
+                          onClick={() => setActiveTab('invoices')}
+                          className="px-3.5 py-1.5 bg-danger-fill/15 hover:bg-danger-fill/25 text-danger-text border border-danger-border rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer active:scale-[0.98]"
+                          title="Sipariş oluşturuldu; GİB E-Fatura / E-Arşiv masasına git"
+                        >
+                          <Receipt className="w-3.5 h-3.5" />
+                          <span>Faturaya Dönüştür</span>
+                        </button>
+                      )}
+
+                      {quote.status === 'accepted' && !quote.convertedOrderId && (
+                        <button
+                          onClick={() => handleConvertQuote(quote, false)}
+                          disabled={quoteActionBusyId === quote.id}
+                          className="px-3.5 py-1.5 min-h-[36px] bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer active:scale-[0.98]"
+                          title="Müşteri onayladı; siparişi oluştur ve stoğu rezerve et"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>{quoteActionBusyId === quote.id ? 'Dönüştürülüyor…' : 'Siparişe Dönüştür'}</span>
+                        </button>
+                      )}
+
+                      {quote.status === 'offer_sent' && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`${quote.quoteNumber} teklifini MÜŞTERİ ADINA onaylayıp siparişe dönüştürmek istiyor musunuz? (Örn. müşteri telefonla onayladı)`)) {
+                              handleConvertQuote(quote, true);
+                            }
+                          }}
+                          disabled={quoteActionBusyId === quote.id}
+                          className="px-3.5 py-1.5 min-h-[36px] bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-lg text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer active:scale-[0.98]"
+                          title="Müşteri teklifi telefon/WhatsApp ile onayladıysa yönetici adına onayla"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>{quoteActionBusyId === quote.id ? 'İşleniyor…' : 'Müşteri Adına Onayla'}</span>
+                        </button>
+                      )}
 
                       {quote.status !== 'accepted' && (
                         <button
                           onClick={() => setSelectedQuoteForResponse(quote)}
-                          className="px-4 py-1.5 bg-warning-fill hover:opacity-90 text-base font-bold rounded-lg text-xs flex items-center space-x-1.5 shadow-sm transition-all cursor-pointer"
+                          className="px-4 py-1.5 bg-warning-fill hover:opacity-90 text-base font-bold rounded-lg text-xs flex items-center space-x-1.5 shadow-sm transition-all cursor-pointer active:scale-[0.98]"
                         >
                           <Sparkles className="w-3.5 h-3.5" />
                           <span>{quote.status === 'offer_sent' ? 'Teklifi Revize Et' : 'Teklifi Hazırla & Gönder'}</span>
@@ -2485,30 +2544,50 @@ export default function AdminPortal({
                     </div>
                   </div>
 
-                  {/* Requested Items Preview */}
-                  <div className="p-3.5 bg-base-surface-2 rounded-xl border border-border text-xs space-y-2 mt-3">
-                    <div className="font-semibold text-text-muted uppercase tracking-wider text-[10px]">
-                      Müşterinin Talep Ettiği Kalemler:
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {(quote.requestedItems || []).length === 0 ? (
-                        <div className="admin-quote-empty">Bu teklif için henüz ürün kalemi eklenmemiş.</div>
-                      ) : (quote.requestedItems || []).map((item, i) => (
-                        <div key={i} className="p-2.5 bg-base-surface rounded-lg border border-border shadow-xs">
-                          <span className="font-medium text-text-primary">{item.productName || 'Ürün'}</span>
-                          <div className="text-[11px] text-text-muted mt-0.5">
-                            Miktar: <strong className="text-text-primary">{item.requestedQuantity || 1} {item.unit || 'ADET'}</strong>
-                            {item.targetUnitPrice && (
-                              <span className="ml-2 text-success-text font-semibold">Hedef Fiyat: {item.targetUnitPrice} ₺</span>
-                            )}
-                          </div>
-                          {item.note && (
-                            <div className="text-[10px] text-text-muted italic mt-0.5">{item.note}</div>
-                          )}
+                  {/* Items: sunulan teklif kalemleri varsa onlar, yoksa müşterinin talepleri */}
+                  {(() => {
+                    const offered = quote.offeredItems || [];
+                    const requested = quote.requestedItems || [];
+                    const showOffered = offered.length > 0;
+                    return (
+                      <div className="p-3.5 bg-base-surface-2 rounded-xl border border-border text-xs space-y-2 mt-3">
+                        <div className="font-semibold text-text-muted uppercase tracking-wider text-[10px]">
+                          {showOffered ? 'Teklif Edilen Kalemler:' : 'Müşterinin Talep Ettiği Kalemler:'}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {showOffered ? offered.map((item, i) => (
+                            <div key={i} className="p-2.5 bg-base-surface rounded-lg border border-border shadow-xs">
+                              <span className="font-medium text-text-primary">{item.productName || 'Kalem'}</span>
+                              <div className="text-[11px] text-text-muted mt-0.5 tabular-nums">
+                                {item.quantity} {item.unit || 'ADET'} × {(item.offeredUnitPrice || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺
+                                <strong className="ml-2 text-success-text">{(item.totalPrice || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</strong>
+                              </div>
+                              {item.adminNote && <div className="text-[10px] text-text-muted italic mt-0.5">{item.adminNote}</div>}
+                            </div>
+                          )) : requested.length === 0 ? (
+                            <div className="admin-quote-empty">
+                              {quote.status === 'pending_review'
+                                ? 'Bu teklif için henüz ürün kalemi eklenmemiş. "Teklifi Hazırla & Gönder" ile kalem ekleyin.'
+                                : 'Bu teklifte kalem bulunamadı. "Teklifi Revize Et" ile kalem ekleyip yeniden gönderin.'}
+                            </div>
+                          ) : requested.map((item, i) => (
+                            <div key={i} className="p-2.5 bg-base-surface rounded-lg border border-border shadow-xs">
+                              <span className="font-medium text-text-primary">{item.productName || 'Ürün'}</span>
+                              <div className="text-[11px] text-text-muted mt-0.5">
+                                Miktar: <strong className="text-text-primary">{item.requestedQuantity || 1} {item.unit || 'ADET'}</strong>
+                                {item.targetUnitPrice && (
+                                  <span className="ml-2 text-success-text font-semibold">Hedef Fiyat: {item.targetUnitPrice} ₺</span>
+                                )}
+                              </div>
+                              {item.note && (
+                                <div className="text-[10px] text-text-muted italic mt-0.5">{item.note}</div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Offered totals if offer already prepared */}
                   {quote.grandTotal && (
