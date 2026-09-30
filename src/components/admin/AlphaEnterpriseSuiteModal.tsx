@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Plus,
   Trash2,
+  Pencil,
   Copy,
   Download,
   Upload,
@@ -276,114 +277,127 @@ export default function AlphaEnterpriseSuiteModal({
     }));
   };
 
-  // Fleet Vehicle Handlers
+  // Fleet Vehicle & Driver Handlers — değişiklikler anında kalıcı olur ("Kaydet" beklemez)
+  const [editingVehicleId, setEditingVehicleId] = useState<string | null>(null);
+  const [editingDriverId, setEditingDriverId] = useState<string | null>(null);
+
+  const persistFleet = async (patch: Pick<Partial<CompanySettings>, 'fleetVehicles' | 'dispatchPersonnel'>, successText: string) => {
+    setFormData(prev => ({ ...prev, ...patch }));
+    try {
+      await saveCompanySettings(patch);
+      setStatusMessage({ type: 'success', text: successText });
+    } catch (err: any) {
+      setStatusMessage({ type: 'error', text: err?.message || 'Değişiklik kaydedilemedi, lütfen tekrar deneyin.' });
+    }
+  };
+
+  const withDefault = <T extends { id: string; isDefault?: boolean }>(list: T[]): T[] =>
+    list.length > 0 && !list.some(x => x.isDefault) ? list.map((x, i) => ({ ...x, isDefault: i === 0 })) : list;
+
+  const emptyVehicle: FleetVehicle = { id: '', plate: '', name: '', type: 'Kamyon', capacity: '3.5 Ton', isDefault: false };
+  const emptyDriver: DispatchDriver = { id: '', name: '', phone: '', role: 'Şoför & Sevkiyat Sorumlusu', isDefault: false };
+
   const handleAddVehicle = () => {
     if (!newVehicle.plate.trim() || !newVehicle.name.trim()) {
       setStatusMessage({ type: 'error', text: 'Lütfen araç plakası ve araç adını giriniz.' });
       return;
     }
-    const id = `veh_${Date.now()}`;
-    const vehicleToAdd: FleetVehicle = {
+    const cleaned: FleetVehicle = {
       ...newVehicle,
-      id,
+      id: editingVehicleId || `veh_${Date.now()}`,
       plate: newVehicle.plate.trim().toUpperCase(),
       name: newVehicle.name.trim(),
       type: newVehicle.type.trim() || 'Kamyon',
       capacity: newVehicle.capacity?.trim() || '3.5 Ton',
     };
+    const existing = formData.fleetVehicles || [];
+    const base = cleaned.isDefault ? existing.map(v => ({ ...v, isDefault: false })) : existing;
+    const updated = editingVehicleId
+      ? base.map(v => (v.id === editingVehicleId ? cleaned : v))
+      : [...base, cleaned];
+    persistFleet({ fleetVehicles: withDefault(updated) }, editingVehicleId ? 'Araç güncellendi.' : 'Araç eklendi.');
+    setNewVehicle(emptyVehicle);
+    setEditingVehicleId(null);
+    setShowAddVehicle(false);
+  };
 
-    setIsDirty(true);
-    setFormData(prev => {
-      const existing = prev.fleetVehicles || [];
-      const updated: FleetVehicle[] = vehicleToAdd.isDefault
-        ? [...existing.map(v => ({ ...v, isDefault: false })), vehicleToAdd]
-        : [...existing, vehicleToAdd];
-      return { ...prev, fleetVehicles: updated };
-    });
+  const handleEditVehicle = (vehicle: FleetVehicle) => {
+    setNewVehicle({ ...vehicle });
+    setEditingVehicleId(vehicle.id);
+    setShowAddVehicle(true);
+  };
 
-    setNewVehicle({
-      id: '',
-      plate: '',
-      name: '',
-      type: 'Kamyon',
-      capacity: '3.5 Ton',
-      isDefault: false
-    });
+  const handleCancelVehicleForm = () => {
+    setNewVehicle(emptyVehicle);
+    setEditingVehicleId(null);
     setShowAddVehicle(false);
   };
 
   const handleDeleteVehicle = (id: string) => {
+    const target = (formData.fleetVehicles || []).find(v => v.id === id);
+    if (!window.confirm(`${target?.plate ?? 'Bu araç'} silinsin mi? Bu işlem geri alınamaz.`)) return;
     Haptics.impact('light');
-    setIsDirty(true);
-    setFormData(prev => ({
-      ...prev,
-      fleetVehicles: (prev.fleetVehicles || []).filter(v => v.id !== id)
-    }));
+    const remaining = (formData.fleetVehicles || []).filter(v => v.id !== id);
+    persistFleet({ fleetVehicles: withDefault(remaining) }, 'Araç silindi.');
   };
 
   const handleSetDefaultVehicle = (id: string) => {
     Haptics.impact('selection');
-    setIsDirty(true);
-    setFormData(prev => ({
-      ...prev,
-      fleetVehicles: (prev.fleetVehicles || []).map(v => ({
-        ...v,
-        isDefault: v.id === id
-      }))
-    }));
+    persistFleet(
+      { fleetVehicles: (formData.fleetVehicles || []).map(v => ({ ...v, isDefault: v.id === id })) },
+      'Varsayılan araç güncellendi.'
+    );
   };
 
   const handleAddDriver = () => {
     if (!newDriver.name.trim()) {
-      alert('Lütfen sürücü/sorumlu adını girin');
+      setStatusMessage({ type: 'error', text: 'Lütfen sürücü/sorumlu adını girin.' });
       return;
     }
 
     Haptics.impact('medium');
-    const driverToAdd: DispatchDriver = {
-      id: `drv-${Date.now()}`,
+    const cleaned: DispatchDriver = {
+      id: editingDriverId || `drv-${Date.now()}`,
       isDefault: Boolean(newDriver.isDefault),
       name: newDriver.name.trim(),
       phone: newDriver.phone.trim() || '+90 544 440 91 80',
       role: newDriver.role.trim() || 'Şoför & Sevkiyat Sorumlusu',
     };
+    const existing = formData.dispatchPersonnel || [];
+    const base = cleaned.isDefault ? existing.map(d => ({ ...d, isDefault: false })) : existing;
+    const updated = editingDriverId
+      ? base.map(d => (d.id === editingDriverId ? cleaned : d))
+      : [...base, cleaned];
+    persistFleet({ dispatchPersonnel: withDefault(updated) }, editingDriverId ? 'Şoför güncellendi.' : 'Şoför eklendi.');
+    setNewDriver(emptyDriver);
+    setEditingDriverId(null);
+    setShowAddDriver(false);
+  };
 
-    setIsDirty(true);
-    setFormData(prev => {
-      const existing = prev.dispatchPersonnel || [];
-      const updated: DispatchDriver[] = driverToAdd.isDefault
-        ? [...existing.map(d => ({ ...d, isDefault: false })), driverToAdd]
-        : [...existing, driverToAdd];
-      return { ...prev, dispatchPersonnel: updated };
-    });
+  const handleEditDriver = (driver: DispatchDriver) => {
+    setNewDriver({ ...driver });
+    setEditingDriverId(driver.id);
+    setShowAddDriver(true);
+  };
 
-    setNewDriver({
-      id: '',
-      name: '',
-      phone: '',
-      role: 'Şoför & Sevkiyat Sorumlusu',
-      isDefault: false
-    });
+  const handleCancelDriverForm = () => {
+    setNewDriver(emptyDriver);
+    setEditingDriverId(null);
     setShowAddDriver(false);
   };
 
   const handleDeleteDriver = (id: string) => {
-    setIsDirty(true);
-    setFormData(prev => ({
-      ...prev,
-      dispatchPersonnel: (prev.dispatchPersonnel || []).filter(d => d.id !== id)
-    }));
+    const target = (formData.dispatchPersonnel || []).find(d => d.id === id);
+    if (!window.confirm(`${target?.name ?? 'Bu şoför'} silinsin mi? Bu işlem geri alınamaz.`)) return;
+    const remaining = (formData.dispatchPersonnel || []).filter(d => d.id !== id);
+    persistFleet({ dispatchPersonnel: withDefault(remaining) }, 'Şoför silindi.');
   };
 
   const handleSetDefaultDriver = (id: string) => {
-    setIsDirty(true);
-    setFormData(prev => ({
-      ...prev,
-      dispatchPersonnel: (prev.dispatchPersonnel || []).map(d => ({
-        ...d,
-        isDefault: d.id === id
-      }))
-    }));
+    persistFleet(
+      { dispatchPersonnel: (formData.dispatchPersonnel || []).map(d => ({ ...d, isDefault: d.id === id })) },
+      'Varsayılan şoför güncellendi.'
+    );
   };
 
   const handleExportFullBackup = async () => {
@@ -1338,7 +1352,7 @@ export default function AlphaEnterpriseSuiteModal({
 
                   <button
                     type="button"
-                    onClick={() => setShowAddVehicle(!showAddVehicle)}
+                    onClick={() => (showAddVehicle ? handleCancelVehicleForm() : setShowAddVehicle(true))}
                     className="px-3 py-2 bg-brand-500/15 hover:bg-brand-500/25 text-brand-600 border border-brand-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -1352,11 +1366,11 @@ export default function AlphaEnterpriseSuiteModal({
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="text-xs font-bold uppercase text-brand-600 flex items-center gap-2">
                         <Plus className="w-4 h-4" />
-                        Yeni Sevkiyat Aracı Tanımla
+                        {editingVehicleId ? 'Aracı Düzenle' : 'Yeni Sevkiyat Aracı Tanımla'}
                       </h4>
                       <button
                         type="button"
-                        onClick={() => setShowAddVehicle(false)}
+                        onClick={handleCancelVehicleForm}
                         className="text-text-muted hover:text-text-primary text-xs cursor-pointer"
                       >
                         İptal
@@ -1418,7 +1432,7 @@ export default function AlphaEnterpriseSuiteModal({
                         onClick={handleAddVehicle}
                         className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
                       >
-                        Aracı Kaydet
+                        {editingVehicleId ? 'Değişiklikleri Kaydet' : 'Aracı Kaydet'}
                       </button>
                     </div>
                   </div>
@@ -1475,14 +1489,25 @@ export default function AlphaEnterpriseSuiteModal({
                             </span>
                           )}
 
+                          <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleEditVehicle(vehicle)}
+                            className="p-2 -m-1 text-text-muted hover:text-brand-600 transition-colors cursor-pointer"
+                            title="Aracı Düzenle"
+                            aria-label="Aracı Düzenle"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteVehicle(vehicle.id)}
-                            className="p-1 text-text-muted hover:text-rose-500 transition-colors cursor-pointer"
+                            className="p-2 -m-1 text-text-muted hover:text-rose-500 transition-colors cursor-pointer"
                             title="Aracı Sil"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -1505,7 +1530,7 @@ export default function AlphaEnterpriseSuiteModal({
 
                   <button
                     type="button"
-                    onClick={() => setShowAddDriver(!showAddDriver)}
+                    onClick={() => (showAddDriver ? handleCancelDriverForm() : setShowAddDriver(true))}
                     className="px-3 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -1519,11 +1544,11 @@ export default function AlphaEnterpriseSuiteModal({
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="text-xs font-bold uppercase text-emerald-600 flex items-center gap-2">
                         <Plus className="w-4 h-4" />
-                        Yeni Şoför / Personel Tanımla
+                        {editingDriverId ? 'Şoförü Düzenle' : 'Yeni Şoför / Personel Tanımla'}
                       </h4>
                       <button
                         type="button"
-                        onClick={() => setShowAddDriver(false)}
+                        onClick={handleCancelDriverForm}
                         className="text-text-muted hover:text-text-primary text-xs cursor-pointer"
                       >
                         İptal
@@ -1579,7 +1604,7 @@ export default function AlphaEnterpriseSuiteModal({
                         onClick={handleAddDriver}
                         className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
                       >
-                        Şoförü Kaydet
+                        {editingDriverId ? 'Değişiklikleri Kaydet' : 'Şoförü Kaydet'}
                       </button>
                     </div>
                   </div>
@@ -1629,14 +1654,25 @@ export default function AlphaEnterpriseSuiteModal({
                             </span>
                           )}
 
+                          <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleEditDriver(driver)}
+                            className="p-2 -m-1 text-text-muted hover:text-brand-600 transition-colors cursor-pointer"
+                            title="Şoförü Düzenle"
+                            aria-label="Şoförü Düzenle"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteDriver(driver.id)}
-                            className="p-1 text-text-muted hover:text-rose-500 transition-colors cursor-pointer"
+                            className="p-2 -m-1 text-text-muted hover:text-rose-500 transition-colors cursor-pointer"
                             title="Şoförü Sil"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
+                          </div>
                         </div>
                       </div>
                     );

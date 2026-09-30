@@ -1,3 +1,4 @@
+import { withStatusTrail } from '../utils/orderStatusTrail';
 import {
   db,
   collection,
@@ -28,6 +29,7 @@ import {
   CekSenet,
   KasaHareketi,
   GiderKaydi,
+  OrtakAracFis,
   AlisFaturasi,
   Tedarikci,
   TedarikciIslem,
@@ -239,13 +241,13 @@ export async function updateOrderStatusInFirestore(
   const snap = await getDoc(docRef);
   if (snap.exists()) {
     const data = snap.data();
-    const existingHistory = data.statusHistory || [];
-    const newHistory = historyItem ? [...existingHistory, historyItem] : existingHistory;
-    
+    const now = new Date().toISOString();
+    const trail = withStatusTrail(data.statusHistory, status, now, { historyItem });
+
     await updateDoc(docRef, sanitizeForFirestore({
       status,
-      statusHistory: newHistory,
-      updatedAt: new Date().toISOString(),
+      ...trail,
+      updatedAt: now,
       ...(additionalFields || {})
     }));
   }
@@ -536,10 +538,15 @@ export async function settleOrderPaymentInFirestore(
   orderId: string,
   settlement: Record<string, any>
 ): Promise<void> {
-  await updateDoc(doc(db, 'orders', orderId), sanitizeForFirestore({
+  const orderRef = doc(db, 'orders', orderId);
+  const snap = await getDoc(orderRef);
+  const now = new Date().toISOString();
+  const trail = withStatusTrail(snap.exists() ? snap.data().statusHistory : undefined, 'delivered', now, { note: 'Teslim edildi ve tahsilat kapatıldı.' });
+  await updateDoc(orderRef, sanitizeForFirestore({
     settlement,
     status: 'delivered',
-    updatedAt: new Date().toISOString(),
+    ...trail,
+    updatedAt: now,
   }));
 }
 
@@ -816,6 +823,39 @@ export function subscribeToGiderKayitlari(callback: (list: GiderKaydi[]) => void
       callback(list);
     },
     err => { console.error('[SIATEK] gider_kayitlari:', err.code); callback([]); }
+  );
+}
+
+/* ==========================================================================
+ *  ORTAK ARAÇ HESABI (tek araç / tek ortak)
+ * ========================================================================== */
+
+export async function saveOrtakAracFisToFirestore(data: OrtakAracFis): Promise<void> {
+  const ref = data.id ? doc(db, 'ortak_arac_fisleri', data.id) : doc(collection(db, 'ortak_arac_fisleri'));
+  await setDoc(ref, { ...data, id: ref.id, status: 'active', updatedAt: new Date().toISOString() });
+}
+
+export async function updateOrtakAracFisInFirestore(id: string, data: Partial<OrtakAracFis>): Promise<void> {
+  await updateDoc(doc(db, 'ortak_arac_fisleri', id), { ...data, updatedAt: new Date().toISOString() });
+}
+
+/** Silme yerine iptal: kayıt izi korunur, hesaptan düşer. */
+export async function voidOrtakAracFisInFirestore(id: string): Promise<void> {
+  await updateDoc(doc(db, 'ortak_arac_fisleri', id), {
+    status: 'void',
+    reversedById: `VOID-${Date.now()}`,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+export function subscribeToOrtakAracFisleri(
+  callback: (list: OrtakAracFis[]) => void,
+  onError?: (err: unknown) => void,
+): () => void {
+  const q = query(collection(db, 'ortak_arac_fisleri'), orderBy('tarih', 'desc'));
+  return onSnapshot(q,
+    snap => callback(snap.docs.map(d => d.data() as OrtakAracFis)),
+    err => { console.error('[SIATEK] ortak_arac_fisleri:', err.code); onError?.(err); }
   );
 }
 

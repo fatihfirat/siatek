@@ -97,6 +97,7 @@ import GiderTakipDashboard from './GiderTakipDashboard';
 import CekSenetDashboard from './CekSenetDashboard';
 import KasaDefteri from './KasaDefteri';
 import KarZararRaporu from './KarZararRaporu';
+import OrtakAracHesabi from './OrtakAracHesabi';
 import KdvOzetRaporu from './KdvOzetRaporu';
 import UrunKarMarjiRaporu from './UrunKarMarjiRaporu';
 import EInvoiceDashboard from './EInvoiceDashboard';
@@ -702,10 +703,10 @@ export default function AdminPortal({
   };
 
   // Şoför Sevkiyat Rota Toplu Sipariş Durum Güncelleme
-  const handleMarkOrdersShipped = async (orderIds: string[], trackingPrefix?: string) => {
+  const handleMarkOrdersShipped = async (orderIds: string[], trackingPrefix?: string, options?: { deliveryDate?: string }) => {
     try {
       for (const id of orderIds) {
-        await handleUpdateOrderStatus(id, 'shipped', `${trackingPrefix || 'SEVK'}-${Date.now().toString().slice(-4)}`);
+        await handleUpdateOrderStatus(id, 'shipped', `${trackingPrefix || 'SEVK'}-${Date.now().toString().slice(-4)}`, options?.deliveryDate ? { deliveryDate: options.deliveryDate } : undefined);
       }
       playNotificationSound('success');
       confetti({ particleCount: 60, spread: 70, origin: { y: 0.5 } });
@@ -764,6 +765,7 @@ export default function AdminPortal({
 
   return (
     <div className="premium-section-six admin-premium-surface space-y-6">
+      {activeTab !== 'home' && (
       <header className="relative overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-slate-950 px-5 py-5 text-white shadow-[0_18px_50px_-24px_rgba(15,23,42,0.55)] sm:px-7 sm:py-6">
         <div className="absolute inset-y-0 right-0 w-1/2 bg-emerald-500/10 [clip-path:polygon(42%_0,100%_0,100%_100%,0_100%)]" aria-hidden="true" />
         <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -782,11 +784,12 @@ export default function AdminPortal({
             </div>
             <div className="rounded-xl border border-white/10 bg-white/[0.06] px-3 py-2.5">
               <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Açık işlem</div>
-              <div className="mt-1 font-mono font-bold tabular-nums text-white">{totalPendingActions}</div>
+              <div className="mt-1 flex items-center gap-1.5 font-mono font-bold tabular-nums text-white">{totalPendingActions}{pendingOrdersCount > 0 && <span className="w-2 h-2 rounded-full bg-warning-fill animate-pulse motion-reduce:animate-none" aria-hidden="true" />}</div>
             </div>
           </div>
         </div>
       </header>
+      )}
       
       {activeTab === 'cariler' && <div className="mobile-admin-module-only"><MobileCariOverview userName={currentUserName} accounts={portalCariAccounts} loading={mobileCariLoading} setActive={setActiveTab} onAdd={() => document.dispatchEvent(new CustomEvent('siatek:open-cari-create'))} pendingOrders={pendingOrdersCount} lowStock={lowStockProducts.length} onOpenNotifications={onOpenNotifications} onToggleTheme={onMobileToggleTheme} onOpenAI={onOpenAI}/></div>}
       {activeTab === 'products' && <div className="mobile-admin-module-only"><MobileStockOverview userName={currentUserName} products={products} setActive={setActiveTab} onAdd={() => { setSelectedProductToEdit(null); setShowProductModal(true); }} pendingOrders={pendingOrdersCount} lowStock={lowStockProducts.length} onOpenNotifications={onOpenNotifications} onToggleTheme={onMobileToggleTheme} onOpenAI={onOpenAI}/></div>}
@@ -809,370 +812,14 @@ export default function AdminPortal({
             pendingOrders={pendingOrdersCount}
             pendingQuotes={pendingQuotesCount}
             lowStock={lowStockProducts.length}
+            lowStockItems={lowStockProducts}
+            offerSentQuotes={offerSentQuotesCount}
+            onOpenLowStock={() => setShowLowStockModal(true)}
+            onOpenPendingOrders={() => handleCardNavigate('pending-orders', 'orders', () => setOrderStatusFilter('pending'))}
+            onOpenPendingQuotes={() => handleCardNavigate('pending-quotes', 'quotes', () => setQuoteStatusFilter('pending_review'))}
+            onOpenOfferSentQuotes={() => handleCardNavigate('offer-sent-quotes', 'quotes', () => setQuoteStatusFilter('offer_sent'))}
             onNavigate={(tab) => setActiveTab(tab)}
           />
-          {/* Bekleyen Aksiyonlar & Hızlı Yönetim Masası */}
-      <div className="bg-base-surface p-4 sm:p-5 rounded-2xl border border-border shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <h2 className="text-sm font-extrabold text-text-primary tracking-tight flex items-center space-x-2">
-              <span>Bekleyen Aksiyonlar</span>
-              {totalPendingActions > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-bg-danger text-danger-text text-[11px] font-mono font-bold border border-danger-border">
-                  {totalPendingActions} Öncelikli İşlem
-                </span>
-              )}
-            </h2>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-[11px] text-text-muted hidden md:inline-block">
-              Tek tıkla yönetim masalarına geçiş yapın
-            </span>
-          </div>
-        </div>
-
-        {/* Action Cards Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          
-          {/* 1. Bekleyen Siparişler */}
-          <div 
-            id="card-pending-orders"
-            role="button"
-            tabIndex={0}
-            onClick={() => {
-              handleCardNavigate('pending-orders', 'orders', () => setOrderStatusFilter('pending'));
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handleCardNavigate('pending-orders', 'orders', () => setOrderStatusFilter('pending'));
-              }
-            }}
-            className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${
-              clickedCardId === 'pending-orders'
-                ? pendingOrdersCount > 0
-                  ? 'ring-2 ring-warning-border bg-bg-warning shadow-md'
-                  : 'ring-2 ring-neutral-border bg-base-surface-2 shadow-md'
-                : (activeTab as string) === 'orders' && orderStatusFilter === 'pending'
-                ? pendingOrdersCount > 0
-                  ? 'bg-bg-warning border-warning-border ring-1 ring-warning-border shadow-xs'
-                  : 'bg-base-surface-2 border-border-strong ring-1 ring-border-strong shadow-xs'
-                : pendingOrdersCount > 0
-                ? 'bg-bg-warning/25 border-warning-border/50 hover:border-warning-border hover:bg-bg-warning/40'
-                : 'bg-base-surface-2/60 border-border hover:border-border-strong hover:bg-base-surface-2'
-            }`}
-            title="Onay bekleyen siparişlere kaydır ve incele"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-text-secondary font-bold flex items-center space-x-1.5">
-                <span>Bekleyen Siparişler</span>
-                {pendingOrdersCount > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-warning-fill animate-pulse" />
-                )}
-              </span>
-              <div className={`p-1.5 sm:p-2 rounded-xl border transition-transform ${
-                clickedCardId === 'pending-orders' ? 'scale-105' : ''
-              } ${
-                pendingOrdersCount > 0
-                  ? 'bg-bg-warning text-warning-text border-warning-border'
-                  : 'bg-base-surface text-text-muted border-border'
-              }`}>
-                <ShoppingBag className="w-4 h-4" />
-              </div>
-            </div>
-            <div className={`text-xl sm:text-2xl font-black mt-1.5 font-mono ${
-              pendingOrdersCount > 0 ? 'text-warning-text' : 'text-text-primary'
-            }`}>
-              {pendingOrdersCount} <span className="text-xs font-sans font-bold text-text-muted">Sipariş</span>
-            </div>
-            <div className="flex items-center justify-between mt-1 text-[11px]">
-              <span className="text-text-muted font-medium">Onay & Hazırlık</span>
-              <span className={pendingOrdersCount > 0 ? 'text-warning-text font-bold' : 'text-text-muted font-medium'}>
-                {pendingOrdersCount > 0 ? 'İşlem Bekliyor' : 'Bekleyen Yok'}
-              </span>
-            </div>
-          </div>
-
-          {/* 2. Bekleyen Teklif Talepleri */}
-          <div 
-            id="card-pending-quotes"
-            role="button"
-            tabIndex={0}
-            onClick={() => {
-              handleCardNavigate('pending-quotes', 'quotes', () => setQuoteStatusFilter('pending_review'));
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handleCardNavigate('pending-quotes', 'quotes', () => setQuoteStatusFilter('pending_review'));
-              }
-            }}
-            className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${
-              clickedCardId === 'pending-quotes'
-                ? pendingQuotesCount > 0
-                  ? 'ring-2 ring-warning-border bg-bg-warning shadow-md'
-                  : 'ring-2 ring-neutral-border bg-base-surface-2 shadow-md'
-                : (activeTab as string) === 'quotes' && quoteStatusFilter === 'pending_review'
-                ? pendingQuotesCount > 0
-                  ? 'bg-bg-warning border-warning-border ring-1 ring-warning-border shadow-xs'
-                  : 'bg-base-surface-2 border-border-strong ring-1 ring-border-strong shadow-xs'
-                : pendingQuotesCount > 0
-                ? 'bg-bg-warning/25 border-warning-border/50 hover:border-warning-border hover:bg-bg-warning/40'
-                : 'bg-base-surface-2/60 border-border hover:border-border-strong hover:bg-base-surface-2'
-            }`}
-            title="Fiyatlandırma bekleyen teklif taleplerine kaydır"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-text-secondary font-bold flex items-center space-x-1.5">
-                <span>Bekleyen Teklifler</span>
-                {pendingQuotesCount > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-warning-fill animate-ping" />
-                )}
-              </span>
-              <div className={`p-1.5 sm:p-2 rounded-xl border transition-transform ${
-                clickedCardId === 'pending-quotes' ? 'scale-105' : ''
-              } ${
-                pendingQuotesCount > 0
-                  ? 'bg-bg-warning text-warning-text border-warning-border'
-                  : 'bg-base-surface text-text-muted border-border'
-              }`}>
-                <FileText className="w-4 h-4" />
-              </div>
-            </div>
-            <div className={`text-xl sm:text-2xl font-black mt-1.5 font-mono ${
-              pendingQuotesCount > 0 ? 'text-warning-text' : 'text-text-primary'
-            }`}>
-              {pendingQuotesCount} <span className="text-xs font-sans font-bold text-text-muted">Talep</span>
-            </div>
-            <div className="flex items-center justify-between mt-1 text-[11px]">
-              <span className="text-text-muted font-medium">Fiyatlandırma Bekliyor</span>
-              <span className={pendingQuotesCount > 0 ? 'text-warning-text font-bold' : 'text-text-muted font-medium'}>
-                {pendingQuotesCount > 0 ? 'Fiyatlandır' : 'Bekleyen Yok'}
-              </span>
-            </div>
-          </div>
-
-          {/* 3. Müşteri Yanıtı Bekleyen Teklifler */}
-          <div 
-            id="card-offer-sent-quotes"
-            role="button"
-            tabIndex={0}
-            onClick={() => {
-              handleCardNavigate('offer-sent-quotes', 'quotes', () => setQuoteStatusFilter('offer_sent'));
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                handleCardNavigate('offer-sent-quotes', 'quotes', () => setQuoteStatusFilter('offer_sent'));
-              }
-            }}
-            className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${
-              clickedCardId === 'offer-sent-quotes'
-                ? offerSentQuotesCount > 0
-                  ? 'ring-2 ring-info-border bg-bg-info shadow-md'
-                  : 'ring-2 ring-neutral-border bg-base-surface-2 shadow-md'
-                : (activeTab as string) === 'quotes' && quoteStatusFilter === 'offer_sent'
-                ? offerSentQuotesCount > 0
-                  ? 'bg-bg-info border-info-border ring-1 ring-info-border shadow-xs'
-                  : 'bg-base-surface-2 border-border-strong ring-1 ring-border-strong shadow-xs'
-                : offerSentQuotesCount > 0
-                ? 'bg-bg-info/25 border-info-border/50 hover:border-info-border hover:bg-bg-info/40'
-                : 'bg-base-surface-2/60 border-border hover:border-border-strong hover:bg-base-surface-2'
-            }`}
-            title="Müşteriye iletilen tekliflere kaydır"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-text-secondary font-bold flex items-center space-x-1.5">
-                <span>İletilen Teklifler</span>
-                {offerSentQuotesCount > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-info-fill" />
-                )}
-              </span>
-              <div className={`p-1.5 sm:p-2 rounded-xl border transition-transform ${
-                clickedCardId === 'offer-sent-quotes' ? 'scale-105' : ''
-              } ${
-                offerSentQuotesCount > 0
-                  ? 'bg-bg-info text-info-text border-info-border'
-                  : 'bg-base-surface text-text-muted border-border'
-              }`}>
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-            </div>
-            <div className={`text-xl sm:text-2xl font-black mt-1.5 font-mono ${
-              offerSentQuotesCount > 0 ? 'text-info-text' : 'text-text-primary'
-            }`}>
-              {offerSentQuotesCount} <span className="text-xs font-sans font-bold text-text-muted">Hazır Teklif</span>
-            </div>
-            <div className="flex items-center justify-between mt-1 text-[11px]">
-              <span className="text-text-muted font-medium">Müşteri Onayında</span>
-              <span className={offerSentQuotesCount > 0 ? 'text-info-text font-bold' : 'text-text-muted font-medium'}>
-                {offerSentQuotesCount > 0 ? 'Takipte' : 'Aktif Yok'}
-              </span>
-            </div>
-          </div>
-
-          {/* 4. Düşük Stok Alarmları */}
-          <div 
-            id="card-low-stock-alert"
-            role="button"
-            tabIndex={0}
-            onClick={() => {
-              if (lowStockProducts.length > 0) {
-                setShowLowStockModal(true);
-              } else {
-                handleCardNavigate('low-stock', 'products');
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                if (lowStockProducts.length > 0) setShowLowStockModal(true);
-                else handleCardNavigate('low-stock', 'products');
-              }
-            }}
-            className={`p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 cursor-pointer select-none active:scale-[0.98] ${
-              clickedCardId === 'low-stock'
-                ? lowStockProducts.length > 0
-                  ? 'ring-2 ring-danger-border bg-bg-danger shadow-md'
-                  : 'ring-2 ring-neutral-border bg-base-surface-2 shadow-md'
-                : lowStockProducts.length > 0 
-                ? 'bg-bg-danger/40 border-danger-border hover:bg-bg-danger/60 ring-1 ring-danger-border' 
-                : 'bg-base-surface-2/60 border-border hover:border-border-strong hover:bg-base-surface-2'
-            }`}
-            title="Düşük stok detaylarını incele ve hızlı ikmal yap"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-text-secondary font-bold flex items-center space-x-1.5">
-                <span>Düşük Stok</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-base-surface text-text-secondary font-mono border border-border">≤{lowStockThreshold}</span>
-              </span>
-              <div className={`p-1.5 sm:p-2 rounded-xl border ${
-                lowStockProducts.length > 0 
-                  ? 'bg-bg-danger text-danger-text border-danger-border animate-pulse' 
-                  : 'bg-base-surface text-text-muted border-border'
-              }`}>
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-            </div>
-            <div className={`text-xl sm:text-2xl font-black mt-1.5 font-mono ${
-              lowStockProducts.length > 0 ? 'text-danger-text' : 'text-text-primary'
-            }`}>
-              {lowStockProducts.length} <span className="text-xs font-sans font-bold text-text-muted">Kritik Ürün</span>
-            </div>
-            <div className="flex items-center justify-between mt-1 text-[11px]">
-              <span className={lowStockProducts.length > 0 ? 'text-danger-text font-semibold' : 'text-text-muted'}>
-                {lowStockProducts.length > 0 ? 'Hızlı İkmal ➔' : 'Stoklar Yeterli'}
-              </span>
-              <span className="text-text-muted">Toplam: {products.length}</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Overview Analytics Bar (Toplam Sipariş & Aktif Ürün Adacıkları - Paylaşılan Bileşen) */}
-      <OverviewMetricsBar
-        products={products}
-        orders={orders}
-        activeTab={activeTab}
-        clickedCardId={clickedCardId}
-        onNavigateOrders={() => {
-          if (activeTab === 'home') {
-            setClickedCardId('total-orders-island');
-            setOrderStatusFilter('all');
-            setHighlightSection('orders');
-            setTimeout(() => { contentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
-            setTimeout(() => setClickedCardId(null), 800);
-            setTimeout(() => setHighlightSection(null), 2500);
-          } else {
-            handleCardNavigate('total-orders-island', 'orders', () => setOrderStatusFilter('all'));
-          }
-        }}
-        onNavigateProducts={() => {
-          handleCardNavigate('active-products-island', 'products', () => setSearchFilter(''));
-        }}
-      />
-
-      {/* Prominent Low Stock Alert Banner (Real-time & threshold driven) */}
-      {lowStockProducts.length > 0 && (
-        <div className="p-4 bg-bg-danger/25 border border-danger-border rounded-2xl shadow-xs space-y-3 animate-in fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-start sm:items-center space-x-3">
-              <div className="p-2 rounded-xl bg-danger-fill text-white shadow-xs shrink-0">
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center space-x-2 flex-wrap">
-                  <h3 className="font-extrabold text-sm text-danger-text">
-                    Otomatik 'Düşük Stok' Alarmı Aktif
-                  </h3>
-                  <span className="px-2 py-0.5 rounded-full bg-bg-danger text-danger-text font-bold text-xs border border-danger-border">
-                    {lowStockProducts.length} Üründe Stok Kritik (≤ {lowStockThreshold} Adet)
-                  </span>
-                </div>
-                <p className="text-xs text-text-secondary mt-0.5">
-                  Sipariş ve satış akışında stok tükenmesi riskini önlemek için kritik ürünleri inceleyip ikmal yapabilirsiniz.
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Action Buttons: 1 Primary CTA + Secondary Outline Actions */}
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <button
-                onClick={() => setShowLowStockModal(true)}
-                className="px-3.5 py-1.5 bg-danger-fill hover:opacity-90 text-white rounded-xl text-xs font-bold shadow-xs transition-colors flex items-center space-x-1.5 cursor-pointer active:scale-[0.98]"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Kritik Ürünleri İncele & İkmal Et</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('products')}
-                className="px-3 py-1.5 bg-base-surface hover:bg-base-surface-2 text-text-primary border border-border rounded-xl text-xs font-semibold transition-colors cursor-pointer active:scale-[0.98]"
-              >
-                <span>Ürün Tablosunda Aç</span>
-              </button>
-
-              <button
-                onClick={handleTriggerLowStockAlarm}
-                disabled={isCheckingLowStock}
-                className="px-3 py-1.5 bg-base-surface hover:bg-base-surface-2 text-text-secondary hover:text-text-primary border border-border rounded-xl text-xs font-semibold transition-colors flex items-center space-x-1.5 cursor-pointer disabled:opacity-50 active:scale-[0.98]"
-                title="Sisteme yeni bildirim alarmı fırlat"
-              >
-                <BellRing className="w-3.5 h-3.5" />
-                <span>{isCheckingLowStock ? 'Taranıyor...' : 'Alarm Bildirimi'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Quick Preview Chips of Top Low Stock Products */}
-          <div className="pt-2 border-t border-danger-border/30 flex items-center gap-2 overflow-x-auto custom-scrollbar text-xs">
-            <span className="text-text-muted font-bold text-[11px] shrink-0">En Kritikler:</span>
-            {lowStockProducts.slice(0, 8).map(p => (
-              <div key={p.id} className="flex items-center space-x-1.5 bg-base-surface px-2.5 py-1 rounded-lg border border-border shrink-0 shadow-2xs">
-                <span className="font-semibold text-text-primary truncate max-w-[140px]">{p.name}</span>
-                <span className="font-mono font-bold text-danger-text bg-bg-danger px-1.5 py-0.5 rounded text-[10px] border border-danger-border">
-                  {p.stock} {p.unit}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleQuickRestock(p, 50)}
-                  disabled={restockLoadingId === p.id}
-                  className="text-[10px] font-bold text-success-text bg-bg-success hover:opacity-90 px-1.5 py-0.5 rounded transition-colors cursor-pointer border border-success-border active:scale-[0.95]"
-                  title="+50 Adet Hızlı İkmal"
-                >
-                  {restockLoadingId === p.id ? '...' : '+50'}
-                </button>
-              </div>
-            ))}
-            {lowStockProducts.length > 8 && (
-              <button 
-                onClick={() => setShowLowStockModal(true)}
-                className="text-danger-text font-bold text-[11px] hover:underline shrink-0 cursor-pointer"
-              >
-                +{lowStockProducts.length - 8} ürün daha ➔
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Feedback Banner */}
       {lowStockFeedback && (
         <div className="p-3 bg-bg-success border border-success-border text-success-text rounded-xl text-xs flex items-center justify-between animate-in fade-in">
@@ -3148,6 +2795,11 @@ export default function AdminPortal({
         </div>
       )}
 
+      {/* ORTAK ARAÇ HESABI */}
+      {(activeTab as string) === 'ortak-arac' && (
+        <OrtakAracHesabi />
+      )}
+
       {/* RAPOR: KÂR / ZARAR */}
       {(activeTab as string) === 'kar-zarar' && (
         <KarZararRaporu />
@@ -3316,6 +2968,16 @@ export default function AdminPortal({
               </div>
 
               <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={handleTriggerLowStockAlarm}
+                  disabled={isCheckingLowStock}
+                  className="px-3 py-1.5 bg-base-surface hover:bg-base-surface-2 text-text-secondary hover:text-text-primary border border-border rounded-xl text-xs font-semibold transition-colors flex items-center space-x-1.5 cursor-pointer disabled:opacity-50 active:scale-[0.98]"
+                  title="Sisteme yeni bildirim alarmı fırlat"
+                >
+                  <BellRing className="w-3.5 h-3.5" />
+                  <span>{isCheckingLowStock ? 'Taranıyor...' : 'Alarm bildirimi'}</span>
+                </button>
                 {/* Threshold selector */}
                 <div className="flex items-center space-x-1.5 bg-base-surface px-3 py-1.5 rounded-xl border border-border text-xs">
                   <span className="text-text-muted font-medium">Eşik:</span>

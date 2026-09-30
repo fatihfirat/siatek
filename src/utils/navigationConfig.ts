@@ -46,6 +46,9 @@ export function getMoreModulesForRole(role: UserRole) {
         { id: 'gider', title: 'Giderler', description: 'İşletme giderlerini takip edin', icon: Banknote, color: 'text-warning-text bg-warning-fill/15' },
         { id: 'cek-senet', title: 'Çek / Senet', description: 'Vadeli ödeme araçları', icon: CreditCard, color: 'text-text-secondary bg-base-surface-2' },
       ],
+      partner: [
+        { id: 'ortak-arac', title: 'Ortak Araç Hesabı', description: '11 ACH 644 kâr/zarar ortaklığı', icon: Truck, color: 'text-success-text bg-success-fill/15' },
+      ],
       reports: [
         { id: 'analytics', title: 'Satış Analizi', description: 'Satış trendleri ve performans', icon: BarChart3, color: 'text-info-text bg-info-fill/15' },
         { id: 'kar-zarar', title: 'Kâr / Zarar', description: 'Dönemsel finansal sonuçlar', icon: TrendingUp, color: 'text-success-text bg-success-fill/15' },
