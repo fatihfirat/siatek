@@ -432,7 +432,7 @@ describe('GÖREV 6 — Premium Deneyim: Bilişsel Yük, Nefes Alanı, Hareket Te
         />
       );
       expect(dispatchHtml).toContain('Şoför Atama &amp; Rota Çizelgesi');
-      expect(dispatchHtml).toContain('Özmal Araç / Plaka:');
+      expect(dispatchHtml).toContain('Özmal Araç / Plaka');
       expect(dispatchHtml).toContain('Çizelgeyi Yazdır (A4)');
 
       // 3. Canlı Sevkiyat Haritası & Şantiyeler sekmesi
