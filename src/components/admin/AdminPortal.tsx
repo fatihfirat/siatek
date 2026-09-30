@@ -19,7 +19,7 @@ import { MobileCariOverview, MobileStockOverview } from '../mobile/MobileERP';
 import AdminModuleOverview from './AdminModuleOverview';
 import { Product, Order, Quote, OrderStatus, CariAccount, KasaHareketi } from '../../types';
 import type { AdminSystemTool, AdminTab } from '../../types';
-import { createTransactionalOrder, updateTransactionalOrderStatus } from '../../lib/transactionService';
+import { createTransactionalOrder, updateTransactionalOrderStatus, deleteTransactionalOrder } from '../../lib/transactionService';
 import DeliverySettlementModal, { DeliverySettlementData } from './DeliverySettlementModal';
 import { 
   LayoutDashboard, 
@@ -275,6 +275,8 @@ export default function AdminPortal({
   const [orderCurrentPage, setOrderCurrentPage] = useState<number>(1);
   const [orderPageSize, setOrderPageSize] = useState<number>(10);
   const [expandedOrderIds, setExpandedOrderIds] = useState<Set<string>>(new Set());
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [isDeletingOrders, setIsDeletingOrders] = useState(false);
   const [copiedOrderFeedback, setCopiedOrderFeedback] = useState<string | null>(null);
   const [showSalesTrendWidget, setShowSalesTrendWidget] = useState<boolean>(false);
   const [selectedTrendDate, setSelectedTrendDate] = useState<string | null>(null);
@@ -517,6 +519,46 @@ export default function AdminPortal({
       return { success: true };
     } else if (serverError) {
       throw new Error(serverError);
+    }
+  };
+
+  // Seçili siparişleri kalıcı siler. Önce yedek JSON indirilir; stok ve cari hareketler geri alınır.
+  const handleDeleteOrders = async (ids: string[]) => {
+    const targets = orders.filter(o => ids.includes(o.id));
+    if (targets.length === 0 || isDeletingOrders) return;
+    const label = targets.length === 1 ? `${targets[0].orderNumber} numaralı sipariş` : `${targets.length} sipariş`;
+    if (!window.confirm(`${label} KALICI olarak silinecek.\n\nRezerve stok geri eklenir, bağlı cari hareketler geri alınır. Bu işlem geri alınamaz; silmeden önce yedek dosyası indirilecek.\n\nDevam edilsin mi?`)) return;
+
+    try {
+      const blob = new Blob([JSON.stringify(targets, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `siparis-yedek-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (backupErr) {
+      console.error('Yedek indirilemedi:', backupErr);
+      if (!window.confirm('Yedek dosyası indirilemedi. Yedeksiz silmeye devam edilsin mi?')) return;
+    }
+
+    setIsDeletingOrders(true);
+    const failed: string[] = [];
+    for (const order of targets) {
+      try {
+        await deleteTransactionalOrder(order.id);
+      } catch (err) {
+        console.error('Sipariş silme hatası:', order.id, err);
+        failed.push(order.orderNumber || order.id);
+      }
+    }
+    setIsDeletingOrders(false);
+    setSelectedOrderIds(new Set());
+    onRefresh();
+    if (failed.length > 0) {
+      alert(`${targets.length - failed.length} sipariş silindi. Silinemeyenler: ${failed.join(', ')}`);
+    } else {
+      playNotificationSound('success');
     }
   };
 
@@ -1888,9 +1930,61 @@ export default function AdminPortal({
                 }
               };
 
+              const pageIds = paginatedOrders.map(o => o.id);
+              const allPageSelected = pageIds.length > 0 && pageIds.every(id => selectedOrderIds.has(id));
+              const handleToggleSelect = (orderId: string) => {
+                setSelectedOrderIds(prev => {
+                  const next = new Set(prev);
+                  if (next.has(orderId)) next.delete(orderId);
+                  else next.add(orderId);
+                  return next;
+                });
+              };
+              const handleToggleSelectPage = () => {
+                setSelectedOrderIds(prev => {
+                  const next = new Set(prev);
+                  if (allPageSelected) pageIds.forEach(id => next.delete(id));
+                  else pageIds.forEach(id => next.add(id));
+                  return next;
+                });
+              };
+
               return (
                 <div className="space-y-3">
-                  
+
+                  {/* Toplu seçim ve silme çubuğu */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-2xl border border-border bg-base-surface-2/60">
+                    <label className="flex items-center gap-2 min-h-[44px] text-xs font-bold text-text-secondary cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={allPageSelected}
+                        onChange={handleToggleSelectPage}
+                        className="w-4 h-4 rounded cursor-pointer accent-emerald-600"
+                      />
+                      <span>Bu sayfadakileri seç</span>
+                    </label>
+                    {selectedOrderIds.size > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-text-muted tabular-nums">{selectedOrderIds.size} seçili</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedOrderIds(new Set())}
+                          className="px-3 min-h-[44px] rounded-xl border border-border bg-base-surface text-xs font-bold text-text-secondary hover:text-text-primary cursor-pointer active:scale-[0.98]"
+                        >
+                          Seçimi temizle
+                        </button>
+                        <button
+                          type="button"
+                          disabled={isDeletingOrders}
+                          onClick={() => handleDeleteOrders(Array.from(selectedOrderIds))}
+                          className="px-3 min-h-[44px] rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white text-xs font-bold cursor-pointer active:scale-[0.98]"
+                        >
+                          {isDeletingOrders ? 'Siliniyor…' : 'Seçilenleri sil'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Master-Detail Order Rows */}
                   {paginatedOrders.map((order, idx) => {
                     const isExpanded = expandedOrderIds.has(order.id);
@@ -1913,6 +2007,13 @@ export default function AdminPortal({
                           
                           {/* Left: Expand toggle, Order No, Customer, Date, Status */}
                           <div className="flex items-start sm:items-center space-x-3 min-w-0 flex-1">
+                            <input
+                              type="checkbox"
+                              checked={selectedOrderIds.has(order.id)}
+                              onChange={() => handleToggleSelect(order.id)}
+                              aria-label={`${order.orderNumber} siparişini seç`}
+                              className="w-4 h-4 rounded cursor-pointer accent-emerald-600 shrink-0"
+                            />
                             <button
                               type="button"
                               onClick={() => handleToggleExpand(order.id)}
@@ -2138,6 +2239,7 @@ export default function AdminPortal({
                                 }}
                                 onOpenInvoices={() => setActiveTab('invoices')}
                                 onCancelOrder={['pending', 'approved', 'preparing'].includes(order.status) ? () => handleUpdateOrderStatus(order.id, 'cancelled') : undefined}
+                                onDeleteOrder={() => handleDeleteOrders([order.id])}
                               />
                             </div>
                           </div>

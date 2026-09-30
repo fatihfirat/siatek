@@ -8,6 +8,7 @@ import {
   Printer, 
   FileText, 
   XCircle,
+  Trash2,
   ChevronDown
 } from 'lucide-react';
 import { Order } from '../../types';
@@ -20,6 +21,7 @@ interface OrderActionDropdownProps {
   onPrintThermalReceipt: () => void;
   onOpenInvoices: () => void;
   onCancelOrder?: () => void;
+  onDeleteOrder?: () => void;
 }
 
 export const OrderActionDropdown: React.FC<OrderActionDropdownProps> = ({
@@ -29,7 +31,8 @@ export const OrderActionDropdown: React.FC<OrderActionDropdownProps> = ({
   onOpenReceipts,
   onPrintThermalReceipt,
   onOpenInvoices,
-  onCancelOrder
+  onCancelOrder,
+  onDeleteOrder
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState<React.CSSProperties>({});
@@ -251,6 +254,25 @@ export const OrderActionDropdown: React.FC<OrderActionDropdownProps> = ({
                   <XCircle className="w-3.5 h-3.5" />
                 </div>
                 <div className="font-semibold">Siparişi İptal Et</div>
+              </button>
+            </div>
+          )}
+
+          {onDeleteOrder && (
+            <div className="py-1 border-t border-border">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setIsOpen(false);
+                  onDeleteOrder();
+                }}
+                className="w-full text-left px-3 py-2 text-danger-text hover:bg-bg-danger flex items-center space-x-2.5 transition-colors cursor-pointer"
+              >
+                <div className="p-1 rounded-md bg-danger-fill/15 text-danger-text">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </div>
+                <div className="font-semibold">Siparişi Sil</div>
               </button>
             </div>
           )}
