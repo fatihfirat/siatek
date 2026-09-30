@@ -632,7 +632,7 @@ app.use('/api', async (req, _res, next) => {
 // All privileged API routes share one server-side gate. Client role is never trusted.
 app.use('/api', (req, res, next) => {
   const route = req.path;
-  if (route.startsWith('/auth/') || (route === '/products' && req.method === 'GET') || (route === '/company-settings' && req.method === 'GET') || route === '/system/client-error') return next();
+  if (route === '/health' || route.startsWith('/auth/') || (route === '/products' && req.method === 'GET') || (route === '/company-settings' && req.method === 'GET') || route === '/system/client-error') return next();
   // Allow order placement and quote requests to reach their endpoint (endpoints validate payload and customer identity)
   if ((route === '/orders' && req.method === 'POST') || (route === '/quotes/request' && req.method === 'POST')) return next();
   const user = verifySessionToken(req.headers.authorization || '');
