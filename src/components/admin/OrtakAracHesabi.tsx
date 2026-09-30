@@ -10,6 +10,7 @@ import type {
   OrtakAracFisTur,
   OrtakAracGiderKategori,
   OrtakAracOdemeYonu,
+  OrtakAracOdeyen,
 } from '../../types';
 import { Truck, Plus, X, CheckCircle2, AlertCircle, Receipt, ChevronDown, Handshake, Ban, Printer } from 'lucide-react';
 
@@ -64,6 +65,7 @@ function bosForm() {
     malMaliyeti: '',
     giderKategori: 'yakit' as OrtakAracGiderKategori,
     odemeYonu: 'ortaga_odedik' as OrtakAracOdemeYonu,
+    odeyen: 'biz' as OrtakAracOdeyen,
     fisNo: '',
     aciklama: '',
   };
@@ -128,7 +130,7 @@ export default function OrtakAracHesabi() {
     [fisler, seciliAy],
   );
   const ortakOdemeleri = useMemo(
-    () => activeAccountingRows(fisler).filter((f) => f.tur === 'ortak_odeme'),
+    () => activeAccountingRows(fisler).filter((f) => f.tur === 'ortak_odeme' || (f.tur === 'gider' && f.odeyen === 'ortak')),
     [fisler],
   );
   const giderDagilimi = useMemo(
@@ -175,7 +177,7 @@ export default function OrtakAracHesabi() {
       createdAt: ts,
       updatedAt: ts,
       ...(form.tur === 'satis' ? { malMaliyeti: roundMoney(maliyet) } : {}),
-      ...(form.tur === 'gider' ? { giderKategori: form.giderKategori } : {}),
+      ...(form.tur === 'gider' ? { giderKategori: form.giderKategori, odeyen: form.odeyen } : {}),
       ...(form.tur === 'ortak_odeme' ? { odemeYonu: form.odemeYonu } : {}),
     };
     // undefined alanları Firestore reddeder
@@ -407,7 +409,7 @@ export default function OrtakAracHesabi() {
                 {bakiye > 0 ? 'Ortağa borcumuz var' : bakiye < 0 ? 'Ortak bize borçlu' : 'Hesap kapalı, borç yok'}
               </p>
               <p className="text-[10px] text-text-muted">
-                Tahsilatın bizde olduğu varsayılır. Ortağa yapılan ödemeleri “Ortak Ödemesi” fişiyle girin.
+                Satış tahsilatı ve mal maliyeti bizde varsayılır. Ortağın ödediği giderleri gider fişinde “Ortak ödedi” seçin; ortağa yaptığınız ödemeleri “Ortak Ödemesi” fişiyle girin.
               </p>
             </div>
             <div className="p-4 rounded-2xl border border-border bg-base-surface space-y-2">
@@ -417,7 +419,8 @@ export default function OrtakAracHesabi() {
               </h3>
               {[
                 ['Ortağın toplam payı', hesap.allTime.partnerShare],
-                ['Ortağa net ödenen', hesap.paidToPartner],
+                ['Ortağın cebinden ödediği giderler (iade)', hesap.partnerAdvances],
+                ['Ortağa net ödenen (−)', hesap.paidToPartner],
               ].map(([l, v]) => (
                 <div key={l as string} className="flex items-center justify-between text-xs">
                   <span className="text-text-secondary font-semibold">{l as string}</span>
@@ -441,8 +444,8 @@ export default function OrtakAracHesabi() {
             {gosterilenFisler.length === 0 ? (
               <div className="p-8 text-center space-y-3">
                 <Receipt className="w-10 h-10 text-text-muted mx-auto" />
-                <p className="text-sm font-semibold text-text-primary">{gorunum === 'cari' ? 'Henüz ortak ödemesi yok' : `${ayEtiketi(seciliAy)} için fiş yok`}</p>
-                <p className="text-xs text-text-muted">{gorunum === 'cari' ? 'Ortağa yaptığınız ödemeleri ya da aldığınız avansları fişle girin.' : 'Satış, gider ya da ortak ödemesi fişi ekleyin; hesap otomatik oluşur.'}</p>
+                <p className="text-sm font-semibold text-text-primary">{gorunum === 'cari' ? 'Ortakla ilgili hareket yok' : `${ayEtiketi(seciliAy)} için fiş yok`}</p>
+                <p className="text-xs text-text-muted">{gorunum === 'cari' ? 'Ortağa ödeme, ortaktan avans ya da ortağın ödediği gider girildiğinde burada görünür.' : 'Satış, gider ya da ortak ödemesi fişi ekleyin; hesap otomatik oluşur.'}</p>
                 <button
                   onClick={yeniAc}
                   className="min-h-[44px] px-4 rounded-xl bg-success-fill text-white text-xs font-bold cursor-pointer hover:opacity-90 active:scale-[0.98]"
@@ -461,7 +464,7 @@ export default function OrtakAracHesabi() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-semibold text-text-primary truncate">
-                          {fisBaslik(f)}{f.aciklama ? ` · ${f.aciklama}` : ''}
+                          {fisBaslik(f)}{f.tur === 'gider' && f.odeyen === 'ortak' ? ' · ortak ödedi' : ''}{f.aciklama ? ` · ${f.aciklama}` : ''}
                         </p>
                         <p className={`text-[10px] text-text-muted ${num}`}>
                           {f.tarih}{f.fisNo ? ` · #${f.fisNo}` : ''}
@@ -589,6 +592,32 @@ export default function OrtakAracHesabi() {
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {form.tur === 'gider' && (
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="text-[11px] font-bold text-text-muted uppercase">Kim ödedi?</label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {([
+                      ['biz', 'Biz ödedik'],
+                      ['ortak', 'Ortak ödedi'],
+                    ] as const).map(([k, l]) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => setF('odeyen', k)}
+                        className={`min-h-[44px] rounded-lg text-xs font-bold cursor-pointer border transition-all active:scale-[0.98] ${
+                          form.odeyen === k ? 'bg-brand-500/20 text-brand-600 dark:text-brand-400 border-brand-500/40' : 'bg-base-surface-2 text-text-muted border-border'
+                        }`}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                  {form.odeyen === 'ortak' && (
+                    <p className="text-[10px] text-text-muted">Ortağın cebinden çıktı; hesapta ona iade edilecek tutar olarak görünür.</p>
+                  )}
                 </div>
               )}
 
